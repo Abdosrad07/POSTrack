@@ -1,3 +1,40 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE and Editor Files
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.tss
+*.builds
+*.pidb
+*.vsp
+*.safesync
+*.testsettings
+*.trx
+*.webtestsettings
+*.vspscc
+*.vssscc
+*.bak
+*.csi
+*.log
+*.pfx
+*.vsct
+*.vshost
+*.csproj.user
+*.vcxproj.user
+*.vfsp
+*.vbproj.user
+*.resharper
+*.fsproj.user
+*.fs
+*.sublime-project
+*.sublime-workspace
+
 # Logs
 logs
 *.log
@@ -141,3 +178,54 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Python specific ignores
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+.venv/
+venv/
+env/
+pip-log.txt
+pip-delete-this-arg.txt
+build/
+dist/
+
+# Frontend specific ignores
+# package manager lock files (usually committed, uncomment to ignore)
+# package-lock.json
+# yarn.lock
+tmp/
+temp/
+
+# Data specific ignores
+# Database files
+*.sqlite3
+*.db
+*.db3
+*.mdb
+*.sqlite
+*.sqb
+*.sqlite-journal
+
+# Data directories
+data/
+datasets/
+uploads/
+media/
+files/
+output/
+
+# Temporary data files
+*.tmp
+*.bak
+*.swp
+*.swo
+*.swn
+
+# Sensitive configuration files (if not already covered by .env)
+config.local.json
+settings.local.py
+local.properties
+
