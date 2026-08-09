@@ -4,6 +4,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/pos', label: 'POS' },
   { to: '/partenaires', label: 'Partenaires' },
+  { to: '/primes', label: 'Primes' },
 ]
 
 function Layout() {
