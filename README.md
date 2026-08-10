@@ -57,7 +57,7 @@ Quatre entités métier centrales :
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/organisation/postrack.git
+git clone https://github.com/Olavic21/postrack.git
 cd postrack/backend
 
 # Créer et activer l'environnement virtuel
