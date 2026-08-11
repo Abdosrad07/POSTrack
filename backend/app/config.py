@@ -7,7 +7,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # --- Base de données ---
-    DATABASE_URL: str = "mysql+pymysql://postrack:changeme@localhost:3306/postrack_db"
+    # Choix de l'équipe Backend pour ce projet : SQLite (le cahier des charges v3.1
+    # prévoyait MySQL pour les accès concurrents multi-agences — écart assumé,
+    # cf. GEMINI.md). Le fichier .db est créé à la racine de backend/.
+    DATABASE_URL: str = "sqlite:///./postrack.db"
 
     # --- JWT ---
     JWT_SECRET_KEY: str = "change-me-in-env"

@@ -31,8 +31,10 @@ vous en êtes réellement dans le planning.
 ## Stack technique (Backend)
 
 - Python 3.9+, FastAPI, SQLAlchemy (ORM), Pydantic (schémas).
-- MySQL 8.0+ via PyMySQL (remplace SQLite dès le MVP pour les accès
-  concurrents multi-agences).
+- SQLite (choix de l'équipe Backend pour ce projet — le cahier des
+  charges v3.1 prévoyait MySQL pour les accès concurrents
+  multi-agences ; à garder en tête si le référent client le demande
+  en recette).
 - JWT (access + refresh token) pour l'authentification, 4 rôles :
   ADMIN, MANAGER, DSM, VIEWER.
 - Pandas + OpenPyXL pour l'import/export Excel des POS.
@@ -75,8 +77,8 @@ backend/app/
 
 ### Semaine 1
 
-- [ ] **Jour 1** — Initialisation FastAPI, config, connexion SQLAlchemy/MySQL.
-- [ ] **Jour 2** — Modèles SQLAlchemy des 12 tables + migrations.
+- [X] **Jour 1** — Initialisation FastAPI, config, connexion SQLAlchemy/MySQL.
+- [X] **Jour 2** — Modèles SQLAlchemy des 12 tables + migrations.
 - [ ] **Jour 3** — `POST /auth/register`, `POST /auth/login` (JWT), middleware, 4 rôles.
 - [ ] **Jour 4 (matin)** — CRUD complet `/api/partenaires`.
 - [ ] **Jour 4 (après-midi)** — CRUD complet `/api/dsm`.
@@ -128,4 +130,7 @@ pytest --cov=app
 
 - Ne pas cocher une case de la roadmap tout seul — c'est à l'équipe de le faire une fois le livrable du jour validé en sync 17h30.
 - Ne pas proposer de contourner la contrainte d'unicité Prime/POS ou la règle Nouveau/Reconduit, même "pour aller plus vite" en démo.
-- Ne pas remplacer MySQL par SQLite dans les suggestions : le choix MySQL est arrêté pour tout le MVP (section 2.1 du cahier des charges).
+- La base est SQLite pour ce projet (décision de l'équipe Backend) —
+  le cahier des charges v3.1 prévoyait MySQL ; ne pas "corriger" ce
+  choix tout seul, mais rappeler l'écart si le sujet des accès
+  concurrents multi-agences revient en discussion.
