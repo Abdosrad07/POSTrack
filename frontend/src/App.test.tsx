@@ -1,9 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 
 describe('App', () => {
+  beforeEach(() => {
+    localStorage.setItem('token', 'mock-token')
+  })
+
   it('should render the Dashboard page by default', () => {
     render(
       <MemoryRouter>
@@ -31,3 +35,5 @@ describe('App', () => {
     expect(screen.getByText('Liste des Partenaires')).toBeInTheDocument()
   })
 })
+
+
