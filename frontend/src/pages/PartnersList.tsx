@@ -1,33 +1,57 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 
+type Partenaire = {
+  id: number
+  nom: string
+  email: string
+  telephone: string
+  pos_count: number
+  statut: 'actif' | 'inactif' | string
+}
+
 export default function PartenairesListPage() {
-  const [partenaires, setPartenaires] = useState([])
+  const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-
-  const fetchPartenaires = async () => {
-    try {
-      setLoading(true)
-      const response = await api.get('/partenaires')
-      setPartenaires(response.data.data || response.data || [])
-    } catch {
-      setPartenaires([
-        { id: 1, nom: 'Partenaire ABC', email: 'contact@abc.com', telephone: '+237600000001', pos_count: 5, statut: 'actif' },
-        { id: 2, nom: 'Partenaire XYZ', email: 'contact@xyz.com', telephone: '+237600000002', pos_count: 3, statut: 'inactif' },
-      ])
-    } finally {
-      setLoading(false)
-    }
-  }
+  const navigate = useNavigate()
 
   useEffect(() => {
-    fetchPartenaires()
+    let ignore = false
+
+    const fetchPartenaires = async () => {
+      try {
+        setLoading(true)
+        const response = await api.get('/partenaires')
+        const data = response.data.data || response.data || []
+        if (!ignore) {
+          setPartenaires(data)
+        }
+      } catch {
+        if (!ignore) {
+          setPartenaires([
+            { id: 1, nom: 'Partenaire ABC', email: 'contact@abc.com', telephone: '+237600000001', pos_count: 5, statut: 'actif' },
+            { id: 2, nom: 'Partenaire XYZ', email: 'contact@xyz.com', telephone: '+237600000002', pos_count: 3, statut: 'inactif' },
+          ])
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void fetchPartenaires()
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
-  const filteredPartenaires = partenaires.filter((p) => {
-    const matchesSearch = p.nom?.toLowerCase().includes(searchTerm.toLowerCase()) || p.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPartenaires = partenaires.filter((p: Partenaire) => {
+    const matchesSearch = p.nom.toLowerCase().includes(searchTerm.toLowerCase()) || p.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter ? p.statut === statusFilter : true
     return matchesSearch && matchesStatus
   })
@@ -41,6 +65,7 @@ export default function PartenairesListPage() {
         </div>
         <button
           type="button"
+          onClick={() => navigate('/partenaires/new')}
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           + Nouveau Partenaire

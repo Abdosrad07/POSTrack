@@ -116,7 +116,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             }`}
             placeholder="Ex: Douala, quartier Akwa"
           />
-{errors.localisation && <p className="mt-1 text-xs text-red-600">{errors.localisation}</p>}
+          {errors.localisation && <p className="mt-1 text-xs text-red-600">{errors.localisation}</p>}
         </div>
 
         <div>
@@ -238,14 +238,4 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
     </form>
   )
 }
-          {errors.localisation && <p className="mt-1 text-xs text-red-600">{errors.localisation}</p>}
-        </div>
-
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (validate()) {
-      onSubmit(form)
-    }
-  }
 
