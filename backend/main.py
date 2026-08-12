@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
+from app.api import auth, partenaires, dsm, bts
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -39,10 +40,15 @@ def health_check(db: Session = Depends(get_db)):
     return {"status": "ok", "database": "connected"}
 
 
-# --- Routers à brancher au fil des jours ---
-# from app.api import auth, partenaires, dsm, pos, bts, primes, clients, sims, requetes, analytics
-# app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-# app.include_router(partenaires.router, prefix="/api/partenaires", tags=["partenaires"])
+# --- Routers actifs (Jours 3 à 5) ---
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(partenaires.router, prefix="/api/partenaires", tags=["partenaires"])
+app.include_router(dsm.router, prefix="/api/dsm", tags=["dsm"])
+app.include_router(bts.router, prefix="/api/bts", tags=["bts"])
+
+# --- Routers à brancher au fil des jours suivants ---
+# from app.api import pos, reconductions, primes, clients, sims, requetes, analytics
+# app.include_router(pos.router, prefix="/api/pos", tags=["pos"])
 # ...
 
 

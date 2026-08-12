@@ -79,11 +79,11 @@ backend/app/
 
 - [X] **Jour 1** — Initialisation FastAPI, config, connexion SQLAlchemy/MySQL.
 - [X] **Jour 2** — Modèles SQLAlchemy des 12 tables + migrations.
-- [ ] **Jour 3** — `POST /auth/register`, `POST /auth/login` (JWT), middleware, 4 rôles.
-- [ ] **Jour 4 (matin)** — CRUD complet `/api/partenaires`.
-- [ ] **Jour 4 (après-midi)** — CRUD complet `/api/dsm`.
-- [ ] **Jour 5 (matin)** — CRUD `/api/bts`.
-- [ ] **Jour 5 (après-midi, P1)** — `/api/bts/{id}/releves` (GET historique, POST relevé, MAJ cache).
+- [X] **Jour 3** — `POST /auth/register`, `POST /auth/login` (JWT), middleware, 4 rôles.
+- [X] **Jour 4 (matin)** — CRUD complet `/api/partenaires`.
+- [X] **Jour 4 (après-midi)** — CRUD complet `/api/dsm`.
+- [X] **Jour 5 (matin)** — CRUD `/api/bts`.
+- [X] **Jour 5 (après-midi, P1)** — `/api/bts/{id}/releves` (GET historique, POST relevé, MAJ cache).
 
 ### Jours 6-7 — Tampon / rattrapage (non obligatoire)
 
