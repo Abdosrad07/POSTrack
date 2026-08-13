@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.bts import BTSCreate, BTSUpdate, BTSOut, BTSReleveCreate, BTSReleveOut
+from app.schemas.bts import BTSCreate, BTSUpdate, BTSOut, BTSReleveCreate, BTSReleveOut, BTSReleveListOut
 from app.crud import bts as crud
 from app.services import bts_service
 from app.security.permissions import require_role, MANAGER_PLUS, TOUS_ROLES
@@ -21,6 +21,32 @@ def list_bts(
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
     return crud.list_bts(db, skip=skip, limit=limit, partenaire_id=partenaire_id, statut=statut)
+
+
+@router.get("/releves", response_model=list[BTSReleveListOut])
+def list_all_releves(
+    skip: int = 0,
+    limit: int = 200,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(TOUS_ROLES)),
+):
+    releves = crud.list_all_releves(db, skip=skip, limit=limit)
+    return [
+        BTSReleveListOut(
+            id=r.id,
+            bts_id=r.bts_id,
+            bts_nom=r.bts.nom if r.bts else "",
+            code=r.bts.code_bts if r.bts else "",
+            charge=r.taux_saturation,
+            debit=r.rendement,
+            connexions=r.charge_mesuree,
+            latence=None,
+            statut=(r.bts.statut.value.lower() if r.bts else "actif"),
+            date_releve=r.date_releve,
+            rendement=r.rendement,
+        )
+        for r in releves
+    ]
 
 
 @router.get("/{bts_id}", response_model=BTSOut)

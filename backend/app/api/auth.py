@@ -17,6 +17,7 @@ from app.crud.user import get_user_by_email, create_user
 from app.schemas.user import UserCreate, UserLogin, UserOut, Token, RefreshRequest
 from app.security.password import verify_password
 from app.security.jwt import create_access_token, create_refresh_token, decode_token, InvalidTokenError
+from app.security.permissions import get_current_user
 
 router = APIRouter()
 
@@ -43,6 +44,11 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         access_token=create_access_token(user.id, user.email, user.role.value),
         refresh_token=create_refresh_token(user.id),
     )
+
+
+@router.get("/me", response_model=UserOut)
+def me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 @router.post("/refresh", response_model=Token)

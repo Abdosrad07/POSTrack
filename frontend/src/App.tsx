@@ -1,7 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
-import PosList from './pages/PosList'
+import POSListPage from './pages/pos/POSListPage'
+import POSDetailPage from './pages/pos/POSDetailPage'
 import PartnersList from './pages/PartnersList'
 import PrimesListPage from './pages/PrimesListPage'
 import BTSListPage from './pages/bts/BTSListPage'
@@ -31,8 +32,10 @@ function App() {
           }
         >
                               <Route index element={<Dashboard />} />
-          <Route path="pos" element={<PosList />} />
+          <Route path="pos" element={<POSListPage />} />
           <Route path="pos/new" element={<POSCreatePage />} />
+          <Route path="pos/nouveau" element={<POSCreatePage />} />
+          <Route path="pos/:id" element={<POSDetailPage />} />
           <Route path="partenaires" element={<PartnersList />} />
           <Route path="partenaires/new" element={<PartenaireCreatePage />} />
           <Route path="primes" element={<PrimesListPage />} />

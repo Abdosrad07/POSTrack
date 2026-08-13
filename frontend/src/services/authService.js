@@ -35,10 +35,29 @@ const mockUsers = [
   },
 ];
 
+const USERNAME_TO_EMAIL = {
+  admin: 'admin@postrack.local',
+  manager: 'manager@postrack.local',
+  dsm: 'dsm@postrack.local',
+  viewer: 'viewer@postrack.local',
+};
+
+const resolveEmail = ({ username, email, password }) => {
+  if (email) return email;
+  if (username && username.includes('@')) return username;
+  if (username && USERNAME_TO_EMAIL[username]) return USERNAME_TO_EMAIL[username];
+  const mockUser = mockUsers.find(
+    (user) => user.username === username || user.email === username
+  );
+  return mockUser?.email || username;
+};
+
 const findMockUser = ({ username, password }) => {
+  const email = resolveEmail({ username, password });
   return mockUsers.find(
     (user) =>
-      (user.username === username || user.email === username) && user.password === password
+      (user.username === username || user.email === username || user.email === email) &&
+      user.password === password
   );
 };
 
@@ -54,11 +73,22 @@ const saveMockSession = (user) => {
 
 export const authService = {
   async login(credentials) {
+    const payload = {
+      email: resolveEmail(credentials),
+      password: credentials.password,
+    };
+
     try {
-      const response = await api.post('/auth/login', credentials);
+      const response = await api.post('/auth/login', payload);
       if (response.data.access_token) {
         localStorage.setItem('token', response.data.access_token);
-        localStorage.setItem('user', JSON.stringify(response.data.user || {}));
+        try {
+          const userResponse = await api.get('/auth/me');
+          localStorage.setItem('user', JSON.stringify(userResponse.data));
+          return { ...response.data, user: userResponse.data };
+        } catch {
+          localStorage.setItem('user', JSON.stringify({}));
+        }
       }
       return response.data;
     } catch (error) {

@@ -25,7 +25,14 @@ export default function PartenairesListPage() {
       try {
         setLoading(true)
         const response = await api.get('/partenaires')
-        const data = response.data.data || response.data || []
+        const raw = response.data.data || response.data || []
+        const data = raw.map((p) => ({
+          ...p,
+          email: p.email || '',
+          telephone: p.telephone || '',
+          pos_count: p.pos_count ?? 0,
+          statut: (p.statut || 'ACTIF').toLowerCase(),
+        }))
         if (!ignore) {
           setPartenaires(data)
         }

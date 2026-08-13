@@ -1,7 +1,41 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../services/api'
+
+type Prime = {
+  id: number
+  montant: number
+  date_attribution: string
+  statut: string
+  pos?: { code_pos?: string; nom?: string; partenaire?: { nom?: string } }
+  partenaire?: { nom?: string }
+}
 
 function PrimesListPage() {
   const navigate = useNavigate()
+  const [primes, setPrimes] = useState<Prime[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let ignore = false
+    const fetchPrimes = async () => {
+      try {
+        setLoading(true)
+        const response = await api.get('/primes')
+        const data = response.data?.data ?? response.data ?? []
+        if (!ignore) setPrimes(data)
+      } catch {
+        if (!ignore) setPrimes([])
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    }
+    void fetchPrimes()
+    return () => { ignore = true }
+  }, [])
+
+  const statutLabel = (s: string) => s.toLowerCase().replace('_', ' ')
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -20,57 +54,53 @@ function PrimesListPage() {
         </button>
       </div>
 
-      {/* Filtres */}
-      <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <input
-          type="text"
-          placeholder="Rechercher une prime..."
-          className="flex-1 min-w-48 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-        <select className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-          <option value="">Tous les statuts</option>
-          <option value="en_attente">En attente</option>
-          <option value="validee">Validée</option>
-          <option value="payee">Payée</option>
-          <option value="rejetee">Rejetée</option>
-        </select>
-        <select className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-          <option value="">Tous les partenaires</option>
-        </select>
-      </div>
-
-      {/* Tableau des primes */}
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  POS
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Partenaire
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Montant
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Statut
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">POS</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Partenaire</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Montant</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
-                  Aucune prime enregistrée pour le moment
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">Chargement...</td>
+                </tr>
+              ) : primes.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                    Aucune prime enregistrée pour le moment
+                  </td>
+                </tr>
+              ) : (
+                primes.map((p) => (
+                  <tr key={p.id}>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                      {p.pos?.nom ?? `POS #${p.id}`}
+                      {p.pos?.code_pos && (
+                        <div className="text-xs text-gray-500">{p.pos.code_pos}</div>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      {p.partenaire?.nom ?? p.pos?.partenaire?.nom ?? '—'}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      {Number(p.montant).toLocaleString('fr-FR')} FCFA
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.date_attribution}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <span className="inline-flex rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-800">
+                        {statutLabel(p.statut)}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

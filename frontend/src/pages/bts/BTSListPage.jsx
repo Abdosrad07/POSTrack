@@ -30,7 +30,16 @@ export default function BTSListPage() {
       setLoading(true)
       setError(null)
       const response = await api.get('/bts')
-      setBtsList(response.data.data || response.data || [])
+      const raw = response.data.data || response.data || []
+      setBtsList(
+        raw.map((b) => ({
+          ...b,
+          code: b.code || b.code_bts,
+          localisation: b.localisation || b.ville,
+          saturation: b.saturation ?? b.dernier_taux_saturation ?? 0,
+          statut: (b.statut || 'ACTIF').toLowerCase(),
+        }))
+      )
     } catch (err) {
       setError('Erreur lors de la récupération des BTS.')
       console.error(err)

@@ -50,6 +50,20 @@ class BTSReleveCreate(BaseModel):
     remarque: str | None = None
 
 
+class BTSReleveListOut(BaseModel):
+    id: int
+    bts_id: int
+    bts_nom: str
+    code: str
+    charge: float | None = None
+    debit: float | None = None
+    connexions: int | None = None
+    latence: float | None = None
+    statut: str = "actif"
+    date_releve: datetime
+    rendement: float | None = None
+
+
 class BTSReleveOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

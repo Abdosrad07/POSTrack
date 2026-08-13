@@ -17,7 +17,13 @@ export default function DSMListPage() {
     const fetchDsms = async () => {
       try {
         const response = await api.get('/dsm')
-        const data = response.data.data || response.data || []
+        const raw = response.data.data || response.data || []
+        const data = raw.map((d) => ({
+          ...d,
+          nom: d.nom || d.nom_complet,
+          region: d.region || d.zone_couverture,
+          statut: (d.statut || 'ACTIF').toLowerCase(),
+        }))
         if (mounted) {
           setDsms(data)
         }

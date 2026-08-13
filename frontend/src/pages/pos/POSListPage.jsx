@@ -23,18 +23,22 @@ export default function POSListPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    partenaireService.getAll({ limit: 100 }).then((r) => setPartenaires(r.data.data ?? []));
-    dsmService.getAll({ limit: 100 }).then((r) => setDsms(r.data.data ?? []));
+    partenaireService.getAll({ limit: 100 }).then((r) => setPartenaires(r.data?.data ?? r.data ?? []));
+    dsmService.getAll({ limit: 100 }).then((r) => setDsms(r.data?.data ?? r.data ?? []));
   }, []);
 
   const fetchPOS = useCallback((page = 1) => {
     setStatus('loading');
+    const params = Object.fromEntries(
+      Object.entries({ page, limit: PAGE_SIZE, ...filters, ...sort }).filter(([, v]) => v !== '' && v != null)
+    );
     posService
-      .getAll({ page, limit: PAGE_SIZE, ...filters, ...sort })
+      .getAll(params)
       .then((res) => {
-        const data = res.data.data ?? [];
+        const data = res.data?.data ?? res.data ?? [];
+        const pag = res.data?.pagination ?? { page: 1, pages: 1, total: data.length };
         setRows(data);
-        setPagination(res.data.pagination ?? { page: 1, pages: 1, total: 0 });
+        setPagination(pag);
         setStatus(data.length === 0 ? 'empty' : 'success');
       })
       .catch(() => {
@@ -57,7 +61,7 @@ export default function POSListPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Liste des POS</h1>
         <button
-          onClick={() => navigate('/pos/nouveau')}
+          onClick={() => navigate('/pos/new')}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           + Nouveau POS

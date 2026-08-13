@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
@@ -39,6 +39,17 @@ def update_bts(db: Session, bts: BTS, data: BTSUpdate) -> BTS:
     db.commit()
     db.refresh(bts)
     return bts
+
+
+def list_all_releves(db: Session, skip: int = 0, limit: int = 200) -> list[BTSReleve]:
+    return (
+        db.query(BTSReleve)
+        .options(joinedload(BTSReleve.bts))
+        .order_by(BTSReleve.date_releve.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def list_releves(db: Session, bts_id: int, skip: int = 0, limit: int = 100) -> list[BTSReleve]:

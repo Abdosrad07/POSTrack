@@ -36,8 +36,8 @@ export default function POSTable({ rows = [], loading = false, sort, onSort }) {
                 <td className="px-4 py-3 font-medium text-blue-600">{pos.code_pos}</td>
                 <td className="px-4 py-3">{pos.nom}</td>
                 <td className="px-4 py-3">
-                  <span className={pos.type === 'RECONDUIT' ? 'text-gray-500' : 'font-medium text-emerald-700'}>
-                    {pos.type}
+                  <span className={(pos.type_pos ?? pos.type) === 'RECONDUIT' ? 'text-gray-500' : 'font-medium text-emerald-700'}>
+                    {pos.type_pos ?? pos.type}
                   </span>
                 </td>
                 <td className="px-4 py-3">{pos.partenaire?.nom ?? '—'}</td>

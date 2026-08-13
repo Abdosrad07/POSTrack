@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.api import auth, partenaires, dsm, bts
+from app.api import auth, partenaires, dsm, bts, pos, primes, analytics
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -45,10 +45,11 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(partenaires.router, prefix="/api/partenaires", tags=["partenaires"])
 app.include_router(dsm.router, prefix="/api/dsm", tags=["dsm"])
 app.include_router(bts.router, prefix="/api/bts", tags=["bts"])
+app.include_router(pos.router, prefix="/api/pos", tags=["pos"])
+app.include_router(primes.router, prefix="/api/primes", tags=["primes"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
 # --- Routers à brancher au fil des jours suivants ---
-# from app.api import pos, reconductions, primes, clients, sims, requetes, analytics
-# app.include_router(pos.router, prefix="/api/pos", tags=["pos"])
 # ...
 
 
