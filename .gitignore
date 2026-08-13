@@ -228,8 +228,4 @@ output/
 config.local.json
 settings.local.py
 local.properties
-venv/
-__pycache__/
-*.pyc
-.env
-*.db
+
