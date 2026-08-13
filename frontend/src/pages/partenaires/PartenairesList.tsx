@@ -26,7 +26,7 @@ export default function PartenairesListPage() {
         setLoading(true)
         const response = await api.get('/partenaires')
         const raw = response.data.data || response.data || []
-        const data = raw.map((p) => ({
+        const data = (raw as any[]).map((p: any): Partenaire => ({
           ...p,
           email: p.email || '',
           telephone: p.telephone || '',
