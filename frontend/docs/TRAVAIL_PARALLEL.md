@@ -1065,7 +1065,66 @@ Cela permet de détecter les conflits **avant** la fusion.
 
 ---
 
-# 31. Règle spéciale pour les fichiers partagés
+# 31. Comment intégrer des changements depuis une autre branche (Merge vs Rebase)
+
+Il existe deux commandes principales pour intégrer des changements d'une branche à une autre : `git merge` et `git rebase`. Le choix entre les deux dépend de la stratégie de votre équipe et du résultat souhaité en termes d'historique Git.
+
+## `git merge`
+
+`git merge` intègre les changements d'une branche source dans votre branche actuelle en créant un nouveau "merge commit".
+
+**Quand l'utiliser :**
+- Pour intégrer une branche de fonctionnalité stable dans `develop` ou `main`.
+- Quand vous souhaitez conserver un historique non linéaire qui montre explicitement quand les intégrations ont eu lieu.
+- Si vous avez déjà partagé votre branche avec d'autres et que vous ne voulez pas réécrire l'historique (ce que `rebase` ferait).
+
+**Exemple :**
+Si vous êtes sur votre branche `feature/ma-fonctionnalite` et que vous voulez intégrer les dernières modifications de `develop` :
+
+```bash
+# Assurez-vous que votre branche locale 'develop' est à jour
+git checkout develop
+git pull origin develop
+
+# Revenez à votre branche de fonctionnalité
+git checkout feature/ma-fonctionnalite
+
+# Fusionnez 'develop' dans votre branche actuelle
+git merge develop
+```
+En cas de conflits, Git vous guidera pour les résoudre. Une fois résolus, vous devrez faire un `git commit` pour finaliser la fusion.
+
+## `git rebase`
+
+`git rebase` intègre les changements d'une branche source dans votre branche actuelle en déplaçant ou en recréant les commits de votre branche à la fin de la branche source. Cela crée un historique linéaire plus "propre".
+
+**Quand l'utiliser :**
+- Pour garder votre branche de fonctionnalité à jour avec `develop` pendant que vous travaillez, avant de faire une Pull Request.
+- Quand vous souhaitez un historique de projet très linéaire, sans "merge commits" superflus.
+- **Attention :** Ne rebasez jamais une branche qui a déjà été poussée et partagée avec d'autres, car cela réécrit l'historique et peut causer des problèmes pour les collaborateurs.
+
+**Exemple :**
+Si vous êtes sur votre branche `feature/ma-fonctionnalite` et que vous voulez appliquer vos commits sur les dernières modifications de `develop` :
+
+```bash
+# Assurez-vous que votre branche locale 'develop' est à jour
+git checkout develop
+git pull origin develop
+
+# Revenez à votre branche de fonctionnalité
+git checkout feature/ma-fonctionnalite
+
+# Rebasez votre branche sur 'develop'
+git rebase develop
+```
+En cas de conflits, Git mettra en pause le rebase pour que vous puissiez les résoudre. Après avoir résolu un conflit, utilisez `git add <fichier_conflit>` puis `git rebase --continue`. Si vous souhaitez annuler le rebase, utilisez `git rebase --abort`.
+
+Une fois le rebase terminé, vous aurez un historique propre où vos commits apparaissent après les commits de `develop`. Si vous aviez déjà poussé votre branche, vous devrez utiliser `git push --force` (ou `git push --force-with-lease`), mais cela doit être fait avec une extrême prudence et uniquement si vous êtes le seul à travailler sur cette branche ou après avoir communiqué avec votre équipe. Dans le cadre de ce projet, nous privilégions le `rebase` avant la PR pour garder l'historique propre et gérer les conflits localement.
+
+---
+
+# 32. Règle spéciale pour les fichiers partagés
+
 
 Si une PR doit modifier :
 

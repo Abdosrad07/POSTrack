@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
           console.error('Failed to fetch current user', error);
           if (error.response && error.response.status === 401) {
-            logout();
+            await logout();
           }
         }
       }

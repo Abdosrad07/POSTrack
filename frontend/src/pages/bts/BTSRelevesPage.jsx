@@ -7,24 +7,38 @@ export default function BTSRelevesPage() {
   const [loading, setLoading] = useState(true)
   const [selectedBts, setSelectedBts] = useState(null)
 
-  const fetchReleves = async () => {
-    try {
-      setLoading(true)
-      const response = await api.get('/bts/releves')
-      setReleves(response.data.data || response.data || [])
-    } catch {
-      setReleves([
-        { id: 1, bts_id: 1, bts_nom: 'BTS Centrale Douala', code: 'BTS-001', charge: 85, debit: 120, connexions: 340, latence: 15, statut: 'actif', date_releve: '2026-08-12 08:00:00' },
-        { id: 2, bts_id: 1, bts_nom: 'BTS Centrale Douala', code: 'BTS-001', charge: 78, debit: 105, connexions: 310, latence: 18, statut: 'actif', date_releve: '2026-08-12 09:00:00' },
-        { id: 3, bts_id: 2, bts_nom: 'BTS Nord Yaoundé', code: 'BTS-002', charge: 42, debit: 55, connexions: 180, latence: 25, statut: 'maintenance', date_releve: '2026-08-12 08:00:00' },
-      ])
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    fetchReleves()
+    let ignore = false
+
+    const fetchReleves = async () => {
+      try {
+        setLoading(true)
+        const response = await api.get('/bts/releves')
+        const data = response.data.data || response.data || []
+
+        if (!ignore) {
+          setReleves(data)
+        }
+      } catch {
+        if (!ignore) {
+          setReleves([
+            { id: 1, bts_id: 1, bts_nom: 'BTS Centrale Douala', code: 'BTS-001', charge: 85, debit: 120, connexions: 340, latence: 15, statut: 'actif', date_releve: '2026-08-12 08:00:00' },
+            { id: 2, bts_id: 1, bts_nom: 'BTS Centrale Douala', code: 'BTS-001', charge: 78, debit: 105, connexions: 310, latence: 18, statut: 'actif', date_releve: '2026-08-12 09:00:00' },
+            { id: 3, bts_id: 2, bts_nom: 'BTS Nord Yaoundé', code: 'BTS-002', charge: 42, debit: 55, connexions: 180, latence: 25, statut: 'maintenance', date_releve: '2026-08-12 08:00:00' },
+          ])
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void fetchReleves()
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
   const btsList = [...new Map(releves.map((r) => [r.bts_id, { id: r.bts_id, nom: r.bts_nom, code: r.code }])).values()]
@@ -48,7 +62,7 @@ export default function BTSRelevesPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {Object.values(latestReleves).map((r) => (
           <div key={r.bts_id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">{r.bts_nom}</h3>
                 <p className="text-xs text-gray-500">{r.code}</p>
@@ -75,6 +89,13 @@ export default function BTSRelevesPage() {
               </div>
               <div>
                 <p className="text-gray-500">Latence</p>
+                <p className="font-semibold text-gray-900">{r.latence} ms</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <select
           value={selectedBts ?? ''}
@@ -89,6 +110,7 @@ export default function BTSRelevesPage() {
           ))}
         </select>
       </div>
+
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -126,7 +148,7 @@ export default function BTSRelevesPage() {
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{r.date_releve}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <div className="flex items-center gap-2">
-                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                        <div className="h-2 w-16 rounded-full bg-gray-200">
                           <div
                             className={`h-2 rounded-full ${r.charge > 80 ? 'bg-red-500' : r.charge > 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
                             style={{ width: `${Math.min(r.charge, 100)}%` }}
@@ -157,12 +179,5 @@ export default function BTSRelevesPage() {
     </div>
   )
 }
-
-                <p className="font-semibold text-gray-900">{r.latence} ms</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
 

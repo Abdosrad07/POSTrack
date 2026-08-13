@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom'
+
 function PrimesListPage() {
+  const navigate = useNavigate()
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -10,6 +13,7 @@ function PrimesListPage() {
         </div>
         <button
           type="button"
+          onClick={() => navigate('/primes/new')}
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           + Nouvelle prime
