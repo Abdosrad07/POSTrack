@@ -1,0 +1,21 @@
+from sqlalchemy import String, Boolean, Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.database import Base
+from app.models.common import TimestampMixin
+from app.models.enums import RoleUser
+
+
+class User(Base, TimestampMixin):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    nom_complet: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[RoleUser] = mapped_column(Enum(RoleUser), nullable=False)
+    actif: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    # Un DSM applicatif (métier) peut être rattaché à un compte utilisateur
+    dsm_profile: Mapped["DSM"] = relationship(back_populates="user", uselist=False)
+    audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="user")
