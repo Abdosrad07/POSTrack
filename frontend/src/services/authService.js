@@ -1,4 +1,5 @@
 import api from './api';
+import { STORAGE_KEYS } from '../utils/constants';
 
 const mockUsers = [
   {
@@ -8,6 +9,7 @@ const mockUsers = [
     password: 'admin123',
     role: 'ADMIN',
     full_name: 'Admin Demo',
+    nom_complet: 'Admin Demo',
   },
   {
     id: 2,
@@ -16,6 +18,7 @@ const mockUsers = [
     password: 'manager123',
     role: 'MANAGER',
     full_name: 'Manager Demo',
+    nom_complet: 'Manager Demo',
   },
   {
     id: 3,
@@ -24,6 +27,7 @@ const mockUsers = [
     password: 'dsm123',
     role: 'DSM',
     full_name: 'DSM Demo',
+    nom_complet: 'DSM Demo',
   },
   {
     id: 4,
@@ -32,6 +36,7 @@ const mockUsers = [
     password: 'viewer123',
     role: 'VIEWER',
     full_name: 'Viewer Demo',
+    nom_complet: 'Viewer Demo',
   },
 ];
 
@@ -61,12 +66,32 @@ const findMockUser = ({ username, password }) => {
   );
 };
 
+const persistTokens = ({ access_token, refresh_token }) => {
+  if (access_token) {
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token);
+  }
+  if (refresh_token) {
+    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token);
+  }
+};
+
+const clearSession = () => {
+  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.USER);
+  localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
+  localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT);
+};
+
 const saveMockSession = (user) => {
   const access_token = `mock-token-${user.username}`;
-  localStorage.setItem('token', access_token);
-  localStorage.setItem('user', JSON.stringify(user));
+  const refresh_token = `mock-refresh-${user.username}`;
+  persistTokens({ access_token, refresh_token });
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   return {
     access_token,
+    refresh_token,
+    token_type: 'bearer',
     user,
   };
 };
@@ -79,15 +104,20 @@ export const authService = {
     };
 
     try {
-      const response = await api.post('/auth/login', payload);
+      const response = await api.post('/auth/login', payload, {
+        skipPartnerPrefix: true,
+      });
       if (response.data.access_token) {
-        localStorage.setItem('token', response.data.access_token);
+        persistTokens(response.data);
         try {
-          const userResponse = await api.get('/auth/me');
-          localStorage.setItem('user', JSON.stringify(userResponse.data));
+          const userResponse = await api.get('/auth/me', {
+            skipPartnerPrefix: true,
+          });
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userResponse.data));
           return { ...response.data, user: userResponse.data };
         } catch {
-          localStorage.setItem('user', JSON.stringify({}));
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify({}));
+          return { ...response.data, user: {} };
         }
       }
       return response.data;
@@ -102,17 +132,37 @@ export const authService = {
     }
   },
 
+  async refresh() {
+    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    if (!refreshToken) {
+      throw new Error('Aucun refresh token disponible');
+    }
+
+    if (refreshToken.startsWith('mock-refresh-')) {
+      const access_token = refreshToken.replace('mock-refresh-', 'mock-token-');
+      persistTokens({ access_token, refresh_token: refreshToken });
+      return { access_token, refresh_token: refreshToken, token_type: 'bearer' };
+    }
+
+    const response = await api.post(
+      '/auth/refresh',
+      { refresh_token: refreshToken },
+      { skipPartnerPrefix: true }
+    );
+    persistTokens(response.data);
+    return response.data;
+  },
+
   async logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearSession();
   },
 
   async getCurrentUser() {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('/auth/me', { skipPartnerPrefix: true });
       return response.data;
     } catch (error) {
-      const storedUser = localStorage.getItem('user');
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
       if (storedUser) {
         return JSON.parse(storedUser);
       }
@@ -121,3 +171,4 @@ export const authService = {
   },
 };
 
+export default authService;

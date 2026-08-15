@@ -1,42 +1,55 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { authService } from '../services/authService';
+import { STORAGE_KEYS } from '../utils/constants';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(() => localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN));
+  const [loading, setLoading] = useState(true);
+
+  const logout = useCallback(async () => {
+    await authService.logout();
+    setToken(null);
+    setUser(null);
+  }, []);
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      if (storedToken) {
-        setToken(storedToken);
-        if (storedUser && storedUser !== 'undefined') {
-          try {
-            setUser(JSON.parse(storedUser));
-          } catch (e) {
-            setUser({});
-          }
-        }
+      const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+
+      if (!storedToken) {
+        setLoading(false);
+        return;
+      }
+
+      setToken(storedToken);
+
+      if (storedUser && storedUser !== 'undefined') {
         try {
-          const currentUser = await authService.getCurrentUser();
-          setUser(currentUser);
-          localStorage.setItem('user', JSON.stringify(currentUser));
-        } catch (error) {
-          console.error('Failed to fetch current user', error);
-          if (error.response && error.response.status === 401) {
-            await logout();
-          }
+          setUser(JSON.parse(storedUser));
+        } catch {
+          setUser({});
         }
       }
-      setLoading(false);
+
+      try {
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+      } catch (error) {
+        if (error.response?.status === 401) {
+          await logout();
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
     initAuth();
-  }, []);
+  }, [logout]);
 
   const login = async (credentials) => {
     setLoading(true);
@@ -44,18 +57,10 @@ export const AuthProvider = ({ children }) => {
       const data = await authService.login(credentials);
       setToken(data.access_token);
       setUser(data.user || {});
-      setLoading(false);
       return data;
-    } catch (error) {
+    } finally {
       setLoading(false);
-      throw error;
     }
-  };
-
-  const logout = async () => {
-    await authService.logout();
-    setToken(null);
-    setUser(null);
   };
 
   const value = {
@@ -71,5 +76,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
-
-
