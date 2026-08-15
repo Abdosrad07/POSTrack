@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
-import Layout from './components/Layout'
+import MainLayout from './components/Layout/MainLayout'
+import RoleGuard from './components/Layout/RoleGuard'
 import Dashboard from './pages/Dashboard'
 import POSListPage from './pages/pos/POSListPage'
 import POSDetailPage from './pages/pos/POSDetailPage'
@@ -14,6 +15,12 @@ import DSMCreatePage from './pages/dsm/DSMCreatePage'
 import DSMDetailPage from './pages/dsm/DSMDetailPage'
 import LoginPage from './pages/auth/LoginPage'
 import SelectPartnerPage from './pages/auth/SelectPartnerPage'
+import UnauthorizedPage from './pages/auth/UnauthorizedPage'
+import ClientsListPage from './pages/clients/ClientsListPage'
+import SimsStockPage from './pages/sims/SimsStockPage'
+import RequetesListPage from './pages/requetes/RequetesListPage'
+import ImportExportPage from './pages/import-export/ImportExportPage'
+import AuditLogsPage from './pages/audit/AuditLogsPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 import PartnerRoute from './routes/PartnerRoute'
 import { AuthProvider } from './context/AuthContext'
@@ -21,6 +28,7 @@ import { PartnerProvider } from './context/PartnerContext'
 import PartenaireCreatePage from './pages/partenaires/PartenaireCreatePage'
 import POSCreatePage from './pages/pos/POSCreatePage'
 import PrimeCreatePage from './pages/primes/PrimeCreatePage'
+import { ROLE_GROUPS } from './utils/constants'
 
 function App() {
   return (
@@ -39,32 +47,146 @@ function App() {
           <Route
             element={
               <PartnerRoute>
-                <Layout />
+                <MainLayout />
               </PartnerRoute>
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="unauthorized" element={<UnauthorizedPage />} />
+
             <Route path="pos" element={<POSListPage />} />
             <Route path="pos/new" element={<POSCreatePage />} />
             <Route path="pos/nouveau" element={<POSCreatePage />} />
             <Route path="pos/:id" element={<POSDetailPage />} />
-            <Route path="partenaires" element={<PartnersList />} />
-            <Route path="partenaires/new" element={<PartenaireCreatePage />} />
-            <Route path="primes" element={<PrimesListPage />} />
-            <Route path="primes/new" element={<PrimeCreatePage />} />
-            <Route path="dsm">
-              <Route index element={<DSMListPage />} />
-              <Route path="new" element={<DSMCreatePage />} />
-              <Route path=":id" element={<DSMDetailPage />} />
-            </Route>
-            <Route path="bts">
-              <Route index element={<BTSListPage />} />
-              <Route path="nouveau" element={<BTSCreatePage />} />
-              <Route path="new" element={<BTSCreatePage />} />
-              <Route path=":id" element={<BTSDetailPage />} />
-              <Route path=":id/modifier" element={<BTSCreatePage />} />
-              <Route path="releves" element={<BTSRelevesPage />} />
-            </Route>
+
+            <Route
+              path="partenaires"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
+                  <PartnersList />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="partenaires/new"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
+                  <PartenaireCreatePage />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path="primes"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.PARTNER_PORTFOLIO}>
+                  <PrimesListPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="primes/new"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.PARTNER_PORTFOLIO}>
+                  <PrimeCreatePage />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path="dsm"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <DSMListPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="dsm/new"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <DSMCreatePage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="dsm/:id"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <DSMDetailPage />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path="bts"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <BTSListPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="bts/nouveau"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <BTSCreatePage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="bts/new"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <BTSCreatePage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="bts/:id"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <BTSDetailPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="bts/:id/modifier"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <BTSCreatePage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="bts/releves"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                  <BTSRelevesPage />
+                </RoleGuard>
+              }
+            />
+
+            <Route path="clients" element={<ClientsListPage />} />
+            <Route path="sims" element={<SimsStockPage />} />
+            <Route path="requetes" element={<RequetesListPage />} />
+
+            <Route
+              path="import-export"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.PARTNER_PORTFOLIO}>
+                  <ImportExportPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="audit"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
+                  <AuditLogsPage />
+                </RoleGuard>
+              }
+            />
           </Route>
         </Routes>
       </PartnerProvider>
