@@ -1,1754 +1,566 @@
-# POSTrack — Guide de répartition du développement Frontend
+# POSTrack — Guide de répartition du développement Frontend (Version 3.1-R7)
 
 ## 1. Objectif du document
 
-Ce document définit la répartition des responsabilités entre les **trois développeurs de l'équipe Frontend** du projet **POSTrack**.
+Ce document définit la répartition mise à jour des responsabilités entre les **trois développeurs de l'équipe Frontend** du projet **POSTrack**, conformément aux spécifications techniques et fonctionnelles de la **Version 3.1-R7**.
 
 L'objectif est de permettre aux trois développeurs de travailler en parallèle tout en conservant :
 
+* un fil conducteur unique basé sur le **contexte Partenaire (`partner_context_id`)** ;
+
+
 * une responsabilité claire par module ;
-* une architecture React cohérente ;
-* une séparation propre des fonctionnalités ;
-* une intégration progressive ;
-* des composants réutilisables ;
-* des contrats API homogènes ;
-* une responsabilité complète sur chaque fonctionnalité Frontend.
 
-L'équipe Frontend travaille sur une architecture :
+
+* une architecture React + Vite et Axios cohérente ;
+
+
+* une suppression stricte des CRUDs référentiels au profit d'un **système d'import Excel centralisé** ;
+
+
+* des composants réutilisables et des contrats API REST homogènes sous le préfixe `/api/partners/{partner_id}/` ;
+
+
+* une responsabilité complète de bout en bout sur chaque module Frontend.
+
+### Architecture de navigation cible (R7)
 
 ```text
-                    POSTRACK FRONTEND
-                           │
-                    React + Vite
-                           │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-   Lead Frontend       Frontend POS      Frontend Clients
-        │                  │                  │
-        ├─ Architecture    ├─ POS             ├─ Clients
-        ├─ Auth            ├─ Reconduction    ├─ Stock SIM
-        ├─ Layout          ├─ Primes           ├─ Requêtes
-        ├─ Partenaires     └─ Cycle de vie     ├─ Dashboard
-        ├─ DSM                                  └─ Import/Export
-        └─ BTS
+ ┌────────────────────────────────────────────────────────┐
+ │                   POSTRACK FRONTEND                    │
+ └───────────────────────────┬────────────────────────────┘
+                             │
+                        React + Vite
+                             │
+               1. Connexion / Login (JWT)[cite: 1, 3]
+                             │
+             2. Page de Sélection Partenaire[cite: 1, 3]
+                             │
+     3. PartnerContext Actif (partner_context_id)[cite: 1, 3]
+                             │
+            ┌────────────────┼────────────────┐
+            │                │                │
+      Lead Frontend    Frontend POS    Frontend Clients
+            │                │                │
+            ├─ Arch & Auth   ├─ POS           ├─ Clients
+            ├─ PartnerContext├─ Reconduction  ├─ SIM & Stock
+            ├─ Layout & Nav  ├─ Primes &      ├─ Requêtes
+            ├─ Import Excel     Périodes      ├─ Dashboard /
+            ├─ BTS & Relevés └─ Commissions      Analytics
+            └─ Matrice Rôles    DSM
+
 ```
 
-L'architecture officielle du projet repose sur un client **React + Vite**, consommant l'API REST FastAPI via Axios, avec pages, composants, contextes/hooks et services. 
-
-> **Important :** cette organisation est une séparation **fonctionnelle des modules Frontend**. Elle ne signifie pas que chaque développeur travaille dans un projet React séparé.
+> **Important :** Toute la navigation et l'affichage des données métier dépendent impérativement du **`PartnerContext` actif**. Le changement de Partenaire réinitialise les filtres, le cache et les requêtes afin d'éviter tout mélange de données entre entités.
+> 
+> 
 
 ---
 
-# 2. Organisation générale
+# 2. Organisation générale et Rôles applicatifs
 
-L'équipe Frontend est composée de trois développeurs :
+L'équipe Frontend est composée de trois développeurs dont le périmètre s'aligne sur les quatre rôles métier applicatifs de la version 3.1-R7 : **ADMIN**, **Représentant Partenaire**, **Représentant DSM** et **Détenteur POS**.
 
-| Développeur                          | Responsabilité                                        |
-| ------------------------------------ | ----------------------------------------------------- |
-| **Développeur A — Lead Frontend**    | Architecture, fondations, Auth, Partenaires, DSM, BTS |
-| **Développeur B — Frontend POS**     | POS, Nouveau/Reconduit, Reconductions, Primes         |
-| **Développeur C — Frontend Clients** | Clients, SIM, Requêtes, Dashboard, Import/Export      |
+| Développeur | Modules sous sa responsabilité | Rôles cibles à gérer côté UI |
+| --- | --- | --- |
+| **Développeur A — Lead Frontend** | Architecture, `PartnerContext`, Auth/JWT, Layout & Navigation, BTS & Relevés, **Import Excel centralisé**<br> | **ADMIN**, **Représentant Partenaire**<br> |
+| **Développeur B — Frontend POS** | Gestion des POS, Cycle de vie Nouveau/Reconduit, Reconductions, Primes par Période (`PrimePeriod`), Commissions DSM (`DSMCommission`)
 
-Cette répartition correspond à l'organisation définie dans la roadmap POSTrack : le Lead Frontend porte l'architecture React, le routage, l'état global et les modules Partenaires/DSM/BTS ; le deuxième développeur porte le cycle de vie POS, les reconductions et les primes ; le troisième porte Clients, SIM, Requêtes, Dashboard et Import/Export. 
+ | **Représentant Partenaire**, **Représentant DSM**, **Détenteur POS**<br> |
+| **Développeur C — Frontend Clients & Ops** | Clients, Stock SIM & Mouvements, Requêtes multi-entités, Dashboard Partenaire & Analytics
 
----
-
-# 3. Règle de développement commune
-
-Pour chaque fonctionnalité, le développeur responsable doit suivre le cycle :
-
-```text
-1. Comprendre le besoin fonctionnel
-          ↓
-2. Vérifier le contrat API
-          ↓
-3. Concevoir la page / les composants
-          ↓
-4. Créer les services API nécessaires
-          ↓
-5. Implémenter l'interface
-          ↓
-6. Gérer les états et erreurs
-          ↓
-7. Tester
-          ↓
-8. Documenter
-          ↓
-9. Pull Request
-          ↓
-10. Code Review
-          ↓
-11. Merge dans develop
-```
-
-Le développeur responsable doit être capable d'expliquer **l'ensemble du fonctionnement Frontend de son module**, et pas uniquement les composants graphiques.
+ | **Représentant Partenaire**, **Représentant DSM**, **Détenteur POS**<br> |
 
 ---
 
-# 4. Architecture Frontend commune
+# 3. Règles de développement communes
 
-L'architecture de référence est organisée autour de :
-
-```text
-frontend/src/
-│
-├── pages/
-│
-├── components/
-│
-├── services/
-│
-├── hooks/
-│
-├── contexts/
-│
-├── routes/
-│
-└── ...
-```
-
-Les pages prévues dans l'architecture comprennent notamment Partenaires, DSM, BTS, POS, Reconduction, Primes, Clients, SIM, Requêtes, Analytics, Import/Export, Users et Audit Logs. 
-
-Les composants spécialisés comprennent notamment :
+Pour chaque module, le développeur responsable suit le cycle de qualité :
 
 ```text
-components/
-├── POS/
-├── Primes/
-├── BTS/
-├── Sims/
-├── Requetes/
-└── Dashboard/
-```
+1. Vérifier le contrat API (/api/partners/{partner_id}/...)[cite: 2]
+         ↓
+2. Intégrer le PartnerContext obligatoire[cite: 1, 3]
+         ↓
+3. Concevoir la page / les composants sous UI Tailwind CSS[cite: 2]
+         ↓
+4. Créer / mettre à jour le service API dédié (partnerXxxService)[cite: 2]
+         ↓
+5. Implémenter la logique et la gestion d'états (loading, success, empty, error)
+         ↓
+6. Appliquer la matrice de droits du rôle connecté[cite: 1, 3]
+         ↓
+7. Écrire les tests unitaires/composants (Vitest + React Testing Library)
+         ↓
+8. Documenter, Pull Request et Code Review par le Lead
+         ↓
+9. Fusion dans develop
 
-avec des composants comme `TypePosBadge`, `PrimeStatusBadge`, `SaturationGauge`, `SimStockTable`, `PrioriteBadge` et `StatCard`. 
+```
 
 ---
 
-# 5. Développeur A — Lead Frontend
+# 4. Développeur A — Lead Frontend
 
 ## Responsabilité générale
 
-Le Lead Frontend est responsable des **fondations techniques et de l'architecture globale de l'application React**.
-
-Il est également responsable des modules :
+Le Lead Frontend est le garant des **fondations techniques, du `PartnerContext` applicatif, de l'Import Excel centralisé et du module BTS**.
 
 ```text
 A — Lead Frontend
 │
-├── 1. Architecture Frontend
-├── 2. Authentification
-├── 3. Layout & navigation
-├── 4. Composants communs
-├── 5. Partenaires
-├── 6. DSM
-└── 7. BTS
-```
+├── 1. Architecture React & Routing
+├── 2. Authentification JWT & Matrice des 4 Rôles[cite: 1, 3]
+├── 3. Sélection Partenaire & PartnerContext[cite: 1, 3]
+├── 4. Layout, Navigation & Design System
+├── 5. Import Excel Centralisé (ImportBatch)[cite: 1, 2, 3]
+└── 6. BTS & Relevés d'indicateurs (Saturation/Rendement)[cite: 1, 3]
 
-Son rôle n'est donc pas uniquement de développer des pages : il garantit que les trois développeurs produisent du code compatible et intégrable.
-
----
-
-# 6. Module A1 — Architecture Frontend
-
-## Objectif
-
-Mettre en place la structure commune que les deux autres développeurs utiliseront.
-
-## Responsabilités
-
-Le Lead doit définir :
-
-* structure des dossiers ;
-* système de routage ;
-* conventions de nommage ;
-* gestion de l'état global ;
-* système de services API ;
-* composants communs ;
-* gestion des erreurs ;
-* gestion des états `loading`, `success`, `error` ;
-* protection des routes ;
-* conventions de formulaires ;
-* conventions des tableaux ;
-* conventions des modales.
-
-Architecture cible :
-
-```text
-App
-│
-├── Router
-│
-├── AuthProvider
-│
-├── Layout
-│
-├── Protected Routes
-│
-└── Pages
 ```
 
 ---
 
-# 7. Module A2 — Authentification
+## 5. Module A1 — Architecture, Auth & PartnerContext
 
-## Objectif
+### Objectif
 
-Permettre à l'utilisateur de se connecter et d'accéder uniquement aux fonctionnalités correspondant à son rôle.
+Sécuriser l'accès et imposer le passage par la **Sélection du Partenaire** avant d'accéder au Dashboard ou aux modules métier.
 
-POSTrack utilise quatre rôles :
+### Fonctionnalités & Implémentation
 
-```text
-ADMIN
-MANAGER
-DSM
-VIEWER
-```
+1. **Écran `/login**` : Authentification JWT (Access + Refresh Tokens).
 
-Le mécanisme prévu est basé sur JWT avec access token et refresh token. 
 
-## Frontend
+2. **Écran `/select-partner**` : Affiche les Partenaires autorisés. Si un seul Partenaire est lié au rôle (ex: Représentant Partenaire), il peut être présélectionné.
 
-Créer notamment :
 
-```text
-/login
-```
+3. **`PartnerContext` & `PartnerProvider**` :
+* Conserve `partner_context_id`.
 
-et les éléments nécessaires à la gestion de session.
 
-Fonctionnalités :
+* Invalide les caches React Query / services lors d'un changement de Partenaire.
 
-* formulaire de connexion ;
-* validation des champs ;
-* affichage des erreurs ;
-* stockage de session ;
-* récupération de l'utilisateur connecté ;
-* déconnexion ;
-* expiration de session ;
-* redirection après connexion ;
-* protection des routes.
 
-## Composants / services
+* Bloque tout appel API si aucun Partenaire n'est sélectionné.
 
-Exemples :
 
-```text
-AuthContext
-ProtectedRoute
-RoleGuard
-authService
-Axios interceptor
-```
 
-## Tests
 
-Tester notamment :
+4. **Services API & Intercepteurs Axios** : Préfixe automatique des requêtes par `/api/partners/{partner_id}/`.
 
-* connexion valide ;
-* mauvais identifiant ;
-* mauvais mot de passe ;
-* token invalide ;
-* session expirée ;
-* déconnexion ;
-* accès interdit selon le rôle.
+
 
 ---
 
-# 8. Module A3 — Layout & Navigation
+## 6. Module A2 — Layout, Navigation & Matrice de Rôles
 
-## Objectif
+### Objectif
 
-Créer la structure visuelle commune de POSTrack.
+Offrir une interface responsive sous Tailwind CSS adaptative selon le rôle métier connecté.
 
-Créer notamment :
+### Composants & Rôles
 
-```text
-MainLayout
-Sidebar
-Header
-Breadcrumb
-PageHeader
-Notification
-LoadingState
-ErrorState
-EmptyState
-```
+* **Composants** : `MainLayout`, `PartnerSelectorBar`, `Sidebar`, `Header`, `RoleGuard`, `PageHeader`, `EmptyState`, `ErrorState`, `LoadingSpinner`.
+* **Rôles supportés (3.1-R7)** :
 
-## Fonctionnalités
 
-Le layout doit gérer :
+* `ADMIN` : Accès transversal et administration système.
 
-* navigation principale ;
-* affichage du profil connecté ;
-* déconnexion ;
-* navigation responsive ;
-* affichage des éléments selon le rôle ;
-* notifications ;
-* titre de page ;
-* état de chargement global si nécessaire.
 
-Le Lead doit veiller à ce que les développeurs B et C **réutilisent ces composants plutôt que de recréer leur propre navigation**.
+* `Représentant Partenaire` : Accès complet au portefeuille du Partenaire sélectionné.
+
+
+* `Représentant DSM` : Restreint aux entités et POS de sa zone DSM.
+
+
+* `Détenteur POS` : Restreint à ses POS spécifiques et opérations locales.
+
+
+
+
 
 ---
 
-# 9. Module A4 — Composants communs
+## 7. Module A3 — Import Excel Centralisé (`ImportBatch`)
 
-## Objectif
+### Objectif
 
-Créer les composants génériques nécessaires aux trois développeurs.
+Remplacer les anciens CRUDs référentiels autonomes (Partner, DSM, BTS, Clients) par le **canal central d'importation Excel en masse**.
 
-Exemples :
+### Frontend & Parcours Utilisateur
 
-```text
-components/
-├── common/
-│   ├── Button
-│   ├── Input
-│   ├── Select
-│   ├── Modal
-│   ├── Table
-│   ├── Badge
-│   ├── Pagination
-│   ├── SearchBar
-│   ├── FilterBar
-│   ├── ConfirmDialog
-│   ├── LoadingSpinner
-│   ├── EmptyState
-│   └── ErrorMessage
-```
+* **Page** : `/import-export` (ou modal dédiée).
 
-## Règle
 
-Avant de créer un composant générique, vérifier s'il existe déjà.
+* **Workflow en 5 étapes** :
 
-```text
-Besoin
-  ↓
-Recherche composant existant
-  ↓
-Réutilisation
-  ↓
-Extension si nécessaire
-  ↓
-Création uniquement si nécessaire
-```
+
+1. *Téléchargement du Gabarit Excel officiel*.
+
+
+2. *Sélection du type d'entité* (POS, Client, DSM, BTS, SIM, Performance, etc.).
+
+
+3. *Dépôt de fichier & Validation* (`POST /api/partners/{id}/imports/validate`).
+
+
+4. *Prévisualisation & Rapport d'erreurs* : Affichage du nombre de créations, mises à jour et erreurs par ligne/colonne.
+
+
+5. *Confirmation/Commit* (`POST /api/partners/{id}/imports/{batch_id}/apply`).
+
+
+
+
+* **Composants** : `ImportBatchTable`, `ImportPreviewModal`, `ErrorReportViewer`, `FileDropZone`.
 
 ---
 
-# 10. Module A5 — Partenaires
+## 8. Module A4 — BTS & Relevés de Performance
 
-## Objectif
+### Objectif
 
-Permettre la consultation et la gestion des partenaires.
+Suivre les équipements réseau rattachés au Partenaire et consigner les relevés horodatés.
 
-## Frontend
+### Frontend & Endpoints
 
-Créer :
+* **Pages** : `/bts`, `/bts/:id`.
 
-```text
-/partenaires
-/partenaires/:id
-/partenaires/new
-/partenaires/:id/edit
-```
 
-Fonctionnalités :
+* **Endpoints** : `GET /api/partners/{id}/bts`, `GET /api/partners/{id}/bts/{bts_id}/performances`, `POST /api/partners/{id}/bts/{bts_id}/readings`.
 
-* liste ;
-* recherche ;
-* filtrage ;
-* création ;
-* modification ;
-* détail ;
-* statut ;
-* informations associées.
 
-Les partenaires constituent le niveau supérieur de la chaîne :
+* **Composants** :
+* `SaturationGauge` : Indicateur visuel du taux de saturation de la BTS.
 
-```text
-Partenaire
-    ↓
-DSM
-    ↓
-POS
-```
 
-## Composants
+* `ReleveHistoryChart` : Graphique d'évolution de la charge et du rendement.
 
-```text
-PartenaireTable
-PartenaireForm
-PartenaireStatusBadge
-```
 
-## Service
+* `BTSReadingsForm` : Saisie ponctuelle d'un relevé d'indicateurs.
 
-```text
-partenaireService
-```
+
+
+
 
 ---
 
-# 11. Module A6 — DSM
-
-## Objectif
-
-Gérer les DSM et leur zone de couverture.
-
-## Frontend
-
-Créer :
-
-```text
-/dsm
-/dsm/new
-/dsm/:id
-/dsm/:id/edit
-```
-
-Fonctionnalités :
-
-* liste des DSM ;
-* recherche ;
-* création ;
-* modification ;
-* statut ;
-* matricule ;
-* nom complet ;
-* zone de couverture ;
-* partenaire associé.
-
-La zone de couverture est particulièrement importante car le rôle DSM est limité aux entités rattachées à ses propres POS. 
-
----
-
-# 12. Module A7 — BTS
-
-## Objectif
-
-Gérer les BTS et leur suivi.
-
-## Frontend
-
-Créer :
-
-```text
-/bts
-/bts/new
-/bts/:id
-/bts/:id/edit
-```
-
-La fiche BTS doit notamment permettre d'afficher l'historique des relevés.
-
-## Fonctionnalités
-
-* liste des BTS ;
-* recherche ;
-* filtrage ;
-* création ;
-* modification ;
-* détail ;
-* partenaire associé ;
-* statut ;
-* historique des relevés ;
-* saturation ;
-* rendement.
-
-## Composants
-
-```text
-BTSForm
-SaturationGauge
-ReleveHistoryChart
-```
-
-Ces composants font partie de l'architecture Frontend de référence. 
-
----
-
-# 13. Développeur B — Frontend POS
+# 5. Développeur B — Frontend POS & Primes
 
 ## Responsabilité générale
 
-Le développeur B est responsable de tout le **cycle de vie Frontend d'un POS**.
-
-Ses modules sont :
+Le Développeur B pilote la gestion du **cycle de vie complet d'un POS**, les **reconductions contractuelles**, ainsi que le calcul et la validation des **primes par période (`PrimePeriod`)** et des **commissions DSM (`DSMCommission`)**.
 
 ```text
-B — Frontend POS
+B — Frontend POS & Primes
 │
-├── 1. POS
-├── 2. Nouveau / Reconduit
-├── 3. Reconductions
-└── 4. Primes
-```
+├── 1. Points de Vente (POS) & Rattachements[cite: 1, 3]
+├── 2. Cycle de vie : Distinction NOUVEAU vs RECONDUIT[cite: 1, 3]
+├── 3. Workflow de Reconduction historisé[cite: 1, 3]
+├── 4. Primes par Période (PrimePeriod)[cite: 1, 2, 3]
+└── 5. Commissions DSM (DSMCommission)[cite: 1, 2, 3]
 
-Il est le responsable principal de la restitution visuelle de la règle métier **NOUVEAU / RECONDUIT** et de son interaction avec le module Primes. 
+```
 
 ---
 
-# 14. Module B1 — Gestion des POS
+## 9. Module B1 — Gestion des POS & Distinctions Cycle de Vie
 
-## Objectif
+### Objectif
 
-Permettre de consulter et gérer les points de vente.
+Afficher et administrer le parc des points de vente du Partenaire courant.
 
-## Frontend
+### Frontend & Endpoints
 
-Créer :
+* **Pages** : `/pos`, `/pos/new`, `/pos/:id`.
 
-```text
-/pos
-/pos/new
-/pos/:id
-/pos/:id/edit
-```
 
-## Fonctionnalités
+* **Endpoints** : `GET /api/partners/{id}/pos`, `POST /api/partners/{id}/pos`, `PATCH /api/partners/{id}/pos/{pos_id}`.
 
-* liste des POS ;
-* recherche ;
-* filtrage ;
-* pagination ;
-* création ;
-* modification ;
-* détail ;
-* statut ;
-* Partenaire associé ;
-* DSM associé ;
-* type POS ;
-* date d'expiration.
 
-Le type du POS doit être clairement visible :
+* **Règles visuelles** :
+* Affichage obligatoire du badge de statut : `TypePosBadge` (`NOUVEAU` ou `RECONDUIT`).
 
-```text
-NOUVEAU
-RECONDUIT
-```
 
-Le backend prévoit notamment un filtre `type_pos` sur la liste des POS. 
+* Affiche l'association au DSM, Partenaire et Détenteur POS.
+
+
+* Un POS nouvellement créé via le formulaire ou l'import prend automatiquement le type `NOUVEAU`.
+
+
+
+
 
 ---
 
-# 15. Module B2 — Distinction Nouveau / Reconduit
+## 10. Module B2 — Workflow de Reconduction de POS
 
-## Objectif
+### Objectif
 
-Rendre visuellement évidente la situation d'un POS.
+Permettre le renouvellement de la période d'exploitation d'un POS, basculant irréversiblement son statut à `RECONDUIT`.
 
-Les deux valeurs sont :
+### Frontend & Interdiction métier
 
-```text
-TYPE_POS
-├── NOUVEAU
-└── RECONDUIT
-```
+* **Endpoint** : `POST /api/partners/{id}/pos/{pos_id}/reconduction`.
 
 
+* **Workflow UI** :
+1. Bouton "Reduire le POS" accessible uniquement sur les POS de type `NOUVEAU`.
 
-## Frontend
 
-Créer notamment :
+2. Formulaire modal exigeant : nouvelle date d'expiration, motif, confirmation explicite.
 
-```text
-TypePosBadge
-```
 
-Exemple conceptuel :
+3. L'API enregistre l'entrée dans `RECONDUCTIONS`, maj `date_derniere_reconduction` et bascule `type_pos` à `RECONDUIT`.
 
-```text
-POS-001
-Type : NOUVEAU
-```
 
-ou :
 
-```text
-POS-001
-Type : RECONDUIT
-```
 
-## Règle importante
-
-Le Frontend ne doit pas décider lui-même qu'un POS est reconduit.
-
-Il doit afficher l'état fourni par l'API.
-
-```text
-API
- ↓
-type_pos
- ↓
-TypePosBadge
-```
-
-Le changement de type est réalisé par le workflow de reconduction côté Backend.
+* **Composants** : `ReconductionModal`, `ReconductionHistoryTable`.
 
 ---
 
-# 16. Module B3 — Reconductions
+## 11. Module B3 — Primes par Période (`PrimePeriod`) & Commissions DSM (`DSMCommission`)
 
-## Objectif
+### Objectif
 
-Permettre d'enregistrer une reconduction d'un POS et d'en afficher l'historique.
+Gérer les dossiers de primes liées aux créations de POS et suivre la rétrocession/commission attribuée aux DSM.
 
-## Frontend
+### Workflow et Règle critique d'Éligibilité
 
-Créer :
+* **Règle métier stricte** :
+* POS `NOUVEAU` + Période de prime (`PrimePeriod`) `OPEN` $\rightarrow$ Eligible à la création de prime.
 
-```text
-/pos/:id/reconduction
-```
 
-ou une page équivalente selon le routage retenu.
+* POS `RECONDUIT` $\rightarrow$ **Exclusion définitive et blocage d'éligibilité à la prime de création**.
 
-## Fonctionnalités
 
-* affichage du POS ;
-* affichage de son statut actuel ;
-* formulaire de reconduction ;
-* confirmation explicite ;
-* affichage de la date ;
-* affichage de l'historique ;
-* feedback de succès/erreur.
 
-Le parcours prévu est :
+
 
 ```text
-POS NOUVEAU
-      ↓
-Reconduction
-      ↓
-POS RECONDUIT
-      ↓
-Historique conservé
+       POS NOUVEAU                          POS RECONDUIT
+            │                                     │
+    PrimePeriod OPEN                      PrimePeriod OPEN
+            │                                     │
+    ┌───────┴───────┐                             │
+    ▼               ▼                             ▼
+Prime Eligible  DSMCommission              Prime Bloquée !
+(Brouillon ->   (Calculée/              (Rejet explicite UI
+ Validée)        Validée)                et API)[cite: 1, 3]
+
 ```
 
-Le endpoint prévu est :
+### Frontend & Endpoints
 
-```text
-POST /api/pos/{id}/reconduction
-```
+* **Pages** : `/primes`, `/primes/:id`.
 
-avec un endpoint de consultation de l'historique. 
+
+* **Endpoints** : `GET /api/partners/{id}/primes`, `POST /api/partners/{id}/primes/calculate`, `POST /api/partners/{id}/primes/{prime_id}/validate`.
+
+
+* **Statuts de la Prime** : `BROUILLON` $\rightarrow$ `EN_ATTENTE` $\rightarrow$ `VALIDEE` $\rightarrow$ `PAYEE` (ou `REJETEE`).
+
+
+* **Composants** : `PrimeStatusBadge`, `PrimePeriodSelector`, `DSMCommissionTable`, `PrimeValidationModal`.
 
 ---
 
-# 17. Module B4 — Primes
-
-## Objectif
-
-Permettre le suivi visuel des primes associées aux POS.
-
-Les statuts métier sont :
-
-```text
-EN_ATTENTE
-VALIDEE
-PAYEE
-REJETEE
-```
-
-
-
-## Frontend
-
-Créer :
-
-```text
-/primes
-/primes/:id
-```
-
-et les composants :
-
-```text
-PrimeStatusBadge
-PrimeForm
-```
-
-## Fonctionnalités
-
-* liste des primes ;
-* recherche ;
-* filtrage ;
-* détail ;
-* création si autorisée ;
-* validation ;
-* affichage du statut ;
-* suivi du paiement ;
-* affichage du POS concerné ;
-* affichage du DSM / Partenaire si disponible.
-
-## Règle métier critique
-
-Une prime est liée à un POS de type **NOUVEAU**.
-
-Le Frontend doit donc :
-
-```text
-POS
- ↓
-type_pos = NOUVEAU
- ↓
-Prime disponible
-```
-
-et :
-
-```text
-POS
- ↓
-type_pos = RECONDUIT
- ↓
-Prime non éligible
-```
-
-La validation définitive de cette règle appartient à l'API. Le Frontend ne doit jamais considérer son propre contrôle comme une garantie de sécurité.
-
-L'API prévoit notamment le rejet d'une création de prime lorsque le POS n'est pas de type `NOUVEAU`. 
-
----
-
-# 18. Développeur C — Frontend Clients
+# 6. Développeur C — Frontend Clients, SIM, Requêtes & Analytics
 
 ## Responsabilité générale
 
-Le développeur C est responsable de la partie **Client et exploitation opérationnelle associée**.
-
-Ses modules sont :
+Le Développeur C prend en charge le suivi du **fichier Client**, la gestion du **stock SIM**, le module de **Requêtes multi-entités** ainsi que le **Dashboard Partenaire et Analytics**.
 
 ```text
-C — Frontend Clients
+C — Frontend Clients & Operations
 │
-├── 1. Clients
-├── 2. Stock SIM
-├── 3. Requêtes
-├── 4. Dashboard
-└── 5. Import / Export
-```
+├── 1. Clients rattachés aux POS[cite: 1, 3]
+├── 2. Stock SIM & Attribution (MSISDN / ICCID)[cite: 1, 3]
+├── 3. Requêtes Multi-Entités (Incidents & Demandes)[cite: 1, 3]
+└── 4. Dashboard Partenaire & Analytics Consolidées[cite: 1, 2, 3]
 
-Cette répartition correspond au périmètre prévu pour le troisième développeur Frontend. 
-
----
-
-# 19. Module C1 — Clients
-
-## Objectif
-
-Gérer les clients rattachés aux POS.
-
-## Frontend
-
-Créer :
-
-```text
-/clients
-/clients/new
-/clients/:id
-/clients/:id/edit
-```
-
-## Fonctionnalités
-
-* liste ;
-* recherche ;
-* filtrage ;
-* création ;
-* modification ;
-* détail ;
-* POS associé ;
-* informations du client.
-
-La relation fonctionnelle est :
-
-```text
-Partenaire
-    ↓
-DSM
-    ↓
-POS
-    ↓
-Client
-```
-
-Le Client est une entité enregistrée au niveau d'un POS. 
-
----
-
-# 20. Module C2 — Stock SIM
-
-## Objectif
-
-Afficher le stock simplifié des SIM et leur état.
-
-Le MVP prévoit un suivi simplifié des SIM par statut, POS et Client. 
-
-## Frontend
-
-Créer :
-
-```text
-/sims
-/sims/stock
-```
-
-ou le routage équivalent.
-
-## Fonctionnalités
-
-* liste des SIM ;
-* recherche ;
-* filtrage ;
-* POS associé ;
-* Client associé ;
-* statut ;
-* ICCID ;
-* MSISDN ;
-* consultation du stock.
-
-Les statuts prévus sont :
-
-```text
-EN_STOCK
-VENDUE
-ACTIVEE
-DEFECTUEUSE
-RETOURNEE
-```
-
-
-
-## Composants
-
-```text
-SimStatusBadge
-SimStockTable
 ```
 
 ---
 
-# 21. Module C3 — Requêtes
+## 12. Module C1 — Gestion des Clients
 
-## Objectif
+### Objectif
 
-Permettre de consulter et suivre les demandes/incidents remontés du terrain.
+Consulter et gérer les clients finaux enregistrés auprès des différents POS du Partenaire.
 
-## Frontend
+### Frontend & Endpoints
 
-Créer :
-
-```text
-/requetes
-/requetes/new
-/requetes/:id
-```
-
-## Fonctionnalités
-
-* liste ;
-* recherche ;
-* filtrage ;
-* création ;
-* détail ;
-* statut ;
-* priorité ;
-* type ;
-* entité associée.
-
-Les statuts sont :
-
-```text
-OUVERTE
-EN_COURS
-RESOLUE
-FERMEE
-```
-
-Les priorités :
-
-```text
-BASSE
-NORMALE
-HAUTE
-URGENTE
-```
-
-Les types comprennent notamment :
-
-```text
-APPROVISIONNEMENT_SIM
-MAINTENANCE_BTS
-RECLAMATION_CLIENT
-SUPPORT_POS
-AUTRE
-```
+* **Pages** : `/clients`, `/clients/:id`.
 
 
+* **Endpoints** : `GET /api/partners/{id}/clients`, `GET /api/partners/{id}/clients/{client_id}`, `PATCH /api/partners/{id}/clients/{client_id}`.
 
-## Composants
 
-```text
-RequeteCard
-PrioriteBadge
-```
+* **Fonctionnalités** : Recherche, filtres par POS, consultation de la fiche client et mises à jour autorisées. (L'alimentation massive est assurée par l'import Excel).
+
+
 
 ---
 
-# 22. Module C4 — Dashboard
+## 13. Module C2 — Stock SIM & Assignation Client
 
-## Objectif
+### Objectif
 
-Présenter une vue synthétique des indicateurs POSTrack.
+Piloter le stock des cartes SIM par POS et suivre leur statut d'attribution.
 
-Le dashboard fait partie des fonctionnalités P1 du MVP. 
+### Frontend & Statuts
 
-## Frontend
+* **Pages** : `/sims`, `/sims/stock`.
 
-Créer :
 
-```text
-/dashboard
-```
+* **Statuts des SIM** : `EN_STOCK`, `VENDUE`, `ACTIVEE`, `DEFECTUEUSE`, `RETOURNEE`.
 
-ou :
 
-```text
-/analytics
-```
+* **Fonctionnalités** :
+* Recherche par ICCID / MSISDN.
 
-selon la convention finalement retenue.
 
-## Afficher notamment
+* Filtrage par POS et par Client assigné.
 
-* nombre de POS ;
-* répartition Nouveau / Reconduit ;
-* primes ;
-* saturation BTS ;
-* stock SIM ;
-* requêtes ;
-* autres indicateurs disponibles via l'API.
 
-## Composants
+* Consultation des mouvements et attribution à un client.
 
-```text
-StatCard
-ChartNouveauVsReconduit
-ChartBTSSaturation
-```
 
-L'architecture prévoit explicitement ces composants de Dashboard. 
+
+
+* **Composants** : `SimStockTable`, `SimStatusBadge`.
 
 ---
 
-# 23. Module C5 — Import / Export
+## 14. Module C3 — Requêtes Multi-Entités
 
-## Objectif
+### Objectif
 
-Permettre l'import et l'export des données prévues par le système.
+Centraliser la gestion des demandes et incidents du terrain rattachés à une ou plusieurs entités (Partenaire, POS, BTS, Client).
 
-L'import/export massif des POS est une fonctionnalité P1 du MVP. 
+### Frontend & Workflow
 
-## Frontend
+* **Pages** : `/requetes`, `/requetes/new`, `/requetes/:id`.
 
-Créer :
 
-```text
-/import-export
-```
+* **Endpoints** : `GET /api/partners/{id}/requests`, `POST /api/partners/{id}/requests`, `PATCH /api/partners/{id}/requests/{request_id}`.
 
-Fonctionnalités :
 
-* sélection du fichier ;
-* contrôle du type de fichier ;
-* envoi ;
-* affichage de la progression si disponible ;
-* résultat de l'import ;
-* erreurs ;
-* téléchargement de l'export.
+* **Règle de validation** : Toutes les entités sélectionnées dans une même requête doivent appartenir obligatoirement au `PartnerContext` actif.
 
-Le Frontend ne doit pas reproduire la logique de traitement Excel du Backend.
 
----
+* **Statuts & Priorités** :
+* *Statuts* : `OUVERTE` $\rightarrow$ `EN_COURS` $\rightarrow$ `EN_ATTENTE` $\rightarrow$ `RESOLUE` / `FERMEE`.
 
-# 24. Travail transversal — Design System
 
-Le Design System est commun aux trois développeurs.
+* *Priorités* : `BASSE`, `NORMALE`, `HAUTE`, `URGENTE`.
 
-Il doit notamment définir :
 
-```text
-Couleurs
-Typographie
-Espacements
-Boutons
-Inputs
-Tables
-Badges
-Modales
-Cards
-Alertes
-États de chargement
-États d'erreur
-```
 
-Les trois développeurs doivent utiliser les mêmes composants.
 
-Il est interdit de créer trois variantes différentes d'un même composant sans justification.
+* **Composants** : `RequeteCard`, `PrioriteBadge`, `EntityMultiSelect`.
 
 ---
 
-# 25. Travail transversal — API Services
+## 15. Module C4 — Dashboard Partenaire & Analytics Consolidées
 
-Les appels API doivent être centralisés dans les services Frontend.
+### Objectif
 
-Exemple :
+Restituer le tableau de bord exécutif et synthétique du Partenaire actif dès le passage de l'écran de sélection.
 
-```text
-services/
-├── authService
-├── partenaireService
-├── dsmService
-├── btsService
-├── posService
-├── primeService
-├── clientService
-├── simService
-└── requeteService
-```
+### Frontend & Visualisations (Recharts)
 
-L'architecture officielle prévoit déjà des services spécialisés pour POS, primes, BTS, SIM, requêtes et clients. 
+* **Page** : `/dashboard`.
 
-Une page ne doit pas contenir directement des appels Axios dispersés partout.
 
-À éviter :
+* **Endpoint** : `GET /api/partners/{id}/analytics/overview`.
 
-```text
-Page
- └── axios.get(...)
-```
 
-Préférer :
+* **Composants du Dashboard** :
 
-```text
-Page
- ↓
-Service
- ↓
-API
-```
+
+* `StatCard` : Nombre de POS actifs, requêtes ouvertes, stock SIM global.
+
+
+* `ChartNouveauVsReconduit` : Repartition visuelle du parc POS.
+
+
+* `ChartPrimesPeriod` : Total des primes et commissions sur la période courante.
+
+
+* `ChartBTSSaturation` : Alertes sur les BTS proches du seuil critique de saturation.
+
+
+
+
 
 ---
 
-# 26. Travail transversal — Contrats API
+# 7. Matrice des Endpoints API Orientés Partenaire (v3.1-R7)
 
-Avant de développer une fonctionnalité dépendante du Backend, le développeur Frontend doit connaître :
+Toutes les routes métier consommées par l'équipe Frontend doivent être préfixées par `/api/partners/{partner_id}/`.
 
-```text
-Méthode HTTP
-URL
-Paramètres
-Query parameters
-Body
-Réponse
-Codes HTTP
-Erreurs
-Permissions
-```
-
-Exemple :
-
-```text
-GET /api/pos
-
-Query:
-type_pos=NOUVEAU
-
-Response:
-{
-    ...
-}
-```
-
-Le Frontend ne doit pas inventer une structure de réponse différente de celle définie par l'API.
+| Domaine | Méthode | Endpoint REST Target | Responsable Frontend |
+| --- | --- | --- | --- |
+| **Context** | `GET` | `/api/partenaires/available`<br> | Développeur A (Lead) |
+| **Import** | `POST` | `/api/partners/{id}/imports/validate`<br> | Développeur A (Lead) |
+| **Import** | `POST` | `/api/partners/{id}/imports/{batch_id}/apply`<br> | Développeur A (Lead) |
+| **BTS** | `GET` / `POST` | `/api/partners/{id}/bts` & `/readings`<br> | Développeur A (Lead) |
+| **POS** | `GET` / `POST` | `/api/partners/{id}/pos`<br> | Développeur B (POS) |
+| **POS** | `POST` | `/api/partners/{id}/pos/{pos_id}/reconduction`<br> | Développeur B (POS) |
+| **Primes** | `GET` / `POST` | `/api/partners/{id}/primes` & `/calculate`<br> | Développeur B (POS) |
+| **Primes** | `POST` | `/api/partners/{id}/primes/{prime_id}/validate`<br> | Développeur B (POS) |
+| **Clients** | `GET` / `PATCH` | `/api/partners/{id}/clients`<br> | Développeur C (Clients) |
+| **SIM** | `GET` | `/api/partners/{id}/sims`<br> | Développeur C (Clients) |
+| **Requêtes** | `GET` / `POST` | `/api/partners/{id}/requests`<br> | Développeur C (Clients) |
+| **Analytics** | `GET` | `/api/partners/{id}/analytics/overview`<br> | Développeur C (Clients) |
 
 ---
 
-# 27. Travail transversal — Gestion des rôles
+# 8. Plan de Tests & Recette Frontend
 
-Le Frontend doit adapter l'interface au rôle connecté.
+Chaque développeur est responsable d'assurer la couverture de ses composants sous **Vitest + React Testing Library**.
 
-Les rôles sont :
-
-```text
-ADMIN
-MANAGER
-DSM
-VIEWER
-```
-
-Leurs périmètres sont définis par le système de permissions POSTrack. 
-
-Exemple :
+### Scénario de Démonstration Critique (Validation de Recette) :
 
 ```text
-ADMIN
- └── Accès complet
-
-MANAGER
- └── Gestion opérationnelle
-
-DSM
- └── Données de sa zone
-
-VIEWER
- └── Lecture seule
-```
-
-## Règle importante
-
-Le Frontend peut masquer une action interdite :
-
-```text
-Bouton "Modifier"
+1. Connexion / Login (JWT)[cite: 1, 3]
        ↓
-Permission absente
+2. Sélection du Partenaire X (PartnerContext)[cite: 1, 3]
        ↓
-Bouton masqué
+3. Affichage du Dashboard Partenaire[cite: 1, 3]
+       ↓
+4. Importation d'un lot Excel de POS (ImportBatch = APPLIED)[cite: 1, 2, 3]
+       ↓
+5. Création d'un POS (Type = NOUVEAU)[cite: 1, 3]
+       ↓
+6. Calcul / Attribution d'une Prime sur la période ouverte[cite: 1, 3]
+       ↓
+7. Executer la Reconduction du POS (Type bascule à RECONDUIT)[cite: 1, 3]
+       ↓
+8. Tentative de création d'une nouvelle Prime sur ce POS
+       ↓
+9. BLOQUAGE EXPLICITE (Message d'erreur métier refusé)[cite: 1, 3]
+
 ```
 
-Mais cela ne remplace jamais le contrôle Backend.
+### Définition de « Module Terminé » :
 
----
+* [ ] Contexte Partenaire (`partner_context_id`) vérifié et propagé.
 
-# 28. Travail transversal — États d'interface
 
-Toutes les pages doivent gérer au minimum :
+* [ ] Endpoints REST sous préfixe `/api/partners/{id}/` consommés sans erreur.
 
-```text
-LOADING
-SUCCESS
-EMPTY
-ERROR
-```
 
-Exemple :
+* [ ] Rôles applicatifs (`ADMIN`, `Partenaire`, `DSM`, `POS`) contrôlés à l'affichage.
 
-```text
-Chargement
-    ↓
-API
-    │
-    ├── Succès → afficher les données
-    │
-    ├── Vide   → EmptyState
-    │
-    └── Erreur → ErrorState
-```
 
-L'ergonomie du MVP exige notamment un retour visuel systématique lors des actions : chargement, succès et erreur. 
+* [ ] Responsive design validé sous Desktop et Tablette.
 
----
 
-# 29. Travail transversal — Responsive Design
+* [ ] Couverture de tests unitaires/composants validée par CI.
 
-L'application doit être conçue pour :
 
-```text
-Desktop
-Tablette
-```
-
-Le responsive fait partie des exigences non fonctionnelles du projet. 
-
-Les développeurs doivent donc éviter :
-
-* largeurs fixes inutiles ;
-* tableaux impossibles à consulter sur tablette ;
-* formulaires débordants ;
-* navigation non responsive.
-
----
-
-# 30. Travail transversal — Tests Frontend
-
-L'outil de référence prévu pour les tests Frontend est :
-
-```text
-Vitest
-+
-React Testing Library
-```
-
-Les composants critiques explicitement identifiés comprennent notamment :
-
-```text
-POSForm
-ReconductionPage
-PrimeForm
-SimsStockPage
-```
-
-
-
-## Développeur A
-
-Tester notamment :
-
-```text
-Login
-ProtectedRoute
-AuthContext
-Layout
-PartenaireForm
-DSMForm
-BTSForm
-```
-
-## Développeur B
-
-Tester notamment :
-
-```text
-POSForm
-TypePosBadge
-FilterBar
-ReconductionPage
-PrimeForm
-PrimeStatusBadge
-```
-
-## Développeur C
-
-Tester notamment :
-
-```text
-ClientForm
-SimStockTable
-SimStatusBadge
-RequeteForm
-RequeteCard
-Dashboard
-ImportExport
-```
-
----
-
-# 31. Travail transversal — Intégration
-
-Chaque développeur doit régulièrement synchroniser sa branche avec `develop`.
-
-```text
-feature
-   ↓
-développement
-   ↓
-tests
-   ↓
-synchronisation develop
-   ↓
-résolution éventuelle des conflits
-   ↓
-Pull Request
-```
-
-Il ne faut pas attendre la fin du projet pour intégrer les modules.
-
----
-
-# 32. Ce que chaque développeur doit livrer
-
-## Développeur A — Lead Frontend
-
-```text
-✓ Architecture React
-✓ Routage
-✓ Authentification
-✓ Gestion des rôles côté UI
-✓ Layout
-✓ Navigation
-✓ Composants communs
-✓ Partenaires
-✓ DSM
-✓ BTS
-✓ Services API correspondants
-✓ Tests
-✓ Documentation
-```
-
-## Développeur B — Frontend POS
-
-```text
-✓ POS
-✓ Distinction Nouveau / Reconduit
-✓ Reconduction
-✓ Primes
-✓ Composants POS
-✓ Composants Primes
-✓ Services API correspondants
-✓ Tests
-✓ Documentation
-```
-
-## Développeur C — Frontend Clients
-
-```text
-✓ Clients
-✓ Stock SIM
-✓ Requêtes
-✓ Dashboard
-✓ Import / Export
-✓ Composants Clients/SIM/Requêtes/Dashboard
-✓ Services API correspondants
-✓ Tests
-✓ Documentation
-```
-
----
-
-# 33. Définition de « module terminé »
-
-Un module Frontend n'est considéré comme terminé que lorsque :
-
-```text
-[ ] Pages créées
-[ ] Routage configuré
-[ ] Composants nécessaires créés
-[ ] Services API créés
-[ ] Contrat API respecté
-[ ] États loading/success/empty/error gérés
-[ ] Validation des formulaires
-[ ] Gestion des permissions
-[ ] Responsive design
-[ ] Tests écrits
-[ ] Tests réussis
-[ ] Aucun appel API inutile ou dupliqué
-[ ] Documentation mise à jour
-[ ] Code review effectuée
-[ ] Pull Request approuvée
-[ ] CI réussie
-[ ] Merge dans develop
-```
-
----
-
-# 34. Organisation des branches
-
-La branche principale de développement est :
-
-```text
-main
-└── develop
-```
-
-Les branches doivent être créées par fonctionnalité.
-
-## Lead Frontend
-
-```text
-feature/frontend-architecture
-feature/auth
-feature/layout
-feature/partenaires
-feature/dsm
-feature/bts
-```
-
-## Frontend POS
-
-```text
-feature/pos
-feature/pos-type-nouveau-reconduit
-feature/reconductions
-feature/primes
-```
-
-## Frontend Clients
-
-```text
-feature/clients
-feature/sims-stock
-feature/requetes
-feature/dashboard
-feature/import-export
-```
-
-Les noms de branches doivent rester explicites et correspondre à une fonctionnalité identifiable.
-
-La stratégie POSTrack impose une branche par fonctionnalité et une revue de code avant fusion dans `develop`. 
-
----
-
-# 35. Règle concernant les conflits Git
-
-Les développeurs doivent éviter de modifier simultanément les mêmes fichiers lorsqu'il n'y a pas de raison de le faire.
-
-### Exemple à éviter
-
-```text
-Dev A ── modifie App.jsx
-Dev B ── modifie App.jsx
-Dev C ── modifie App.jsx
-```
-
-### Préférer
-
-```text
-Dev A
- └── routes / architecture
-
-Dev B
- └── pages POS
-
-Dev C
- └── pages Clients
-```
-
-Le Lead Frontend est prioritairement responsable des fichiers d'architecture globale.
-
-Les développeurs B et C doivent éviter de modifier directement ces fichiers sans coordination.
-
----
-
-# 36. Fichiers à responsabilité partagée
-
-Certains fichiers peuvent être utilisés par tout le monde :
-
-```text
-App
-routes
-API client
-types globaux
-components/common
-styles globaux
-contexts
-```
-
-Ils sont considérés comme **fichiers sensibles**.
-
-Avant une modification importante :
-
-```text
-Proposition
-    ↓
-Discussion avec le Lead
-    ↓
-Validation
-    ↓
-Modification
-    ↓
-Tests
-```
-
----
-
-# 37. Ordre de développement recommandé
-
-## Phase 1 — Fondations
-
-### Lead
-
-```text
-Architecture
-Routing
-MainLayout
-Axios
-AuthContext
-ProtectedRoute
-Components communs
-```
-
-### POS
-
-```text
-Préparation POS
-POSListPage
-POSForm
-POSDetailPage
-```
-
-### Clients
-
-```text
-Préparation Clients
-ClientsListPage
-ClientForm
-```
-
----
-
-# 38. Phase 2 — Modules principaux
-
-### Lead
-
-```text
-Partenaires
-DSM
-BTS
-```
-
-### POS
-
-```text
-Type Nouveau / Reconduit
-Filtres POS
-Détail POS
-```
-
-### Clients
-
-```text
-Stock SIM
-SimStatusBadge
-SimStockTable
-```
-
----
-
-# 39. Phase 3 — Règles métier
-
-### Lead
-
-```text
-BTS
-Historique des relevés
-Saturation
-```
-
-### POS
-
-```text
-Reconduction
-Historique
-Primes
-Validation des primes
-```
-
-### Clients
-
-```text
-Requêtes
-Statuts
-Priorités
-```
-
-La règle métier Nouveau/Reconduit et le module Primes sont des éléments critiques du MVP. Ils doivent donc faire l'objet d'une attention particulière pendant l'intégration et les tests. 
-
----
-
-# 40. Phase 4 — Consolidation
-
-### Lead
-
-```text
-Harmonisation UI
-Gestion globale des erreurs
-Permissions
-Responsive
-Navigation
-```
-
-### POS
-
-```text
-Tests POS
-Tests Reconduction
-Tests Primes
-```
-
-### Clients
-
-```text
-Tests Clients
-Tests SIM
-Tests Requêtes
-Tests Dashboard
-Tests Import/Export
-```
-
----
-
-# 41. Phase 5 — Intégration finale
-
-Toute l'équipe :
-
-```text
-Merge des fonctionnalités
-        ↓
-Tests Frontend globaux
-        ↓
-Tests avec API réelle
-        ↓
-Correction des conflits
-        ↓
-Tests des rôles
-        ↓
-UAT
-        ↓
-Stabilisation
-```
-
-Le scénario critique à vérifier comprend notamment :
-
-```text
-Création POS
-      ↓
-POS = NOUVEAU
-      ↓
-Prime
-      ↓
-Client
-      ↓
-SIM
-      ↓
-Reconduction
-      ↓
-POS = RECONDUIT
-      ↓
-Tentative de nouvelle Prime
-      ↓
-Refus
-```
-
-Ce parcours constitue le scénario métier de référence de la recette POSTrack. 
-
----
-
-# 42. Règles de collaboration
-
-## Règle 1 — Le Lead possède l'architecture
-
-Les développeurs B et C peuvent proposer des modifications architecturales, mais les changements structurants doivent être coordonnés avec le Lead.
-
----
-
-## Règle 2 — Pas de code directement sur `develop`
-
-Toujours :
-
-```text
-feature/*
-     ↓
-Pull Request
-     ↓
-Code Review
-     ↓
-develop
-```
-
----
-
-## Règle 3 — Toute PR doit être revue
-
-Une fonctionnalité n'est pas considérée comme intégrée simplement parce qu'elle fonctionne sur l'ordinateur du développeur.
-
-Elle doit passer par :
-
-```text
-Code
- ↓
-Tests
- ↓
-PR
- ↓
-Review
- ↓
-CI
- ↓
-Merge
-```
-
----
-
-## Règle 4 — Pas de logique métier inventée côté Frontend
-
-Le Frontend affiche et orchestre les données fournies par l'API.
-
-Exemple :
-
-```text
-API
- ↓
-type_pos = RECONDUIT
- ↓
-Frontend
- ↓
-TypePosBadge
-```
-
-et non :
-
-```text
-Frontend
- ↓
-calcule lui-même que le POS est reconduit
-```
-
-Les règles métier critiques restent validées par le Backend.
-
----
-
-## Règle 5 — Pas de duplication des composants
-
-Avant de créer :
-
-```text
-CustomButton
-```
-
-vérifier si :
-
-```text
-components/common/Button
-```
-
-existe déjà.
-
----
-
-## Règle 6 — Pas d'appels API dispersés
-
-Les appels doivent passer par les services définis dans l'architecture.
-
----
-
-## Règle 7 — La documentation évolue avec le code
-
-Une modification importante de :
-
-* route ;
-* composant ;
-* contrat API ;
-* structure de données ;
-* comportement métier ;
-* architecture ;
-
-doit être documentée.
-
----
-
-# 43. Critère principal de réussite
-
-L'organisation de l'équipe Frontend est réussie lorsque :
-
-```text
-Lead Frontend
-    │
-    ├── garantit l'architecture
-    │
-    ├── Développeur POS
-    │       └── maîtrise tout le cycle POS
-    │
-    └── Développeur Clients
-            └── maîtrise toute la chaîne Client
-```
-
-et que les trois développeurs peuvent travailler simultanément sans créer une dépendance permanente les uns envers les autres.
-
-Le principe final est :
-
-> **Chaque développeur est responsable de ses modules de bout en bout sur le Frontend, tandis que le Lead Frontend garantit la cohérence architecturale de l'ensemble de l'application.**
-
-Cette organisation reste alignée avec l'architecture officielle de POSTrack : **React + Vite côté client, Axios pour les échanges REST, pages et composants spécialisés, et services Frontend dédiés aux différents domaines métier.** 
+* [ ] Pull Request relue et fusionnée dans `develop`.
