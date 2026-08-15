@@ -1,10 +1,14 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import usePartner from '../hooks/usePartner';
 
-/** Gate authentification seule (ex. /select-partner). */
-const ProtectedRoute = ({ children }) => {
+/**
+ * Protège les routes métier : authentification JWT + PartnerContext obligatoire.
+ */
+const PartnerRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
+  const { hasPartner } = usePartner();
   const location = useLocation();
 
   if (loading) {
@@ -19,7 +23,11 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  if (!hasPartner) {
+    return <Navigate to="/select-partner" state={{ from: location }} replace />;
+  }
+
   return children;
 };
 
-export default ProtectedRoute;
+export default PartnerRoute;

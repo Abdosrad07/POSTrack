@@ -13,8 +13,11 @@ import DSMListPage from './pages/dsm/DSMListPage'
 import DSMCreatePage from './pages/dsm/DSMCreatePage'
 import DSMDetailPage from './pages/dsm/DSMDetailPage'
 import LoginPage from './pages/auth/LoginPage'
+import SelectPartnerPage from './pages/auth/SelectPartnerPage'
 import ProtectedRoute from './routes/ProtectedRoute'
+import PartnerRoute from './routes/PartnerRoute'
 import { AuthProvider } from './context/AuthContext'
+import { PartnerProvider } from './context/PartnerContext'
 import PartenaireCreatePage from './pages/partenaires/PartenaireCreatePage'
 import POSCreatePage from './pages/pos/POSCreatePage'
 import PrimeCreatePage from './pages/primes/PrimeCreatePage'
@@ -22,42 +25,51 @@ import PrimeCreatePage from './pages/primes/PrimeCreatePage'
 function App() {
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-                              <Route index element={<Dashboard />} />
-          <Route path="pos" element={<POSListPage />} />
-          <Route path="pos/new" element={<POSCreatePage />} />
-          <Route path="pos/nouveau" element={<POSCreatePage />} />
-          <Route path="pos/:id" element={<POSDetailPage />} />
-          <Route path="partenaires" element={<PartnersList />} />
-          <Route path="partenaires/new" element={<PartenaireCreatePage />} />
-          <Route path="primes" element={<PrimesListPage />} />
-          <Route path="primes/new" element={<PrimeCreatePage />} />
-          <Route path="dsm">
-            <Route index element={<DSMListPage />} />
-            <Route path="new" element={<DSMCreatePage />} />
-            <Route path=":id" element={<DSMDetailPage />} />
+      <PartnerProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/select-partner"
+            element={
+              <ProtectedRoute>
+                <SelectPartnerPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            element={
+              <PartnerRoute>
+                <Layout />
+              </PartnerRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="pos" element={<POSListPage />} />
+            <Route path="pos/new" element={<POSCreatePage />} />
+            <Route path="pos/nouveau" element={<POSCreatePage />} />
+            <Route path="pos/:id" element={<POSDetailPage />} />
+            <Route path="partenaires" element={<PartnersList />} />
+            <Route path="partenaires/new" element={<PartenaireCreatePage />} />
+            <Route path="primes" element={<PrimesListPage />} />
+            <Route path="primes/new" element={<PrimeCreatePage />} />
+            <Route path="dsm">
+              <Route index element={<DSMListPage />} />
+              <Route path="new" element={<DSMCreatePage />} />
+              <Route path=":id" element={<DSMDetailPage />} />
+            </Route>
+            <Route path="bts">
+              <Route index element={<BTSListPage />} />
+              <Route path="nouveau" element={<BTSCreatePage />} />
+              <Route path="new" element={<BTSCreatePage />} />
+              <Route path=":id" element={<BTSDetailPage />} />
+              <Route path=":id/modifier" element={<BTSCreatePage />} />
+              <Route path="releves" element={<BTSRelevesPage />} />
+            </Route>
           </Route>
-          <Route path="bts">
-            <Route index element={<BTSListPage />} />
-            <Route path="nouveau" element={<BTSCreatePage />} />
-            <Route path="new" element={<BTSCreatePage />} />
-            <Route path=":id" element={<BTSDetailPage />} />
-            <Route path=":id/modifier" element={<BTSCreatePage />} />
-            <Route path="releves" element={<BTSRelevesPage />} />
-          </Route>
-        </Route>
-      </Routes>
+        </Routes>
+      </PartnerProvider>
     </AuthProvider>
   )
 }
 
 export default App
-
