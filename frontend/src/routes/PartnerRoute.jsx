@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import usePartner from '../hooks/usePartner';
+import LoadingSpinner from '../components/Common/LoadingSpinner/LoadingSpinner';
 
 /**
  * Protège les routes métier : authentification JWT + PartnerContext obligatoire.
@@ -12,11 +13,7 @@ const PartnerRoute = ({ children }) => {
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-100">
-        <div className="text-lg font-semibold text-slate-600">Chargement...</div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen label="Chargement..." />;
   }
 
   if (!isAuthenticated) {

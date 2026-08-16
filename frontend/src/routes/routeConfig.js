@@ -1,5 +1,5 @@
 /**
- * Configuration des routes — Module A1 (Lead Frontend)
+ * Configuration des routes — Modules A1 / A2 (Lead Frontend)
  * Source de vérité runtime : App.tsx
  */
 export const PUBLIC_ROUTES = {
@@ -8,15 +8,21 @@ export const PUBLIC_ROUTES = {
 
 export const AUTH_ROUTES = {
   selectPartner: '/select-partner',
+  unauthorized: '/unauthorized',
 };
 
 export const APP_ROUTES = {
   dashboard: '/',
   pos: '/pos',
-  partenaires: '/partenaires',
-  primes: '/primes',
   dsm: '/dsm',
   bts: '/bts',
+  clients: '/clients',
+  sims: '/sims',
+  primes: '/primes',
+  requetes: '/requetes',
+  importExport: '/import-export',
+  partenaires: '/partenaires',
+  audit: '/audit',
 };
 
 export default {

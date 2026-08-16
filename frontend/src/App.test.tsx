@@ -6,7 +6,7 @@ import App from './App'
 import { STORAGE_KEYS } from './utils/constants'
 
 vi.mock('./services/authService', async () => {
-  const actual = await vi.importActual('./services/authService')
+  const actual = (await vi.importActual('./services/authService')) as typeof import('./services/authService')
   return {
     ...actual,
     authService: {
@@ -55,7 +55,7 @@ vi.mock('./services/api', () => {
     return { data: [] }
   })
   return {
-    applyPartnerPrefix: (url, partnerId) =>
+    applyPartnerPrefix: (url: string, partnerId: number | string) =>
       partnerId ? `/partners/${partnerId}${url.startsWith('/') ? url : `/${url}`}` : url,
     default: {
       get,
