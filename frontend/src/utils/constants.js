@@ -126,3 +126,33 @@ export const PARTNER_PREFIX_EXCLUDES = [
   /^\/?partenaires(\/|$)/i,
   /^\/?partners\/available(\/|$)/i,
 ];
+
+/** Types d'entités importables — Module A3 (Import Excel centralisé / ImportBatch) */
+export const IMPORT_ENTITY_TYPES = [
+  { value: 'POS', label: 'Points de Vente (POS)' },
+  { value: 'CLIENT', label: 'Clients' },
+  { value: 'DSM', label: 'DSM' },
+  { value: 'BTS', label: 'BTS' },
+  { value: 'SIM', label: 'Stock SIM' },
+  { value: 'PERFORMANCE', label: 'Performance / Relevés' },
+];
+
+/** Chaîne d'acceptation des fichiers (input & drag & drop) — Module A3 */
+export const IMPORT_FILE_ACCEPT = '.xlsx,.xls,.csv';
+
+/** Statuts possibles d'un lot d'import (ImportBatch) — Module A3 */
+export const IMPORT_BATCH_STATUS = {
+  VALIDATED: 'VALIDATED',
+  APPLIED: 'APPLIED',
+  REJECTED: 'REJECTED',
+};
+
+/** Étapes du parcours d'import (Module A3) */
+export const IMPORT_STEPS = {
+  SETUP: 'SETUP',
+  VALIDATING: 'VALIDATING',
+  PREVIEW: 'PREVIEW',
+  APPLYING: 'APPLYING',
+  SUCCESS: 'SUCCESS',
+  ERROR: 'ERROR',
+};
