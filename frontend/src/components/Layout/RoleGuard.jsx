@@ -7,11 +7,12 @@ import EmptyState from '../Common/EmptyState/EmptyState';
 /**
  * Garde d'affichage / de route selon la matrice des rôles R7 (Module A2).
  *
- * @param {string[]} roles — rôles autorisés (R7 ou alias)
- * @param {React.ReactNode} children
- * @param {'redirect'|'hide'|'message'} mode
- * @param {string} redirectTo
- * @param {React.ReactNode} fallback
+ * @param {Object} props — propriétés du composant
+ * @param {string[]} [props.roles] — rôles autorisés (R7 ou alias)
+ * @param {React.ReactNode} [props.children]
+ * @param {'redirect' | 'hide' | 'message'} [props.mode]
+ * @param {string} [props.redirectTo]
+ * @param {React.ReactNode} [props.fallback]
  */
 const RoleGuard = ({
   roles = [],

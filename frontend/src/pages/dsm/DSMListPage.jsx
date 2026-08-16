@@ -44,7 +44,7 @@ export default function DSMListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">DSMs</h1>
-          <p className="mt-1 text-sm text-gray-600">Liste et sélection des DSM.</p>
+          <p className="mt-1 text-sm text-gray-600">Liste et sÃ©lection des DSM.</p>
         </div>
         <button
           type="button"
@@ -58,7 +58,7 @@ export default function DSMListPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Sélectionner un DSM</label>
+              <label className="block text-sm font-medium text-gray-700">SÃ©lectionner un DSM</label>
               <select
                 value={selectedId || ''}
                 onChange={(e) => setSelectedId(e.target.value)}
@@ -76,31 +76,31 @@ export default function DSMListPage() {
               <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
                 <h2 className="text-lg font-semibold text-indigo-900">{selectedDSM.nom}</h2>
                 <p className="text-sm text-gray-700">{selectedDSM.email}</p>
-                <p className="mt-2 text-sm text-gray-700">Région : {selectedDSM.region}</p>
+                <p className="mt-2 text-sm text-gray-700">RÃ©gion : {selectedDSM.region}</p>
                 <p className="mt-1 text-sm text-gray-700">Statut : {selectedDSM.statut}</p>
                 <button
                   type="button"
                   onClick={() => navigate(`/dsm/${selectedDSM.id}`)}
                   className="mt-4 rounded-md bg-white px-3 py-2 text-sm font-medium text-indigo-700 border border-indigo-200 hover:bg-indigo-50"
                 >
-                  Voir le détail
+                  Voir le dÃ©tail
                 </button>
               </div>
             ) : (
               <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
-                Sélectionnez un DSM pour voir plus de détails.
+                SÃ©lectionnez un DSM pour voir plus de dÃ©tails.
               </div>
             )}
           </div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Table de sélection</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Table de sÃ©lection</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 font-medium text-gray-500">DSM</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Région</th>
+                  <th className="px-4 py-3 font-medium text-gray-500">RÃ©gion</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Statut</th>
                 </tr>
               </thead>
