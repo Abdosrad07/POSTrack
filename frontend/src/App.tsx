@@ -127,14 +127,6 @@ function App() {
               }
             />
             <Route
-              path="bts/nouveau"
-              element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
-                  <BTSCreatePage />
-                </RoleGuard>
-              }
-            />
-            <Route
               path="bts/new"
               element={
                 <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
@@ -143,10 +135,10 @@ function App() {
               }
             />
             <Route
-              path="bts/:id"
+              path="bts/releves"
               element={
                 <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
-                  <BTSDetailPage />
+                  <BTSRelevesPage />
                 </RoleGuard>
               }
             />
@@ -159,10 +151,10 @@ function App() {
               }
             />
             <Route
-              path="bts/releves"
+              path="bts/:id"
               element={
                 <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
-                  <BTSRelevesPage />
+                  <BTSDetailPage />
                 </RoleGuard>
               }
             />

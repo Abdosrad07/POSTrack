@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import SaturationGauge from '../../components/BTS/SaturationGauge'
+import CarteBTS from '../../components/BTS/CarteBTS'
+import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
 
 const getStatusBadge = (status) => {
   const styles = {
@@ -19,10 +21,22 @@ const DetailCard = ({ label, value, children }) => (
   </div>
 )
 
+const normalizeBts = (b) => ({
+  ...b,
+  code: b.code || b.code_bts,
+  localisation: b.localisation || b.ville,
+  statut: (b.statut || 'ACTIF').toUpperCase(),
+  latitude: b.latitude ?? b.lat,
+  longitude: b.longitude ?? b.lng,
+  lieux_couverts: b.lieux_couverts || (b.ville ? [b.ville] : []),
+})
+
 export default function BTSDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [bts, setBts] = useState(null)
+  const [btsList, setBtsList] = useState([])
+  const [selectedBts, setSelectedBts] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -31,8 +45,15 @@ export default function BTSDetailPage() {
       try {
         setLoading(true)
         setError(null)
-        const btsRes = await api.get(`/bts/${id}`)
-        setBts(btsRes.data.data || btsRes.data)
+        const [detailRes, listRes] = await Promise.all([
+          api.get(`/bts/${id}`),
+          api.get('/bts'),
+        ])
+        const detail = detailRes.data.data || detailRes.data
+        const list = listRes.data.data || listRes.data || []
+        setBts(detail)
+        setBtsList(list.map(normalizeBts))
+        setSelectedBts(detail ? normalizeBts(detail) : null)
       } catch (err) {
         console.error(err)
         setError('Impossible de charger les détails de la BTS.')
@@ -42,7 +63,12 @@ export default function BTSDetailPage() {
     }
     fetchData()
   }, [id])
-  
+
+  const mapList = useMemo(
+    () => (selectedBts ? [selectedBts, ...btsList.filter((b) => b.id !== selectedBts.id)] : btsList),
+    [selectedBts, btsList]
+  )
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -71,19 +97,21 @@ export default function BTSDetailPage() {
       </div>
     )
   }
-  
+
+  const current = selectedBts || normalizeBts(bts)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{bts.nom}</h1>
           <p className="mt-1 text-sm text-gray-500">
-            {bts.code} — {bts.localisation}
+            {bts.code_bts} — {bts.localisation}
           </p>
         </div>
         <div className="flex gap-2">
           <Link
-            to={`/bts/edit/${id}`}
+            to={`/bts/${id}/modifier`}
             className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
             Modifier
@@ -98,22 +126,37 @@ export default function BTSDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <DetailCard label="Code" value={bts.code} />
+        <DetailCard label="Code" value={bts.code_bts} />
         <DetailCard label="Statut">
-          <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${getStatusBadge(bts.statut)}`}>
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${getStatusBadge((bts.statut || 'ACTIF').toLowerCase())}`}>
             {bts.statut}
           </span>
         </DetailCard>
-        <DetailCard label="Partenaire" value={bts.partenaire?.nom} />
-        <DetailCard label="Localisation" value={bts.localisation} />
+        <DetailCard label="Opérateur" value={bts.operateur} />
+        <DetailCard label="Ville" value={bts.ville} />
         <DetailCard label="Coordonnées">
           <span className="text-sm">Lat: {bts.latitude || 'N/A'}, Long: {bts.longitude || 'N/A'}</span>
         </DetailCard>
-        <DetailCard label="Date d'installation" value={bts.date_installation} />
+        <DetailCard label="Date de mise en service" value={bts.date_mise_service} />
         <div className="md:col-span-2 lg:col-span-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <SaturationGauge percentage={bts.saturation || 0} />
+          <SaturationGauge value={bts.dernier_taux_saturation || 0} />
+        </div>
+      </div>
+
+      <h2 className="text-lg font-semibold text-gray-900">Couverture géographique</h2>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <CarteBTS
+            btsList={mapList}
+            selectedId={current?.id}
+            onSelect={(b) => setSelectedBts(normalizeBts(b))}
+          />
+        </div>
+        <div>
+          <BTSInfoPanel bts={current} />
         </div>
       </div>
     </div>
   )
 }
+
