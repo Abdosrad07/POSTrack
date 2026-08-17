@@ -4,23 +4,34 @@ import api from '../../services/api'
 import BTSForm from '../../components/BTS/BTSForm'
 
 export default function BTSCreatePage() {
+  const { id } = useParams()
   const navigate = useNavigate()
   const [partenaires, setPartenaires] = useState([])
   const [initialData, setInitialData] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  const fetchPartenaires = async () => {
-    try {
-      const response = await api.get('/partenaires')
-      setPartenaires(response.data.data || response.data || [])
-    } catch {
-      setPartenaires([])
-    }
-  }
+  const isEditing = !!id
 
   useEffect(() => {
-    fetchPartenaires()
-  }, [])
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const partenairesRes = await api.get('/partenaires')
+        setPartenaires(partenairesRes.data.data || partenairesRes.data || [])
+
+        if (isEditing) {
+          const btsRes = await api.get(`/bts/${id}`)
+          const b = btsRes.data.data || btsRes.data
+          setInitialData({ ...b, code_bts: b.code_bts || b.code })
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [id, isEditing])
 
   const handleSubmit = async (formData) => {
     try {
@@ -43,6 +54,8 @@ export default function BTSCreatePage() {
     navigate('/bts')
   }
 
+  if (loading && isEditing) return <div>Chargement du formulaire...</div>
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -51,7 +64,7 @@ export default function BTSCreatePage() {
             {initialData ? 'Modifier la BTS' : 'Nouvelle BTS'}
           </h1>
           <p className="mt-1 text-sm text-gray-600">
-            {initialData ? 'Modification des informations de la station de base.' : 'Création d\'une nouvelle station de base.'}
+            {initialData ? "Modification des informations de la station de base." : "Création d'une nouvelle station de base."}
           </p>
         </div>
       </div>
@@ -67,4 +80,5 @@ export default function BTSCreatePage() {
     </div>
   )
 }
+
 

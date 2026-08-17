@@ -1,7 +1,8 @@
 ﻿import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { PlusIcon } from '@heroicons/react/20/solid'
 import api from '../../services/api'
+import CarteBTS from '../../components/BTS/CarteBTS'
+import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
 
 const getSaturationColor = (saturation) => {
   if (saturation > 80) return 'bg-red-500'
@@ -9,17 +10,25 @@ const getSaturationColor = (saturation) => {
   return 'bg-green-500'
 }
 
-const getStatusBadge = (status) => {
+const getStatusStyle = (status) => {
+  const normalized = (status || '').toUpperCase()
   const styles = {
-    actif: 'bg-green-100 text-green-800',
-    maintenance: 'bg-yellow-100 text-yellow-800',
-    inactif: 'bg-red-100 text-red-800',
+    ACTIF: 'bg-green-100 text-green-800',
+    MAINTENANCE: 'bg-yellow-100 text-yellow-800',
+    HORS_SERVICE: 'bg-red-100 text-red-800',
   }
-  return styles[status] || 'bg-gray-100 text-gray-800'
+  return styles[normalized] || 'bg-gray-100 text-gray-800'
+}
+
+const STATUS_LABEL = {
+  ACTIF: 'Actif',
+  MAINTENANCE: 'Maintenance',
+  HORS_SERVICE: 'Hors service',
 }
 
 export default function BTSListPage() {
   const [btsList, setBtsList] = useState([])
+  const [selectedBts, setSelectedBts] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -37,13 +46,15 @@ export default function BTSListPage() {
           code: b.code || b.code_bts,
           localisation: b.localisation || b.ville,
           saturation: b.saturation ?? b.dernier_taux_saturation ?? 0,
-          statut: (b.statut || 'ACTIF').toLowerCase(),
+          statut: (b.statut || 'ACTIF').toUpperCase(),
+          latitude: b.latitude ?? b.lat,
+          longitude: b.longitude ?? b.lng,
+          lieux_couverts: b.lieux_couverts || (b.ville ? [b.ville] : []),
         }))
       )
     } catch (err) {
       setError('Erreur lors de la récupération des BTS.')
       console.error(err)
-      // En cas d'erreur, on peut garder une liste vide ou afficher des données mockées pour le dev
       setBtsList([])
     } finally {
       setLoading(false)
@@ -67,14 +78,23 @@ export default function BTSListPage() {
           <p className="mt-1 text-sm text-gray-600">Suivi des stations de base et de leur saturation en temps réel.</p>
         </div>
         <Link
-          to="/bts/new"
+          to="/import-export"
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
-          <div className="flex items-center gap-2">
-            <PlusIcon className="h-5 w-5" />
-            <span>Nouvelle BTS</span>
-          </div>
+          Importer des BTS (Excel)
         </Link>
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-lg font-semibold text-gray-900">Couverture réseau</h2>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <CarteBTS btsList={btsList} selectedId={selectedBts?.id} onSelect={(b) => setSelectedBts(b)} />
+          </div>
+          <div>
+            <BTSInfoPanel bts={selectedBts} />
+          </div>
+        </div>
       </div>
       <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <input
@@ -90,9 +110,9 @@ export default function BTSListPage() {
           className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">Tous les statuts</option>
-          <option value="actif">Actif</option>
-          <option value="maintenance">Maintenance</option>
-          <option value="inactif">Inactif</option>
+          <option value="ACTIF">Actif</option>
+          <option value="MAINTENANCE">Maintenance</option>
+          <option value="HORS_SERVICE">Hors service</option>
         </select>
       </div>
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -146,8 +166,8 @@ export default function BTSListPage() {
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusBadge(b.statut)}`}>
-                        {b.statut}
+                      <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusStyle(b.statut)}`}>
+                        {STATUS_LABEL[b.statut] || b.statut}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
