@@ -33,7 +33,10 @@ copy .env.example .env
 npm run dev
 ```
 
-→ Interface : http://localhost:5173
+⚠️ Lancez bien ces commandes depuis le dossier `frontend/`.
+
+→ Interface : http://localhost:5173  
+→ Si le port 5173 est déjà utilisé, Vite choisit automatiquement un port libre (par ex. 5174).
 
 ## 3. Connexion
 

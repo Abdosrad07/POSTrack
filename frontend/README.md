@@ -10,13 +10,15 @@ Interface React pour POSTrack.
 ## Démarrage
 
 ```powershell
+# À exécuter depuis C:\Users\HP\Desktop\POSTrack\frontend
 cd frontend
 npm install
 copy .env.example .env
 npm run dev
 ```
 
-→ http://localhost:5173
+→ http://localhost:5173  
+→ Si le port 5173 est déjà occupé, Vite démarre sur le port suivant disponible.
 
 ## Workflows équipe
 

@@ -13,11 +13,15 @@ cd backend
 .\venv\Scripts\python main.py
 
 # Frontend (autre terminal)
+# Important : exécuter les commandes depuis le dossier frontend/
 cd frontend
 npm run dev
 ```
 
-→ http://localhost:5173 — login : `admin@postrack.local` / `admin123`
+→ Interface : http://localhost:5173  
+→ Si le port 5173 est déjà pris, Vite bascule automatiquement sur le port suivant (ex. 5174)
+
+Login : `admin@postrack.local` / `admin123`
 
 **Première installation ?** Voir [docs/guides/GETTING_STARTED.md](docs/guides/GETTING_STARTED.md)
 
