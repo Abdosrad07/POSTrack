@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "montant",
+    "value": -500,
+    "reason": "Le montant ne peut pas etre negatif."
+  }
+]

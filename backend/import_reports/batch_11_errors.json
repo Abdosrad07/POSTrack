@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "prime_period_code",
+    "value": "PERIODE-INEXISTANTE",
+    "reason": "Periode de prime inconnue dans ce Partenaire."
+  }
+]

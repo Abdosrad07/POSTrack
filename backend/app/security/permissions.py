@@ -1,60 +1,38 @@
 """
-Dépendances de sécurité pour les routes FastAPI.
+Matrice de roles applicatifs et helpers de controle d'acces.
 
-- get_current_user  : extrait et valide le JWT, charge l'utilisateur, vérifie qu'il est actif.
-- require_role(...) : factory de dépendance pour restreindre une route à certains rôles
-  (correspond aux colonnes "Accès" du Vol.2 §6.4, ex: "MANAGER+" = MANAGER ou ADMIN).
+Les quatre roles cibles (cf. cahier des charges v3.1-R7) remplacent les
+anciens libelles techniques MANAGER / VIEWER :
+
+    ADMIN                -> perimetre global, administration, validation finale
+    PARTENAIRE            -> "Representant Partenaire" : reseau d'un ou plusieurs Partenaires
+    DSM                    -> "Representant DSM" : zone DSM et POS rattaches
+    POS_HOLDER              -> "Detenteur POS" : un ou plusieurs POS autorises
+
+Le controle d'acces est applique a trois niveaux (route API, service
+metier, donnee) comme l'exige la documentation fonctionnelle : ce module
+ne couvre que le niveau role. Le niveau "donnee" (appartenance au bon
+Partenaire) est verifie par les services (voir app/services).
 """
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-
-from app.database import get_db
-from app.models.user import User
-from app.models.enums import RoleUser
-from app.security.jwt import decode_token, InvalidTokenError
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-
-# "MANAGER+" dans la doc = MANAGER ou ADMIN (l'ADMIN a toujours accès à ce que voit un MANAGER)
-MANAGER_PLUS = [RoleUser.MANAGER, RoleUser.ADMIN]
-TOUS_ROLES = [RoleUser.ADMIN, RoleUser.MANAGER, RoleUser.DSM, RoleUser.VIEWER]
+from enum import Enum
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
-    credentials_error = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Identifiants invalides",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = decode_token(token, expected_type="access")
-    except InvalidTokenError:
-        raise credentials_error
-
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise credentials_error
-
-    user = db.get(User, int(user_id))
-    if user is None:
-        raise credentials_error
-    if not user.actif:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Compte désactivé")
-
-    return user
+class Role(str, Enum):
+    ADMIN = "ADMIN"
+    PARTENAIRE = "PARTENAIRE"
+    DSM = "DSM"
+    POS_HOLDER = "POS_HOLDER"
 
 
-def require_role(allowed_roles: list[RoleUser]):
-    """
-    Usage : Depends(require_role(MANAGER_PLUS))
-    Renvoie 403 si le rôle de l'utilisateur courant n'est pas dans la liste autorisée.
-    """
-    def dependency(current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role not in allowed_roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Rôle '{current_user.role.value}' non autorisé pour cette action",
-            )
-        return current_user
-    return dependency
+# Roles autorises a valider une prime (F-08 / workflow Primes)
+PRIME_VALIDATION_ROLES = {Role.ADMIN}
+
+# Roles autorises a confirmer une reconduction
+RECONDUCTION_ROLES = {Role.ADMIN, Role.PARTENAIRE, Role.DSM}
+
+# Roles autorises a lancer un import Excel (le perimetre reel est
+# ensuite filtre par PartnerContext dans le service d'import)
+IMPORT_ROLES = {Role.ADMIN, Role.PARTENAIRE, Role.DSM, Role.POS_HOLDER}
+
+# Roles ayant acces aux ecrans d'administration (utilisateurs, audit)
+ADMIN_SCREEN_ROLES = {Role.ADMIN}

@@ -1,0 +1,80 @@
+"""Primes et PrimePeriod sous /api/partners/{partner_id}/primes."""
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.core.errors import NotFoundError
+from app.api.deps import get_current_user, get_partner_context, require_roles
+from app.crud.prime_crud import prime_period_crud, dsm_commission_crud
+from app.models.user import User
+from app.security.permissions import Role
+from app.schemas.prime import (
+    PrimePeriodCreate, PrimePeriodOut, PrimePeriodStatusUpdate,
+    PrimeOut, PrimeCalculateRequest, PrimeStatusUpdate, DSMCommissionOut,
+)
+from app.schemas.pagination import Page
+from app.services.prime_service import list_primes
+from app.services.prime_calculation_service import calculate_primes_for_period, validate_prime
+
+router = APIRouter(prefix="/api/partners/{partner_id}/primes", tags=["Primes"])
+periods_router = APIRouter(prefix="/api/partners/{partner_id}/prime-periods", tags=["Periodes de prime"])
+
+
+@periods_router.get("", response_model=list[PrimePeriodOut])
+def list_periods(partner_id: int = Depends(get_partner_context), db: Session = Depends(get_db),
+                  _user: User = Depends(get_current_user)):
+    return prime_period_crud.list(db, partner_id=partner_id)
+
+
+@periods_router.post("", response_model=PrimePeriodOut, status_code=201)
+def create_period(payload: PrimePeriodCreate, partner_id: int = Depends(get_partner_context),
+                   db: Session = Depends(get_db),
+                   _user: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+    return prime_period_crud.create(db, {**payload.model_dump(), "partner_id": partner_id})
+
+
+@periods_router.patch("/{period_id}/status", response_model=PrimePeriodOut)
+def update_period_status(period_id: int, payload: PrimePeriodStatusUpdate,
+                          partner_id: int = Depends(get_partner_context),
+                          db: Session = Depends(get_db),
+                          _user: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+    period = prime_period_crud.get(db, period_id)
+    if not period or period.partner_id != partner_id:
+        raise NotFoundError("Periode de prime introuvable dans ce Partenaire.")
+    return prime_period_crud.update(db, period, {"status": payload.status})
+
+
+@router.get("", response_model=Page[PrimeOut])
+def list_primes_route(partner_id: int = Depends(get_partner_context), period_id: int | None = None,
+                       status: str | None = None, skip: int = 0, limit: int = Query(default=100, le=500),
+                       db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    return list_primes(db, partner_id, period_id=period_id, status=status, skip=skip, limit=limit)
+
+
+@router.post("/calculate", status_code=201)
+def calculate_route(payload: PrimeCalculateRequest, partner_id: int = Depends(get_partner_context),
+                     db: Session = Depends(get_db),
+                     user: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+    result = calculate_primes_for_period(
+        db, partner_id=partner_id, user_id=user.id,
+        prime_period_id=payload.prime_period_id, montant_fixe=payload.montant_fixe,
+    )
+    return {
+        "primes_creees": [PrimeOut.model_validate(p) for p in result["primes"]],
+        "commissions": [DSMCommissionOut.model_validate(c) for c in result["commissions"]],
+    }
+
+
+@router.patch("/{prime_id}/status", response_model=PrimeOut)
+def update_prime_status(prime_id: int, payload: PrimeStatusUpdate,
+                         partner_id: int = Depends(get_partner_context),
+                         db: Session = Depends(get_db),
+                         user: User = Depends(require_roles(Role.ADMIN))):
+    return validate_prime(db, partner_id=partner_id, user_id=user.id, prime_id=prime_id,
+                           new_status=payload.status.value, commentaire=payload.commentaire)
+
+
+@router.get("/commissions", response_model=list[DSMCommissionOut])
+def list_commissions(partner_id: int = Depends(get_partner_context), period_id: int | None = None,
+                      db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    return dsm_commission_crud.list(db, partner_id=partner_id, prime_period_id=period_id)

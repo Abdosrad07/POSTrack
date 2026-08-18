@@ -1,27 +1,23 @@
-from datetime import datetime
-from sqlalchemy import Integer, Float, Text, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+"""Mesure horodatee de la charge, de la saturation et du rendement d'une BTS."""
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.database import Base
+from app.core.database import Base
 
 
 class BTSReleve(Base):
-    """
-    Un relevé = une mesure horodatée (Vol.1 §3.5).
-    taux_saturation = charge_mesuree / capacite_max * 100, calculé côté service
-    (bts_service.py), jamais saisi directement par le client.
-    """
     __tablename__ = "bts_releves"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    bts_id: Mapped[int] = mapped_column(ForeignKey("bts.id"), nullable=False)
-    date_releve: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    charge_mesuree: Mapped[int] = mapped_column(Integer, nullable=False)
-    taux_saturation: Mapped[float] = mapped_column(Float, nullable=True)  # calculé
-    rendement: Mapped[float] = mapped_column(Float, nullable=True)
-    remarque: Mapped[str] = mapped_column(Text, nullable=True)
-    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    id = Column(Integer, primary_key=True, index=True)
+    bts_id = Column(Integer, ForeignKey("bts.id"), nullable=False, index=True)
 
-    bts: Mapped["BTS"] = relationship(back_populates="releves")
+    date_releve = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    charge = Column(Float, nullable=True)
+    taux_saturation = Column(Float, nullable=True)
+    rendement = Column(Float, nullable=True)
+    commentaire = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    bts = relationship("BTS", back_populates="releves")

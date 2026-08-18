@@ -1,26 +1,27 @@
-from datetime import date
-from sqlalchemy import String, Date, Enum, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+"""DSM (District Sales Manager) : superviseur regional/local des POS."""
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
-from app.database import Base
-from app.models.common import TimestampMixin
-from app.models.enums import StatutDSM
+from app.core.database import Base
 
 
-class DSM(Base, TimestampMixin):
+class DSM(Base):
     __tablename__ = "dsm"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, nullable=True)
-    matricule: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    nom_complet: Mapped[str] = mapped_column(String(255), nullable=False)
-    zone_couverture: Mapped[str] = mapped_column(String(255), nullable=False)
-    telephone: Mapped[str] = mapped_column(String(20), nullable=True)
-    email: Mapped[str] = mapped_column(String(255), nullable=True)
-    date_affectation: Mapped[date] = mapped_column(Date, nullable=True)
-    statut: Mapped[StatutDSM] = mapped_column(Enum(StatutDSM), default=StatutDSM.ACTIF, nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    matricule = Column(String(50), unique=True, nullable=False, index=True)
+    full_name = Column(String(150), nullable=False)
+    zone = Column(String(150), nullable=True)
+    partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+<<<<<<< HEAD
+    partner = relationship("Partner")
+    users = relationship("User", back_populates="dsm")
+=======
     user: Mapped["User"] = relationship(back_populates="dsm_profile")
     pos_list: Mapped[list["POS"]] = relationship(back_populates="dsm")
     commissions: Mapped[list["DSMCommission"]] = relationship(back_populates="dsm")
 
+>>>>>>> origin/dev

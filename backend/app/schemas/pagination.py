@@ -1,0 +1,13 @@
+"""Enveloppe de pagination normalisee, reutilisable sur toute route de liste."""
+from typing import Generic, TypeVar
+from pydantic import BaseModel
+
+T = TypeVar("T")
+
+
+class Page(BaseModel, Generic[T]):
+    items: list[T]
+    total: int
+    skip: int
+    limit: int
+    has_next: bool

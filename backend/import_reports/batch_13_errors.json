@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "type_requete",
+    "value": "TYPE_INCONNU",
+    "reason": "Valeur attendue parmi ['APPROVISIONNEMENT_SIM', 'AUTRE', 'MAINTENANCE_BTS', 'RECLAMATION_CLIENT', 'SUPPORT_POS']."
+  }
+]

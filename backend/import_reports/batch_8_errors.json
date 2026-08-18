@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "code_bts",
+    "value": NaN,
+    "reason": "code_bts obligatoire."
+  }
+]

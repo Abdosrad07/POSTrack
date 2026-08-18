@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "dsm_matricule",
+    "value": "DSM-INEXISTANT",
+    "reason": "DSM inconnu dans ce Partenaire."
+  }
+]

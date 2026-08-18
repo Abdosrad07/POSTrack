@@ -1,38 +1,52 @@
-"""
-Règle métier BTS (Vol.1 §3.5, Vol.2 §5.4) :
-- taux_saturation = charge_mesuree / capacite_max * 100
-- la fiche BTS affiche en permanence les valeurs du DERNIER relevé (champs cache
-  dernier_taux_saturation / dernier_rendement / date_dernier_releve sur BTS),
-  tout en conservant l'historique complet dans bts_releves.
-"""
+"""Gestion des BTS et de leurs releves periodiques."""
 from sqlalchemy.orm import Session
 
+from app.core.errors import ConflictError, NotFoundError, ValidationErrorApp
+from app.crud.bts_crud import bts_crud, bts_releve_crud
 from app.models.bts import BTS
-from app.models.bts_releve import BTSReleve
-from app.schemas.bts import BTSReleveCreate
+from app.services import audit_service
 
 
-def ajouter_releve(db: Session, bts: BTS, data: BTSReleveCreate, created_by: int) -> BTSReleve:
-    taux_saturation = round((data.charge_mesuree / bts.capacite_max) * 100, 2) if bts.capacite_max else None
-
-    releve = BTSReleve(
-        bts_id=bts.id,
-        date_releve=data.date_releve,
-        charge_mesuree=data.charge_mesuree,
-        taux_saturation=taux_saturation,
-        rendement=data.rendement,
-        remarque=data.remarque,
-        created_by=created_by,
+def create_bts(db: Session, *, partner_id: int, user_id: int, data: dict) -> BTS:
+    """
+    Cree une BTS dans le Partenaire courant. Verifie l'unicite de
+    code_bts au niveau applicatif (message d'erreur explicite) en plus
+    de la contrainte d'unicite en base (garde-fou contre toute
+    concurrence -- deux creations simultanees avec le meme code_bts).
+    """
+    existing = db.query(BTS).filter(BTS.partner_id == partner_id, BTS.code_bts == data["code_bts"]).first()
+    if existing:
+        raise ConflictError(
+            f"Le code BTS '{data['code_bts']}' existe deja pour ce Partenaire.", field="code_bts",
+        )
+    bts = bts_crud.create(db, {**data, "partner_id": partner_id})
+    audit_service.log_action(
+        db, user_id=user_id, partner_id=partner_id, action="BTS_CREATE",
+        entity_type="BTS", entity_id=bts.id,
     )
-    db.add(releve)
+    return bts
 
-    # Mise à jour du cache sur BTS — uniquement si ce relevé est le plus récent connu,
-    # pour ne pas écraser le cache avec un relevé saisi en retard (import Excel, etc.)
-    if bts.date_dernier_releve is None or data.date_releve >= bts.date_dernier_releve:
-        bts.dernier_taux_saturation = taux_saturation
-        bts.dernier_rendement = data.rendement
-        bts.date_dernier_releve = data.date_releve
 
-    db.commit()
-    db.refresh(releve)
+def get_bts_in_partner(db: Session, partner_id: int, bts_id: int) -> BTS:
+    bts = bts_crud.get(db, bts_id)
+    if not bts or bts.partner_id != partner_id:
+        raise NotFoundError("BTS introuvable dans ce Partenaire.")
+    return bts
+
+
+def add_releve(db: Session, *, partner_id: int, user_id: int, bts_id: int, data: dict):
+    bts = get_bts_in_partner(db, partner_id, bts_id)
+
+    for champ in ("charge", "taux_saturation", "rendement"):
+        val = data.get(champ)
+        if val is not None and val < 0:
+            raise ValidationErrorApp(f"La valeur de '{champ}' ne peut pas etre negative.", field=champ)
+
+    releve = bts_releve_crud.create(db, {**data, "bts_id": bts.id})
+
+    audit_service.log_action(
+        db, user_id=user_id, partner_id=partner_id, action="BTS_RELEVE_CREATE",
+        entity_type="BTS", entity_id=bts.id,
+        details=f"Nouveau releve pour {bts.code_bts}",
+    )
     return releve

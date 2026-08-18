@@ -1,34 +1,34 @@
-from datetime import date, datetime
-from sqlalchemy import String, Float, Date, DateTime, Enum, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+"""BTS (Base Transceiver Station) : infrastructure reseau d'un Partenaire."""
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, UniqueConstraint
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
-from app.database import Base
-from app.models.common import TimestampMixin
-from app.models.enums import StatutBTS, Operateur
+from app.core.database import Base
 
 
-class BTS(Base, TimestampMixin):
+class BTS(Base):
     __tablename__ = "bts"
+    __table_args__ = (
+        # Unicite du code_bts dans le perimetre du Partenaire, au niveau
+        # base (cf. meme raisonnement que POS.code_pos) : le glossaire
+        # (section 1.7.1) utilise code_bts comme cle de rapprochement,
+        # ce qui suppose son unicite par Partenaire.
+        UniqueConstraint("partner_id", "code_bts", name="uq_bts_partner_code"),
+    )
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    code_bts: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    nom: Mapped[str] = mapped_column(String(255), nullable=False)
-    partenaire_id: Mapped[int] = mapped_column(ForeignKey("partenaires.id"), nullable=False)
-    operateur: Mapped[Operateur] = mapped_column(Enum(Operateur), nullable=False)
-    technologie: Mapped[str] = mapped_column(String(20), nullable=True)  # 2G/3G/4G/5G
-    region: Mapped[str] = mapped_column(String(100), nullable=True)
-    ville: Mapped[str] = mapped_column(String(100), nullable=True)
-    latitude: Mapped[float] = mapped_column(Float, nullable=True)
-    longitude: Mapped[float] = mapped_column(Float, nullable=True)
-    capacite_max: Mapped[float] = mapped_column(Float, nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False, index=True)
 
-    # --- Cache mis à jour par bts_service.py à chaque nouveau relevé (Vol.2 §5.4) ---
-    dernier_taux_saturation: Mapped[float] = mapped_column(Float, nullable=True)
-    dernier_rendement: Mapped[float] = mapped_column(Float, nullable=True)
-    date_dernier_releve: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    code_bts = Column(String(50), nullable=False, index=True)
+    operateur = Column(String(100), nullable=True)
+    technologie = Column(String(50), nullable=True)
+    capacite_max = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    zone = Column(String(150), nullable=True)
 
-    date_mise_service: Mapped[date] = mapped_column(Date, nullable=True)
-    statut: Mapped[StatutBTS] = mapped_column(Enum(StatutBTS), default=StatutBTS.ACTIF, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    partenaire: Mapped["Partenaire"] = relationship(back_populates="bts_list")
-    releves: Mapped[list["BTSReleve"]] = relationship(back_populates="bts")
+    partner = relationship("Partner")
+    releves = relationship("BTSReleve", back_populates="bts", cascade="all, delete-orphan",
+                            order_by="desc(BTSReleve.date_releve)")

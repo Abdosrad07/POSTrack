@@ -1,23 +1,20 @@
-from datetime import datetime
-from sqlalchemy import String, Text, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+"""Journal d'audit des operations sensibles (F-08)."""
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
 from sqlalchemy.sql import func
 
-from app.database import Base
+from app.core.database import Base
 
 
 class AuditLog(Base):
-    """Pas de TimestampMixin ici : un log d'audit n'est jamais mis à jour, seulement créé."""
     __tablename__ = "audit_logs"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    action: Mapped[str] = mapped_column(String(50), nullable=False)  # CREATE / UPDATE / DELETE
-    entity_type: Mapped[str] = mapped_column(String(50), nullable=False)  # ex: "POS", "PRIME"
-    entity_id: Mapped[int] = mapped_column(nullable=False)
-    ancien_statut: Mapped[str] = mapped_column(String(50), nullable=True)
-    nouveau_statut: Mapped[str] = mapped_column(String(50), nullable=True)
-    details: Mapped[str] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    partner_id = Column(Integer, ForeignKey("partners.id"), nullable=True)
 
-    user: Mapped["User"] = relationship(back_populates="audit_logs")
+    action = Column(String(100), nullable=False)          # ex: POS_CREATE, POS_RECONDUCTION, PRIME_VALIDATE
+    entity_type = Column(String(50), nullable=False)
+    entity_id = Column(Integer, nullable=True)
+    details = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
