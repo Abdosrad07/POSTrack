@@ -17,7 +17,7 @@ describe('ImportBatchTable', () => {
 
     expect(screen.getByText('POS Kotto')).toBeInTheDocument();
     expect(screen.getByText('POS Bonapriso')).toBeInTheDocument();
-    expect(screen.getByText('POS Bafoussam')).toBeInTheDocument();
+    expect(screen.getByText('POS Akwa')).toBeInTheDocument();
   });
 
   it('marque les lignes en erreur en rouge', () => {

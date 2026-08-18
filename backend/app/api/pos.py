@@ -25,6 +25,9 @@ def list_pos(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
+    from app.services.access_scope import get_access_scope
+    scope = get_access_scope(db, current_user)
+
     items, pagination = crud.list_pos(
         db,
         page=page,
@@ -37,6 +40,9 @@ def list_pos(
         region=region or None,
         sort_by=sort_by,
         order=order,
+        pos_ids=scope.pos_ids,
+        partenaire_ids=scope.partenaire_ids,
+        dsm_ids=scope.dsm_ids,
     )
     return POSListResponse(data=items, pagination=pagination)
 
@@ -47,7 +53,13 @@ def get_pos(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
+    from app.services.access_scope import get_access_scope
+    scope = get_access_scope(db, current_user)
+    if scope.pos_ids is not None and pos_id not in scope.pos_ids:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé à ce POS")
+
     pos = crud.get_pos(db, pos_id)
     if not pos:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="POS introuvable")
     return pos
+

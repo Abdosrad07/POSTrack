@@ -14,10 +14,19 @@ def get_bts_by_code(db: Session, code: str) -> BTS | None:
 
 
 def list_bts(
-    db: Session, skip: int = 0, limit: int = 50,
-    partenaire_id: int | None = None, statut: str | None = None,
+    db: Session,
+    skip: int = 0,
+    limit: int = 50,
+    partenaire_id: int | None = None,
+    statut: str | None = None,
+    bts_ids: list[int] | None = None,
+    partenaire_ids: list[int] | None = None,
 ) -> list[BTS]:
     query = db.query(BTS)
+    if bts_ids is not None:
+        query = query.filter(BTS.id.in_(bts_ids or [-1]))
+    if partenaire_ids is not None:
+        query = query.filter(BTS.partenaire_id.in_(partenaire_ids or [-1]))
     if partenaire_id:
         query = query.filter(BTS.partenaire_id == partenaire_id)
     if statut:

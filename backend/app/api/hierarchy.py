@@ -41,6 +41,9 @@ def get_hierarchy(
     """Renvoie l'arborescence visible par l'utilisateur connecté."""
     scope = get_access_scope(db, current_user)
 
+    if scope.partenaire_ids is not None and len(scope.partenaire_ids) == 0:
+        return []
+
     # 1. Récupérer les partenaires visibles
     partenaire_q = db.query(Partenaire).options(
         joinedload(Partenaire.pos_list).joinedload(POS.dsm),
@@ -50,12 +53,11 @@ def get_hierarchy(
         partenaire_q = partenaire_q.filter(Partenaire.id.in_(scope.partenaire_ids or [-1]))
     partenaires = partenaire_q.all()
 
-    # 2. Récupérer les DSM visibles (si non limité, on les charge depuis les POS)
+    # 2. Récupérer les DSM visibles
     dsm_ids_scope = scope.dsm_ids
     if dsm_ids_scope is not None:
         dsm_q = db.query(DSM).filter(DSM.id.in_(dsm_ids_scope or [-1]))
     else:
-        # MANAGER : tous les DSM rattachés à ses partenaires
         part_ids = [p.id for p in partenaires] or [-1]
         dsm_q = (
             db.query(DSM)
@@ -68,8 +70,8 @@ def get_hierarchy(
     # 3. Construire l'arborescence
     result = []
     for part in partenaires:
-        part_pos = [p for p in part.pos_list]
-        part_bts = [b for b in part.bts_list]
+        part_pos = list(part.pos_list)
+        part_bts = list(part.bts_list)
 
         # Filtrer les POS par portée
         if scope.pos_ids is not None:
@@ -77,8 +79,12 @@ def get_hierarchy(
         if scope.bts_ids is not None:
             part_bts = [b for b in part_bts if b.id in scope.bts_ids]
 
-        # Filtrer les DSM par portée
+        # Filtrer les DSM pour ce partenaire
         part_dsms = [d for d in dsms if any(p.dsm_id == d.id for p in part_pos)]
+
+        # Pour les rôles DSM et VIEWER, si aucun POS n'est visible dans ce partenaire, ne pas l'inclure
+        if (scope.pos_ids is not None or scope.dsm_ids is not None) and len(part_pos) == 0 and len(part_bts) == 0:
+            continue
 
         result.append(
             {
@@ -94,12 +100,15 @@ def get_hierarchy(
                         "id": d.id,
                         "nom": d.nom_complet,
                         "matricule": d.matricule,
+                        "zone_couverture": d.zone_couverture,
+                        "statut": d.statut.value if d.statut else None,
                         "pos": [
                             {
                                 "id": p.id,
                                 "nom": p.nom,
                                 "code_pos": p.code_pos,
                                 "ville": p.ville,
+                                "type_pos": p.type_pos.value if p.type_pos else None,
                                 "statut": p.statut.value if p.statut else None,
                             }
                             for p in part_pos

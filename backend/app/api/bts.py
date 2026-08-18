@@ -20,7 +20,17 @@ def list_bts(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
-    return crud.list_bts(db, skip=skip, limit=limit, partenaire_id=partenaire_id, statut=statut)
+    from app.services.access_scope import get_access_scope
+    scope = get_access_scope(db, current_user)
+    return crud.list_bts(
+        db,
+        skip=skip,
+        limit=limit,
+        partenaire_id=partenaire_id,
+        statut=statut,
+        bts_ids=scope.bts_ids,
+        partenaire_ids=scope.partenaire_ids,
+    )
 
 
 @router.get("/releves", response_model=list[BTSReleveListOut])
@@ -31,6 +41,10 @@ def list_all_releves(
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
     releves = crud.list_all_releves(db, skip=skip, limit=limit)
+    from app.services.access_scope import get_access_scope
+    scope = get_access_scope(db, current_user)
+    if scope.bts_ids is not None:
+        releves = [r for r in releves if r.bts_id in scope.bts_ids]
     return [
         BTSReleveListOut(
             id=r.id,
@@ -55,10 +69,16 @@ def get_bts(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
+    from app.services.access_scope import get_access_scope
+    scope = get_access_scope(db, current_user)
+    if scope.bts_ids is not None and bts_id not in scope.bts_ids:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé à cette BTS")
+
     bts = crud.get_bts(db, bts_id)
     if not bts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="BTS introuvable")
     return bts
+
 
 
 @router.post("", response_model=BTSOut, status_code=status.HTTP_201_CREATED)

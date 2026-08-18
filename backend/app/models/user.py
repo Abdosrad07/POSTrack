@@ -27,3 +27,8 @@ class User(Base, TimestampMixin):
     # Un DSM applicatif (métier) peut être rattaché à un compte utilisateur
     dsm_profile: Mapped["DSM"] = relationship(back_populates="user", uselist=False)
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="user")
+
+    @property
+    def dsm_id(self) -> int | None:
+        return self.dsm_profile.id if self.dsm_profile else None
+

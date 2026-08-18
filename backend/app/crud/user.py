@@ -16,6 +16,8 @@ def create_user(db: Session, user_in: UserCreate) -> User:
         nom_complet=user_in.nom_complet,
         role=user_in.role,
         actif=True,
+        partenaire_id=user_in.partenaire_id,
+        pos_id=user_in.pos_id,
     )
     db.add(user)
     db.commit()

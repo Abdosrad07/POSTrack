@@ -125,6 +125,7 @@ export const PARTNER_PREFIX_EXCLUDES = [
   /^\/?auth(\/|$)/i,
   /^\/?partenaires(\/|$)/i,
   /^\/?partners\/available(\/|$)/i,
+  /^\/?hierarchy(\/|$)/i,
 ];
 
 /** Types d'entités importables — Module A3 (Import Excel centralisé / ImportBatch) */

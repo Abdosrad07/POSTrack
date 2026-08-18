@@ -14,6 +14,8 @@ from sqlalchemy.orm import Session
 from app.models.enums import RoleUser
 from app.models.user import User
 from app.models.pos import POS
+from app.models.bts import BTS
+from app.models.dsm import DSM
 
 
 class AccessScope:
@@ -60,47 +62,55 @@ class AccessScope:
 def get_access_scope(db: Session, user: User) -> AccessScope:
     """Calcule la portée d'accès de l'utilisateur connecté.
 
-    - ADMIN   → portée illimitée (tous les IDs)
-    - MANAGER → filtre sur son partenaire (user.partenaire_id)
-    - DSM     → filtre sur son DSM (user.dsm_profile) puis les POS du DSM
-    - VIEWER  → filtre sur son POS (user.pos_id)
+    - ADMIN   → portée illimitée (tous les partenaires, DSM, BTS, POS)
+    - MANAGER → uniquement les DSM, BTS et POS de SON partenaire (user.partenaire_id)
+    - DSM     → uniquement les POS de SON périmètre DSM (user.dsm_profile)
+    - VIEWER  → uniquement SON POS (user.pos_id)
     """
     role = user.role
 
     if role == RoleUser.ADMIN:
-        return AccessScope()  # partenaire_ids = None → illimité
+        return AccessScope()  # Tous les champs à None → illimité
 
     if role == RoleUser.MANAGER:
         if not user.partenaire_id:
             return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
+        pos_list = db.query(POS).filter(POS.partenaire_id == user.partenaire_id).all()
+        pos_ids = [p.id for p in pos_list]
+        dsm_ids = list({p.dsm_id for p in pos_list if p.dsm_id})
+        bts_list = db.query(BTS).filter(BTS.partenaire_id == user.partenaire_id).all()
+        bts_ids = [b.id for b in bts_list]
         return AccessScope(
             partenaire_ids=[user.partenaire_id],
-            dsm_ids=None,
-            pos_ids=None,
-            bts_ids=None,
+            dsm_ids=dsm_ids,
+            pos_ids=pos_ids,
+            bts_ids=bts_ids,
         )
 
     if role == RoleUser.DSM:
-        dsm = user.dsm_profile
+        from app.models.dsm import DSM
+        dsm = user.dsm_profile or db.query(DSM).filter(DSM.user_id == user.id).first()
         if not dsm:
             return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
         pos_ids = [p.id for p in dsm.pos_list]
         partenaire_ids = list({p.partenaire_id for p in dsm.pos_list if p.partenaire_id})
         return AccessScope(
-            partenaire_ids=partenaire_ids or [],
+            partenaire_ids=partenaire_ids,
             dsm_ids=[dsm.id],
             pos_ids=pos_ids,
-            bts_ids=None,
+            bts_ids=[],
         )
 
     if role == RoleUser.VIEWER:
         if not user.pos_id:
             return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
         pos = db.get(POS, user.pos_id)
+        if not pos:
+            return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
         return AccessScope(
-            partenaire_ids=[pos.partenaire_id] if pos else [],
-            dsm_ids=[pos.dsm_id] if pos else [],
-            pos_ids=[user.pos_id],
+            partenaire_ids=[pos.partenaire_id] if pos.partenaire_id else [],
+            dsm_ids=[pos.dsm_id] if pos.dsm_id else [],
+            pos_ids=[pos.id],
             bts_ids=[],
         )
 
