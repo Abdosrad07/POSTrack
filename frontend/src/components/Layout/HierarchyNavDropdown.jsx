@@ -302,7 +302,7 @@ const HierarchyNavDropdown = () => {
 
       {/* Menu déroulant hiérarchique */}
       {isOpen && (
-        <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-[340px] sm:w-[480px] max-w-[95vw] rounded-2xl border border-slate-200 bg-white shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute left-0 top-full mt-2 w-[340px] max-w-[95vw] rounded-2xl border border-slate-200 bg-white shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 sm:left-auto sm:right-0 sm:w-[480px]">
           {/* Header du dropdown */}
           <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3">
             <div className="flex items-center justify-between gap-2">

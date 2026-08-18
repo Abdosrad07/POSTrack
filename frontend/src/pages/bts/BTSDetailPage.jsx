@@ -4,6 +4,9 @@ import api from '../../services/api'
 import SaturationGauge from '../../components/BTS/SaturationGauge'
 import CarteBTS from '../../components/BTS/CarteBTS'
 import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
+import { getMockBtsForRole } from '../../mocks/bts'
+import { STORAGE_KEYS } from '../../utils/constants'
+import btsDebug from '../../utils/btsDebug'
 
 const getStatusBadge = (status) => {
   const styles = {
@@ -39,24 +42,45 @@ export default function BTSDetailPage() {
   const [selectedBts, setSelectedBts] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null')
+    } catch {
+      return null
+    }
+  })()
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
         setError(null)
+        const partnerId = localStorage.getItem(STORAGE_KEYS.PARTNER_CONTEXT_ID)
+        btsDebug.log('BTSDetailPage fetch', { id, partnerId, userRole: user?.role })
         const [detailRes, listRes] = await Promise.all([
           api.get(`/bts/${id}`),
-          api.get('/bts'),
+          partnerId ? api.get(`/api/partners/${partnerId}/bts`, { skipPartnerPrefix: true }) : api.get('/bts'),
         ])
         const detail = detailRes.data.data || detailRes.data
         const list = listRes.data.data || listRes.data || []
+        btsDebug.snapshot('BTSDetailPage detail response', detail)
+        btsDebug.snapshot('BTSDetailPage list response', { isArray: Array.isArray(list), length: list.length, first: list[0] })
         setBts(detail)
         setBtsList(list.map(normalizeBts))
         setSelectedBts(detail ? normalizeBts(detail) : null)
       } catch (err) {
-        console.error(err)
-        setError('Impossible de charger les détails de la BTS.')
+        btsDebug.error('BTSDetailPage error', err?.response?.status, err?.response?.data || err.message)
+        const fallbackList = getMockBtsForRole(user?.role)
+        const fallbackDetail = fallbackList.find((item) => String(item.id) === String(id)) || fallbackList[0]
+        if (fallbackDetail) {
+          btsDebug.warn('BTSDetailPage fallback mock used', fallbackDetail)
+          setBts(fallbackDetail)
+          setBtsList(fallbackList)
+          setSelectedBts(fallbackDetail)
+          setError(null)
+        } else {
+          setError('Impossible de charger les détails de la BTS.')
+        }
       } finally {
         setLoading(false)
       }

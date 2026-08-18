@@ -41,6 +41,7 @@ class POS(Base, TimestampMixin):
     partenaire: Mapped["Partenaire"] = relationship(back_populates="pos_list")
     dsm: Mapped["DSM"] = relationship(back_populates="pos_list")
     reconductions: Mapped[list["Reconduction"]] = relationship(back_populates="pos")
-    prime: Mapped["Prime"] = relationship(back_populates="pos", uselist=False)
+    primes: Mapped[list["Prime"]] = relationship(back_populates="pos")
     clients: Mapped[list["Client"]] = relationship(back_populates="pos")
     sims: Mapped[list["SIM"]] = relationship(back_populates="pos")
+

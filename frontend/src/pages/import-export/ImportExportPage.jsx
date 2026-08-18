@@ -78,15 +78,58 @@ const ImportExportPage = () => {
   const isLoading = loading && !batch;
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Import Excel"
         subtitle="Canal central d'importation en masse (ImportBatch) — module A3 du Lead Frontend."
         breadcrumbs={['Administration', 'Import Excel']}
       />
 
+      {!loading && step === IMPORT_STEPS.SETUP ? (
+        <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+          <ImportSetupStep
+            entityType={entityType}
+            setEntityType={setEntityType}
+            file={file}
+            setFile={setFile}
+            onValidate={handleValidate}
+            validating={step === IMPORT_STEPS.VALIDATING}
+          />
+
+          <aside className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">Récapitulatif</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Vérifiez le type sélectionné et le fichier déposé avant de lancer la validation.
+              </p>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
+                <span className="text-slate-500">Entité choisie</span>
+                <span className="font-medium text-slate-900">{entityType}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
+                <span className="text-slate-500">Fichier</span>
+                <span className="max-w-[14rem] truncate font-medium text-slate-900">
+                  {file?.name || 'Aucun fichier'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
+                <span className="text-slate-500">Étape</span>
+                <span className="font-medium text-slate-900">Préparation</span>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              Assurez-vous que les colonnes du fichier correspondent bien au gabarit officiel avant validation.
+            </div>
+          </aside>
+        </div>
+      ) : null}
+
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-10">
+        <div className="rounded-xl border border-slate-200 bg-white p-10 shadow-sm">
           <LoadingSpinner
             size="md"
             label={step === IMPORT_STEPS.VALIDATING ? 'Validation du fichier…' : 'Application du lot en cours…'}
@@ -96,17 +139,6 @@ const ImportExportPage = () => {
 
       {step === IMPORT_STEPS.ERROR ? (
         <ErrorState title="L'import a échoué" message={error} onRetry={reset} retryLabel="Recommencer" />
-      ) : null}
-
-      {!loading && step === IMPORT_STEPS.SETUP ? (
-        <ImportSetupStep
-          entityType={entityType}
-          setEntityType={setEntityType}
-          file={file}
-          setFile={setFile}
-          onValidate={handleValidate}
-          validating={step === IMPORT_STEPS.VALIDATING}
-        />
       ) : null}
 
       {!loading && step === IMPORT_STEPS.PREVIEW ? (
@@ -121,7 +153,7 @@ const ImportExportPage = () => {
         <EmptyState
           title="Prêt à importer"
           icon="📥"
-          message="Sélectionnez un type d'entité puis déposez un fichier Excel pour commencer l'import dans le partenaire actif."
+          message="Sélectionnez un type d'entité puis déposez un fichier Excel pour lancer l'import dans le partenaire actif."
         />
       ) : null}
 

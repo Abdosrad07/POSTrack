@@ -29,3 +29,5 @@ class Partenaire(Base, TimestampMixin):
 
     pos_list: Mapped[list["POS"]] = relationship(back_populates="partenaire")
     bts_list: Mapped[list["BTS"]] = relationship(back_populates="partenaire")
+    prime_periods: Mapped[list["PrimePeriod"]] = relationship(back_populates="partenaire")
+

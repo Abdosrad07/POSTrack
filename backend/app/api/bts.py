@@ -33,6 +33,34 @@ def list_bts(
     )
 
 
+@router.get("/partners/{partner_id}/bts", response_model=list[BTSOut])
+@router.get("/api/partners/{partner_id}/bts", response_model=list[BTSOut])
+def list_bts_by_partner_alias(
+    partner_id: int,
+    skip: int = 0,
+    limit: int = 50,
+    statut: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(TOUS_ROLES)),
+):
+    """Alias compatibilité pour les appels frontend /api/partners/{id}/bts."""
+    from app.services.access_scope import get_access_scope
+
+    scope = get_access_scope(db, current_user)
+    if scope.partenaire_ids is not None and partner_id not in scope.partenaire_ids:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé à ce partenaire")
+
+    return crud.list_bts(
+        db,
+        skip=skip,
+        limit=limit,
+        partenaire_id=partner_id,
+        statut=statut,
+        bts_ids=scope.bts_ids,
+        partenaire_ids=[partner_id],
+    )
+
+
 @router.get("/releves", response_model=list[BTSReleveListOut])
 def list_all_releves(
     skip: int = 0,

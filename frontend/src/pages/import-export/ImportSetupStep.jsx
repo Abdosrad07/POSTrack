@@ -17,7 +17,7 @@ const ImportSetupStep = ({ entityType, setEntityType, file, setFile, onValidate,
         L'import Excel en masse remplace les CRUDs référentiels autonomes pour le
         partenaire actif.
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {IMPORT_ENTITY_TYPES.map((type) => (
           <button
             key={type.value}
@@ -46,6 +46,9 @@ const ImportSetupStep = ({ entityType, setEntityType, file, setFile, onValidate,
 
     <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-base font-semibold text-slate-900">3. Déposez votre fichier</h2>
+      <p className="mt-1 text-sm text-slate-500">
+        Glissez-déposez votre fichier Excel ou CSV, puis lancez la validation pour vérifier le contenu.
+      </p>
       <div className="mt-4">
         <FileDropZone value={file} onChange={setFile} />
       </div>

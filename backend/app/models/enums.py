@@ -48,10 +48,21 @@ class Operateur(str, enum.Enum):
 
 
 class StatutPrime(str, enum.Enum):
+    BROUILLON = "BROUILLON"
     EN_ATTENTE = "EN_ATTENTE"
     VALIDEE = "VALIDEE"
     PAYEE = "PAYEE"
     REJETEE = "REJETEE"
+
+
+class StatutPeriodePrime(str, enum.Enum):
+    OUVERTE = "OUVERTE"
+    FERMEE = "FERMEE"
+
+
+class StatutDSMCommission(str, enum.Enum):
+    EN_ATTENTE = "EN_ATTENTE"
+    VERSEE = "VERSEE"
 
 
 class StatutSIM(str, enum.Enum):
@@ -65,8 +76,10 @@ class StatutSIM(str, enum.Enum):
 class StatutRequete(str, enum.Enum):
     OUVERTE = "OUVERTE"
     EN_COURS = "EN_COURS"
+    EN_ATTENTE = "EN_ATTENTE"
     RESOLUE = "RESOLUE"
     FERMEE = "FERMEE"
+    REJETEE = "REJETEE"
 
 
 class PrioriteRequete(str, enum.Enum):

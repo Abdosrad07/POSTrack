@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -24,6 +24,25 @@ def list_partenaires(
     visible_ids = get_visible_partenaire_ids(db, current_user)
     return crud.list_partenaires(
         db, skip=skip, limit=limit, statut=statut, partenaire_ids=visible_ids
+    )
+
+
+@router.get("/available", response_model=list[PartenaireOut])
+def list_available_partenaires(
+    statut: str | None = Query(default="ACTIF"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(TOUS_ROLES)),
+):
+    """Retourne les partenaires visibles/utilisables par l'utilisateur connecté."""
+    from app.services.access_scope import get_visible_partenaire_ids
+
+    visible_ids = get_visible_partenaire_ids(db, current_user)
+    return crud.list_partenaires(
+        db,
+        skip=0,
+        limit=100,
+        statut=statut,
+        partenaire_ids=visible_ids,
     )
 
 

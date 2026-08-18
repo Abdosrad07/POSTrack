@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../services/api'
 import BTSForm from '../../components/BTS/BTSForm'
+import btsDebug from '../../utils/btsDebug'
 
 export default function BTSCreatePage() {
   const { id } = useParams()
@@ -16,6 +17,7 @@ export default function BTSCreatePage() {
     const fetchData = async () => {
       setLoading(true)
       try {
+        btsDebug.log('BTSCreatePage load', { id, isEditing })
         const partenairesRes = await api.get('/partenaires')
         setPartenaires(partenairesRes.data.data || partenairesRes.data || [])
 
@@ -25,7 +27,7 @@ export default function BTSCreatePage() {
           setInitialData({ ...b, code_bts: b.code_bts || b.code })
         }
       } catch (err) {
-        console.error(err)
+        btsDebug.error('BTSCreatePage error', err?.response?.status, err?.response?.data || err.message)
       } finally {
         setLoading(false)
       }
@@ -36,6 +38,7 @@ export default function BTSCreatePage() {
   const handleSubmit = async (formData) => {
     try {
       setLoading(true)
+      btsDebug.log('BTSCreatePage submit', { hasInitialData: Boolean(initialData), payload: formData })
       if (initialData) {
         await api.put(`/bts/${initialData.id}`, formData)
       } else {

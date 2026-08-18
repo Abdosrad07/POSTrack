@@ -4,6 +4,9 @@ import api from '../../services/api'
 import CarteBTS from '../../components/BTS/CarteBTS'
 import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
 import Logo from '../../assets/logos/LOGO.jpeg'
+import { getMockBtsForRole, mockBts } from '../../mocks/bts'
+import { STORAGE_KEYS } from '../../utils/constants'
+import btsDebug from '../../utils/btsDebug'
 
 const getSaturationColor = (saturation) => {
   if (saturation > 80) return 'bg-red-500'
@@ -27,6 +30,17 @@ const STATUS_LABEL = {
   HORS_SERVICE: 'Hors service',
 }
 
+const normalizeBts = (b) => ({
+  ...b,
+  code: b.code || b.code_bts,
+  localisation: b.localisation || b.ville,
+  saturation: b.saturation ?? b.dernier_taux_saturation ?? 0,
+  statut: (b.statut || 'ACTIF').toUpperCase(),
+  latitude: b.latitude ?? b.lat,
+  longitude: b.longitude ?? b.lng,
+  lieux_couverts: b.lieux_couverts || (b.ville ? [b.ville] : []),
+})
+
 export default function BTSListPage() {
   const [btsList, setBtsList] = useState([])
   const [selectedBts, setSelectedBts] = useState(null)
@@ -34,29 +48,45 @@ export default function BTSListPage() {
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null')
+    } catch {
+      return null
+    }
+  })()
 
   const fetchBts = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await api.get('/bts')
+      const partnerId = localStorage.getItem(STORAGE_KEYS.PARTNER_CONTEXT_ID)
+      btsDebug.log('BTSListPage fetch', { partnerId, userRole: user?.role })
+      let response
+      try {
+        const url = partnerId ? `/api/partners/${partnerId}/bts` : '/bts'
+        btsDebug.log('BTSListPage request URL', url)
+        response = await api.get(url, { skipPartnerPrefix: true })
+      } catch (nestedError) {
+        if (nestedError.response?.status === 404 || nestedError.response?.status === 422) {
+          btsDebug.warn('BTSListPage fallback /bts', nestedError.response?.status)
+          response = await api.get('/bts', { skipPartnerPrefix: true })
+        } else {
+          throw nestedError
+        }
+      }
       const raw = response.data.data || response.data || []
-      setBtsList(
-        raw.map((b) => ({
-          ...b,
-          code: b.code || b.code_bts,
-          localisation: b.localisation || b.ville,
-          saturation: b.saturation ?? b.dernier_taux_saturation ?? 0,
-          statut: (b.statut || 'ACTIF').toUpperCase(),
-          latitude: b.latitude ?? b.lat,
-          longitude: b.longitude ?? b.lng,
-          lieux_couverts: b.lieux_couverts || (b.ville ? [b.ville] : []),
-        }))
-      )
+      btsDebug.snapshot('BTSListPage response shape', { isArray: Array.isArray(raw), length: raw.length, first: raw[0] })
+      const normalized = raw.map(normalizeBts)
+      setBtsList(normalized)
+      if (!raw.length) {
+        btsDebug.warn('BTSListPage backend returned empty list, fallback mock')
+        setBtsList((getMockBtsForRole(user?.role) || mockBts).map(normalizeBts))
+      }
     } catch (err) {
       setError('Erreur lors de la récupération des BTS.')
-      console.error(err)
-      setBtsList([])
+      btsDebug.error('BTSListPage error', err?.response?.status, err?.response?.data || err.message)
+      setBtsList((getMockBtsForRole(user?.role) || mockBts).map(normalizeBts))
     } finally {
       setLoading(false)
     }
@@ -186,7 +216,7 @@ return (
         {/* Carte des BTS avec logo */}
         <div>
           <h2 className="mb-2 text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Carte de couverture</h2>
-          {btsList.length > 0 ? (
+          {filteredBts.length > 0 ? (
             <CarteBTS
               btsList={filteredBts}
               selectedId={selectedBts?.id}

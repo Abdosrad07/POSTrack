@@ -22,3 +22,5 @@ class DSM(Base, TimestampMixin):
 
     user: Mapped["User"] = relationship(back_populates="dsm_profile")
     pos_list: Mapped[list["POS"]] = relationship(back_populates="dsm")
+    commissions: Mapped[list["DSMCommission"]] = relationship(back_populates="dsm")
+
