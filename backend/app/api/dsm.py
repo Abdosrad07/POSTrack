@@ -18,7 +18,9 @@ def list_dsm(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
-    return crud.list_dsm(db, skip=skip, limit=limit)
+    from app.services.access_scope import get_visible_dsm_ids
+    visible_ids = get_visible_dsm_ids(db, current_user)
+    return crud.list_dsm(db, skip=skip, limit=limit, dsm_ids=visible_ids)
 
 
 @router.get("/{dsm_id}", response_model=DSMOut)

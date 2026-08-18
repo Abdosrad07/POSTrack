@@ -19,7 +19,12 @@ def list_partenaires(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(TOUS_ROLES)),
 ):
-    return crud.list_partenaires(db, skip=skip, limit=limit, statut=statut)
+    # Filtre selon la portée d'accès de l'utilisateur
+    from app.services.access_scope import get_visible_partenaire_ids
+    visible_ids = get_visible_partenaire_ids(db, current_user)
+    return crud.list_partenaires(
+        db, skip=skip, limit=limit, statut=statut, partenaire_ids=visible_ids
+    )
 
 
 @router.get("/{partenaire_id}", response_model=PartenaireOut)

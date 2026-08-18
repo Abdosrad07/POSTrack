@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, Enum
+from sqlalchemy import String, Boolean, Enum, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -15,6 +15,14 @@ class User(Base, TimestampMixin):
     nom_complet: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[RoleUser] = mapped_column(Enum(RoleUser), nullable=False)
     actif: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    # --- Liens d'accès métier ---
+    # Un représentant partenaire (MANAGER) est rattaché à un seul partenaire
+    partenaire_id: Mapped[int] = mapped_column(
+        ForeignKey("partenaires.id"), nullable=True
+    )
+    # Un détenteur POS (VIEWER) est rattaché à un seul POS
+    pos_id: Mapped[int] = mapped_column(ForeignKey("pos.id"), nullable=True)
 
     # Un DSM applicatif (métier) peut être rattaché à un compte utilisateur
     dsm_profile: Mapped["DSM"] = relationship(back_populates="user", uselist=False)
