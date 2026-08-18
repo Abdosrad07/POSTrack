@@ -55,7 +55,7 @@ export default function CarteBTS({ btsList = [], selectedId = null, onSelect = (
   const rayonMeters = rayonKmToMeters(rayonEnKm)
 
   return (
-    <div className="relative h-full w-full rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="relative h-[320px] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm sm:h-[420px] lg:h-[520px]">
       <MapContainer
         center={center}
         zoom={validBts.length > 0 ? 13 : DEFAULT_ZOOM}

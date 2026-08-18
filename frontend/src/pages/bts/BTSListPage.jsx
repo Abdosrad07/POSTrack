@@ -139,82 +139,94 @@ return (
           <option value="HORS_SERVICE">Hors service</option>
         </select>
       </div>
-<div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {/* List view des BTS */}
-        <div>
-          <h2 className="mb-2 text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Liste des BTS</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Code / Nom</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Localisation</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Partenaire</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Saturation</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
-                      Chargement...
-                    </td>
-                  </tr>
-                ) : error ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-sm text-red-600">{error}</td>
-                  </tr>
-                ) : filteredBts.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
-                      Aucune BTS ne correspond à vos critères.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredBts.map((b) => (
-                    <tr key={b.id}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                        <div>{b.nom}</div>
-                        <div className="text-xs text-gray-500">{b.code}</div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{b.localisation}</td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{b.partenaire || 'N/A'}</td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 bg-gray-200 rounded-full h-2.5">
-                            <div
-                              className={`h-2.5 rounded-full ${getSaturationColor(b.saturation)}`}
-                              style={{ width: `${b.saturation}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-semibold">{b.saturation}%</span>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusStyle(b.statut)}`}>
-                          {STATUS_LABEL[b.statut] || b.statut}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                        <Link to={`/bts/${b.id}`} className="text-indigo-600 hover:text-indigo-900 mr-3">
-                          Détails
-                        </Link>
-                        <Link to={`/bts/releves`} className="text-gray-600 hover:text-gray-900">
-                          Relevés
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
 
-        {/* Carte des BTS avec logo */}
-        <div>
+      <div>
+        <h2 className="mb-2 text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Liste des BTS</h2>
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Code / Nom</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Localisation</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Partenaire</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Saturation</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                    Chargement...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-red-600">{error}</td>
+                </tr>
+              ) : filteredBts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                    Aucune BTS ne correspond à vos critères.
+                  </td>
+                </tr>
+              ) : (
+                filteredBts.map((b) => (
+                  <tr
+                    key={b.id}
+                    onClick={() => setSelectedBts(b)}
+                    className={`cursor-pointer transition-colors ${selectedBts?.id === b.id ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
+                  >
+                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                      <div>{b.nom}</div>
+                      <div className="text-xs text-gray-500">{b.code}</div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{b.localisation}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{b.partenaire || 'N/A'}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className={`h-2.5 rounded-full ${getSaturationColor(b.saturation)}`}
+                            style={{ width: `${b.saturation}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold">{b.saturation}%</span>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusStyle(b.statut)}`}>
+                        {STATUS_LABEL[b.statut] || b.statut}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                      <Link
+                        to={`/bts/${b.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      >
+                        Détails
+                      </Link>
+                      <Link
+                        to={`/bts/releves`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-600 hover:text-gray-900"
+                      >
+                        Relevés
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Carte des BTS */}
+        <div className="lg:col-span-2">
           <h2 className="mb-2 text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Carte de couverture</h2>
           {filteredBts.length > 0 ? (
             <CarteBTS
@@ -223,7 +235,7 @@ return (
               onSelect={(b) => setSelectedBts(b)}
             />
           ) : (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+            <div className="flex h-[320px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center sm:h-[420px] lg:h-[520px]">
               <img
                 src={Logo}
                 alt="POSTrack logo"

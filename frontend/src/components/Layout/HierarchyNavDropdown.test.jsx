@@ -112,7 +112,8 @@ describe('HierarchyNavDropdown', () => {
     expect(screen.getByText('Jean Marc')).toBeInTheDocument();
     expect(screen.getByText('Kiosque Akwa Liberté')).toBeInTheDocument();
     expect(screen.getByText('POS-DEMO-0001')).toBeInTheDocument();
-    expect(screen.getByText(/Antenne\(s\) BTS/i)).toBeInTheDocument();
+    expect(screen.getByText('Antenne Akwa')).toBeInTheDocument();
+    expect(screen.getByText('(BTS-DLA-01)')).toBeInTheDocument();
   });
 
   it('permet de filtrer en temps réel avec la barre de recherche', async () => {
