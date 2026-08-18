@@ -1,62 +1,48 @@
-from datetime import date, datetime
-from pydantic import BaseModel, ConfigDict
-
-from app.models.enums import StatutBTS, Operateur
+from datetime import datetime
+from pydantic import BaseModel
 
 
-class BTSBase(BaseModel):
+class BTSCreate(BaseModel):
     code_bts: str
-    nom: str
-    partenaire_id: int
-    operateur: Operateur
+    operateur: str | None = None
     technologie: str | None = None
-    region: str | None = None
-    ville: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
-    capacite_max: float
-    date_mise_service: date | None = None
-
-
-class BTSCreate(BTSBase):
-    pass
-
-
-class BTSUpdate(BaseModel):
-    nom: str | None = None
-    technologie: str | None = None
-    region: str | None = None
-    ville: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
     capacite_max: float | None = None
-    statut: StatutBTS | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    zone: str | None = None
 
 
-class BTSOut(BTSBase):
-    model_config = ConfigDict(from_attributes=True)
-
+class BTSOut(BaseModel):
     id: int
-    statut: StatutBTS
-    dernier_taux_saturation: float | None = None
-    dernier_rendement: float | None = None
-    date_dernier_releve: datetime | None = None
+    partner_id: int
+    code_bts: str
+    operateur: str | None
+    technologie: str | None
+    capacite_max: float | None
+    latitude: float | None
+    longitude: float | None
+    zone: str | None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class BTSReleveCreate(BaseModel):
-    date_releve: datetime
-    charge_mesuree: int
+    charge: float | None = None
+    taux_saturation: float | None = None
     rendement: float | None = None
-    remarque: str | None = None
+    commentaire: str | None = None
 
 
 class BTSReleveOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     bts_id: int
     date_releve: datetime
-    charge_mesuree: int
-    taux_saturation: float | None = None
-    rendement: float | None = None
-    remarque: str | None = None
+    charge: float | None
+    taux_saturation: float | None
+    rendement: float | None
+    commentaire: str | None
+
+    class Config:
+        from_attributes = True

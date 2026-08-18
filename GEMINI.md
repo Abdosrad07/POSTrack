@@ -36,7 +36,8 @@ vous en êtes réellement dans le planning.
   multi-agences ; à garder en tête si le référent client le demande
   en recette).
 - JWT (access + refresh token) pour l'authentification, 4 rôles :
-  ADMIN, MANAGER, DSM, VIEWER.
+  ADMIN, PARTENAIRE (Représentant Partenaire), DSM (Représentant DSM),
+  POS_HOLDER (Détenteur POS).
 - Pandas + OpenPyXL pour l'import/export Excel des POS.
 - pytest + TestClient FastAPI pour les tests (objectif ≥ 70 % de
   couverture sur POS / Reconductions / Primes).
@@ -46,12 +47,16 @@ vous en êtes réellement dans le planning.
 ```
 backend/app/
 ├── schemas/    # Pydantic — validation/sérialisation
-├── models/     # SQLAlchemy — persistance
-├── crud/       # opérations base de données par entité
-├── api/        # routers FastAPI (un fichier par module)
-├── services/   # logique métier (pos_service, prime_service, bts_service,
-│                 sim_service, excel_service, analytics_service)
-└── security/   # jwt.py, password.py, permissions.py
+├── models/     # SQLAlchemy — persistance (12 entités)
+├── crud/       # opérations base de données par entité (sans règle métier)
+├── api/        # routers FastAPI scopés PartnerContext : auth, admin, partner_pos,
+│                 partner_clients, partner_bts, partner_sim, partner_primes,
+│                 partner_requests, imports, analytics
+├── services/   # logique métier : pos_service, prime_service,
+│                 prime_calculation_service, bts_service, sim_service,
+│                 requete_service, import_validation_service,
+│                 analytics_service, audit_service
+└── security/   # jwt.py, password.py, permissions.py, login_guard.py
 ```
 
 ## Règles métier critiques (à vérifier en priorité)
@@ -73,47 +78,75 @@ backend/app/
    Prime acceptée → Client + vente SIM → relevé BTS → requête →
    reconduction (bascule RECONDUIT) → 2ème Prime **rejetée**.
 
-## Roadmap Backend — 14 jours
+## Roadmap Backend — 14 jours (à jour : version finale Jour 14, tout est livré)
 
 ### Semaine 1
 
-- [X] **Jour 1** — Initialisation FastAPI, config, connexion SQLAlchemy/MySQL.
-- [X] **Jour 2** — Modèles SQLAlchemy des 12 tables + migrations.
-- [X] **Jour 3** — `POST /auth/register`, `POST /auth/login` (JWT), middleware, 4 rôles.
-- [X] **Jour 4 (matin)** — CRUD complet `/api/partenaires`.
-- [X] **Jour 4 (après-midi)** — CRUD complet `/api/dsm`.
-- [X] **Jour 5 (matin)** — CRUD `/api/bts`.
-- [X] **Jour 5 (après-midi, P1)** — `/api/bts/{id}/releves` (GET historique, POST relevé, MAJ cache).
+- [X] **Jour 1** — Initialisation FastAPI, config, connexion SQLAlchemy (SQLite local / MySQL prod).
+- [X] **Jour 2** — Modèles SQLAlchemy des 12 tables + migrations Alembic.
+- [X] **Jour 3** — `POST /api/auth/login` (JWT access + refresh), middleware, 4 rôles,
+  révocation/rotation de jetons, anti-brute-force ; création de compte réservée
+  à l'ADMIN (`POST /api/auth/users`).
+- [X] **Jour 4 (matin)** — Administration Partenaires : `GET/POST /api/admin/partners`.
+- [X] **Jour 4 (après-midi)** — Administration DSM : `GET/POST /api/admin/dsm`.
+- [X] **Jour 5 (matin)** — BTS : `GET/POST /api/partners/{id}/bts`, unicité de code en base.
+- [X] **Jour 5 (après-midi, P1)** — Relevés BTS : `GET/POST /api/partners/{id}/bts/{bts_id}/releves`.
 
 ### Jours 6-7 — Tampon / rattrapage (non obligatoire)
 
 ### Semaine 2
 
-- [ ] **Jour 8 (matin)** — `POST/PUT /api/pos` avec `partenaire_id`/`dsm_id`, `type_pos = NOUVEAU` auto.
-- [ ] **Jour 8 (après-midi)** — `GET /api/pos` avec filtres avancés (dont `type_pos`), `PATCH /api/pos/{id}/status`.
-- [ ] **Jour 9 (matin)** — `POST /api/pos/{id}/reconduction` (bascule RECONDUIT, historise, MAJ date_expiration).
-- [ ] **Jour 9 (après-midi)** — Module Primes : `POST /api/primes` (validation stricte), `PATCH statut`.
-- [ ] **Jour 10 (matin)** — CRUD `/api/clients` rattaché à un POS.
-- [ ] **Jour 10 (après-midi, P1)** — CRUD `/api/sims` + `PATCH vendre/activer`.
-- [ ] **Jour 11 (matin, P1)** — CRUD `/api/requetes` (rattachement multi-entités).
-- [ ] **Jour 11 (après-midi)** — `excel_service.py` (import/export POS), endpoints `/api/excel/*`.
-- [ ] **Jour 12 (matin)** — Endpoints `/api/analytics/*` (dashboard, pos-nouveau-vs-reconduit, bts-saturation, sims-stock, requetes-ouvertes).
-- [ ] **Jour 12 (après-midi)** — Journalisation automatique dans `AUDIT_LOGS` sur toutes les entités.
-- [ ] **Jour 13 (matin)** — Tests pytest ciblés Nouveau/Reconduit + Primes (≥ 70 % couverture).
-- [ ] **Jour 13 (après-midi)** — UAT : scénario de recette de référence complet, sans erreur.
-- [ ] **Jour 14** — Déploiement local final, jeu de données de démo propre.
+- [X] **Jour 8 (matin)** — `POST/GET /api/partners/{id}/pos` avec `dsm_id`,
+  `type_pos = NOUVEAU` auto, contrôle du rattachement DSM, unicité de `code_pos` en base.
+- [X] **Jour 8 (après-midi)** — `GET /api/partners/{id}/pos` avec filtres avancés
+  (dont `type_pos` et `status`), `PATCH /api/partners/{id}/pos/{pos_id}`.
+- [X] **Jour 9 (matin)** — `POST /api/partners/{id}/pos/{pos_id}/reconduction`
+  (bascule irréversible RECONDUIT, historise dans `reconductions`, MAJ date_expiration)
+  + `GET /api/partners/{id}/pos/{pos_id}/reconductions` (historique exposé).
+- [X] **Jour 9 (après-midi)** — Module Primes : `POST /api/partners/{id}/primes/calculate`
+  (validation stricte : POS NOUVEAU, période OPEN, une seule prime par POS),
+  `PATCH /api/partners/{id}/primes/{prime_id}/status` (ADMIN).
+- [X] **Jour 10 (matin)** — CRUD `/api/partners/{id}/clients` rattaché à un POS.
+- [X] **Jour 10 (après-midi, P1)** — SIM : CRUD `/api/partners/{id}/sim` + mouvements
+  de stock complets (réception, vente, activation, retour, perte) + assignation Client.
+- [X] **Jour 11 (matin, P1)** — CRUD `/api/partners/{id}/requests` (rattachement
+  multi-entités POS/BTS/CLIENT/PARTNER vérifié dans le PartnerContext).
+- [X] **Jour 11 (après-midi)** — `import_validation_service.py` (validation NaN-safe
+  + application transactionnelle), endpoints `/api/partners/{id}/imports/*` sur les
+  **10 gabarits** exigés (PARTNER, DSM, POS, CLIENT, BTS, BTS_RELEVE, SIM,
+  PRIME_PERIOD, PRIME, REQUETE).
+- [X] **Jour 12 (matin)** — Endpoints `/api/partners/{id}/analytics/*` (dashboard,
+  pos-performance, commissions), optimisés sans N+1 (test de non-régression),
+  alertes d'expiration POS et seuil de saturation BTS.
+- [X] **Jour 12 (après-midi)** — Journalisation automatique dans `AUDIT_LOGS` sur
+  toutes les opérations sensibles (`audit_service.log_action`).
+- [X] **Jour 13 (matin)** — Tests pytest ciblés Nouveau/Reconduit + Primes + SIM
+  + performance (55 tests, couverture globale 91 %).
+- [X] **Jour 13 (après-midi)** — UAT : scénario de recette de référence complet,
+  sans erreur (automatisé dans la suite pytest).
+- [X] **Jour 14** — Déploiement local final : `scripts/seed.py` (jeu de démo),
+  guide de lancement, Dockerfile multi-étapes + docker-compose rédigés
+  (non exécutés faute de démon Docker dans l'environnement de rédaction).
 
-## Endpoints de référence (contrat à respecter)
+## Endpoints de référence (contrat à respecter — version finale, routes scopées PartnerContext)
+
+Toute route métier passe par `get_partner_context` (`app/api/deps.py`) : un
+utilisateur ne peut accéder qu'aux Partenaires de son périmètre (403 sinon).
 
 | Méthode | Endpoint | Accès |
 |---|---|---|
-| POST | `/api/pos/{id}/reconduction` | MANAGER+ |
-| GET | `/api/pos/{id}/reconductions` | MANAGER+ |
-| POST | `/api/primes` | MANAGER+ (rejet si POS ≠ NOUVEAU) |
-| PATCH | `/api/primes/{id}/statut` | ADMIN |
-| POST | `/api/bts/{id}/releves` | MANAGER+ |
-| PATCH | `/api/sims/{id}/vendre` | MANAGER+ |
-| POST | `/api/requetes` | Tous rôles authentifiés |
+| POST | `/api/partners/{id}/pos/{pos_id}/reconduction` | Tous rôles authentifiés du Partenaire |
+| GET | `/api/partners/{id}/pos/{pos_id}/reconductions` | Tous rôles authentifiés du Partenaire |
+| POST | `/api/partners/{id}/primes/calculate` | ADMIN, PARTENAIRE (rejet si POS ≠ NOUVEAU ou période non OPEN) |
+| PATCH | `/api/partners/{id}/primes/{prime_id}/status` | ADMIN (validation finale) |
+| POST | `/api/partners/{id}/bts/{bts_id}/releves` | Tous rôles authentifiés du Partenaire |
+| POST | `/api/partners/{id}/sim/{sim_id}/movements` | Tous rôles authentifiés du Partenaire (vente = `movement_type: VENTE`) |
+| POST | `/api/partners/{id}/requests` | Tous rôles authentifiés |
+| POST | `/api/auth/login` · `/api/auth/refresh` · `/api/auth/logout` | Public (JWT, révocation) |
+| GET | `/api/partners/{id}/analytics/dashboard` | Tous rôles authentifiés du Partenaire |
+| POST | `/api/partners/{id}/imports/validate` + `/imports/{batch_id}/apply` | Rôles autorisés (`IMPORT_ROLES`) |
+| GET/POST | `/api/admin/partners` · `/api/admin/dsm` | ADMIN (DSM : ADMIN ou PARTENAIRE) |
+| GET/POST/PATCH | `/api/auth/users` | ADMIN |
 
 ## Commandes utiles
 

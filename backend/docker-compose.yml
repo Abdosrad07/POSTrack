@@ -1,0 +1,48 @@
+# POSTrack Backend - orchestration locale de demonstration (API + MySQL)
+#
+# Usage :
+#   docker compose up --build
+#
+# L'API est alors disponible sur http://localhost:8000 (docs sur /docs).
+# Les migrations Alembic sont appliquees automatiquement au demarrage
+# du conteneur "api" (voir Dockerfile, CMD). Pour charger le jeu de
+# donnees de demonstration une fois les conteneurs lances :
+#   docker compose exec api python -m scripts.seed
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: postrack
+      MYSQL_USER: postrack_user
+      MYSQL_PASSWORD: postrack_password
+      MYSQL_ROOT_PASSWORD: postrack_root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - postrack_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppostrack_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+pymysql://postrack_user:postrack_password@db:3306/postrack
+      SECRET_KEY: change-this-secret-key-in-production
+      ENVIRONMENT: production
+      # A restreindre a la ou les origines reelles du frontend avant
+      # tout deploiement au-dela de la demonstration locale.
+      ALLOWED_ORIGINS: "*"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postrack_mysql_data:

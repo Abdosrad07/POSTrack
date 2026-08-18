@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "full_name",
+    "value": NaN,
+    "reason": "full_name obligatoire."
+  }
+]

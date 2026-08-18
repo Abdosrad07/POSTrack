@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "code_partenaire",
+    "value": "CODE-INCONNU",
+    "reason": "Ne correspond pas au Partenaire de contexte (T-P1) : un import ne peut mettre a jour que le Partenaire courant."
+  }
+]

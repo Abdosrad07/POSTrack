@@ -1,0 +1,51 @@
+"""Ecrans d'administration transverses (Partenaires, DSM, audit)."""
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.api.deps import require_roles
+from app.crud.partner_crud import partner_crud, dsm_crud
+from app.models.user import User
+from app.models.audit import AuditLog
+from app.security.permissions import Role
+from app.schemas.partner import PartnerCreate, PartnerOut, DSMCreate, DSMOut
+
+router = APIRouter(prefix="/api/admin", tags=["Administration"])
+
+
+@router.get("/partners", response_model=list[PartnerOut])
+def list_partners(db: Session = Depends(get_db), _admin: User = Depends(require_roles(Role.ADMIN))):
+    return partner_crud.list(db, limit=500)
+
+
+@router.post("/partners", response_model=PartnerOut, status_code=201)
+def create_partner(payload: PartnerCreate, db: Session = Depends(get_db),
+                    _admin: User = Depends(require_roles(Role.ADMIN))):
+    return partner_crud.create(db, payload.model_dump())
+
+
+@router.get("/dsm", response_model=list[DSMOut])
+def list_dsm(partner_id: int | None = None, db: Session = Depends(get_db),
+             _admin: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+    return dsm_crud.list(db, partner_id=partner_id, limit=500)
+
+
+@router.post("/dsm", response_model=DSMOut, status_code=201)
+def create_dsm(payload: DSMCreate, db: Session = Depends(get_db),
+               _admin: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+    return dsm_crud.create(db, payload.model_dump())
+
+
+@router.get("/audit")
+def list_audit(partner_id: int | None = None, skip: int = 0, limit: int = Query(default=100, le=500),
+                db: Session = Depends(get_db), _admin: User = Depends(require_roles(Role.ADMIN))):
+    query = db.query(AuditLog)
+    if partner_id:
+        query = query.filter(AuditLog.partner_id == partner_id)
+    rows = query.order_by(AuditLog.created_at.desc()).offset(skip).limit(limit).all()
+    return [
+        {"id": r.id, "user_id": r.user_id, "partner_id": r.partner_id, "action": r.action,
+         "entity_type": r.entity_type, "entity_id": r.entity_id, "details": r.details,
+         "created_at": r.created_at}
+        for r in rows
+    ]

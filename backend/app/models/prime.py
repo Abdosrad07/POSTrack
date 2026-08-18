@@ -1,29 +1,39 @@
-from datetime import date
-from sqlalchemy import Numeric, Date, Enum, Text, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+"""Dossier de prime lie a un POS Nouveau et a une PrimePeriod."""
+import enum
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Numeric, Text, Enum as SAEnum, UniqueConstraint
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
-from app.database import Base
-from app.models.common import TimestampMixin
-from app.models.enums import StatutPrime
+from app.core.database import Base
 
 
-class Prime(Base, TimestampMixin):
-    """
-    Vol.1 section 3.4 : une Prime ne peut être créée que pour un POS type_pos == NOUVEAU
-    (contrôle applicatif dans prime_service.py) ET pos_id est UNIQUE (contrôle DB) —
-    un POS ne peut avoir qu'une seule Prime sur toute sa durée de vie.
-    """
+class StatutPrime(str, enum.Enum):
+    BROUILLON = "BROUILLON"
+    EN_ATTENTE = "EN_ATTENTE"
+    VALIDEE = "VALIDEE"
+    PAYEE = "PAYEE"
+    REJETEE = "REJETEE"
+
+
+class Prime(Base):
     __tablename__ = "primes"
+    # Un POS ne peut recevoir qu'une seule prime de creation (regle d'unicite)
+    __table_args__ = (UniqueConstraint("pos_id", name="uq_prime_pos_unique"),)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    pos_id: Mapped[int] = mapped_column(ForeignKey("pos.id"), unique=True, nullable=False)
-    dsm_id: Mapped[int] = mapped_column(ForeignKey("dsm.id"), nullable=True)
-    partenaire_id: Mapped[int] = mapped_column(ForeignKey("partenaires.id"), nullable=True)
-    montant: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
-    date_attribution: Mapped[date] = mapped_column(Date, nullable=False)
-    statut: Mapped[StatutPrime] = mapped_column(
-        Enum(StatutPrime), default=StatutPrime.EN_ATTENTE, nullable=False
-    )
-    commentaire: Mapped[str] = mapped_column(Text, nullable=True)
+    id = Column(Integer, primary_key=True, index=True)
+    pos_id = Column(Integer, ForeignKey("pos.id"), nullable=False, index=True)
+    prime_period_id = Column(Integer, ForeignKey("prime_periods.id"), nullable=False, index=True)
 
-    pos: Mapped["POS"] = relationship(back_populates="prime")
+    montant = Column(Numeric(12, 2), nullable=False)
+    status = Column(SAEnum(StatutPrime), nullable=False, default=StatutPrime.EN_ATTENTE)
+    commentaire = Column(Text, nullable=True)
+
+    demandeur_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    validated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    validated_at = Column(DateTime(timezone=True), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    pos = relationship("POS", back_populates="primes")
+    prime_period = relationship("PrimePeriod", back_populates="primes")

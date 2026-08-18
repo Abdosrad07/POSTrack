@@ -1,52 +1,37 @@
-"""
-JWT — access + refresh token (Vol.2 §6.2 : authentification stateless, sans session serveur).
-Le payload transporte le sub (user id), l'email et le role, pour éviter une requête DB
-supplémentaire à chaque appel protégé.
-"""
+"""Emission et decodage des jetons JWT (access + refresh), avec revocation."""
+import uuid
 from datetime import datetime, timedelta, timezone
 
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 
-from app.config import settings
-
-ALGORITHM = settings.JWT_ALGORITHM
+from app.core.config import settings
 
 
-def _create_token(data: dict, expires_delta: timedelta, token_type: str) -> str:
+def _create_token(data: dict, expires_minutes: int, token_type: str) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + expires_delta
-    to_encode.update({"exp": expire, "type": token_type})
-    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=ALGORITHM)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+    to_encode.update({"exp": expire, "type": token_type, "jti": uuid.uuid4().hex})
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-def create_access_token(user_id: int, email: str, role: str) -> str:
+def create_access_token(user_id: int, role: str) -> str:
     return _create_token(
-        {"sub": str(user_id), "email": email, "role": role},
-        timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-        token_type="access",
+        {"sub": str(user_id), "role": role},
+        settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        "access",
     )
 
 
 def create_refresh_token(user_id: int) -> str:
     return _create_token(
         {"sub": str(user_id)},
-        timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
-        token_type="refresh",
+        settings.REFRESH_TOKEN_EXPIRE_MINUTES,
+        "refresh",
     )
 
 
-class InvalidTokenError(Exception):
-    pass
-
-
-def decode_token(token: str, expected_type: str = "access") -> dict:
-    """Décode et valide un token. Lève InvalidTokenError si invalide/expiré/mauvais type."""
+def decode_token(token: str) -> dict | None:
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
-        raise InvalidTokenError("Token invalide ou expiré")
-
-    if payload.get("type") != expected_type:
-        raise InvalidTokenError(f"Type de token incorrect (attendu: {expected_type})")
-
-    return payload
+        return None

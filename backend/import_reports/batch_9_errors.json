@@ -1,0 +1,8 @@
+[
+  {
+    "row": 2,
+    "field": "pos_code",
+    "value": "POS-INEXISTANT",
+    "reason": "POS inconnu dans ce Partenaire."
+  }
+]
