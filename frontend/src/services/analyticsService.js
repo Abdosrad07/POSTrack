@@ -1,0 +1,7 @@
+import api from './api';
+
+export const analyticsService = {
+  getDashboard: () => api.get('/analytics/dashboard'),
+};
+
+export default analyticsService;
