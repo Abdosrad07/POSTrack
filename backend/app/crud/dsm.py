@@ -12,8 +12,13 @@ def get_dsm_by_matricule(db: Session, matricule: str) -> DSM | None:
     return db.query(DSM).filter(DSM.matricule == matricule).first()
 
 
-def list_dsm(db: Session, skip: int = 0, limit: int = 50) -> list[DSM]:
-    return db.query(DSM).offset(skip).limit(limit).all()
+def list_dsm(
+    db: Session, skip: int = 0, limit: int = 50, dsm_ids: list[int] | None = None
+) -> list[DSM]:
+    query = db.query(DSM)
+    if dsm_ids is not None:
+        query = query.filter(DSM.id.in_(dsm_ids or [-1]))
+    return query.offset(skip).limit(limit).all()
 
 
 def create_dsm(db: Session, data: DSMCreate) -> DSM:

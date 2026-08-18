@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react'
 
 const STATUS_OPTIONS = [
-  { value: 'actif', label: 'Actif' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'inactif', label: 'Inactif' },
+  { value: 'ACTIF', label: 'Actif' },
+  { value: 'MAINTENANCE', label: 'Maintenance' },
+  { value: 'HORS_SERVICE', label: 'Hors service' },
 ]
 
 const defaultForm = {
-  code: '',
+  code_bts: '',
   nom: '',
-  localisation: '',
+  partenaire_id: '',
+  operateur: '',
+  technologie: '',
+  region: '',
+  ville: '',
   latitude: '',
   longitude: '',
-  statut: 'actif',
-  altitude: '',
-  partenaire_id: '',
-  date_installation: '',
+  capacite_max: '',
+  date_mise_service: '',
+  statut: 'ACTIF',
 }
 
 export default function BTSForm({ initialData, onSubmit, onCancel, partenaires = [] }) {
@@ -25,15 +28,18 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
   useEffect(() => {
     if (initialData) {
       setForm({
-        code: initialData.code || '',
+        code_bts: initialData.code_bts || '',
         nom: initialData.nom || '',
-        localisation: initialData.localisation || '',
+        partenaire_id: initialData.partenaire_id || '',
+        operateur: initialData.operateur || '',
+        technologie: initialData.technologie || '',
+        region: initialData.region || '',
+        ville: initialData.ville || '',
         latitude: initialData.latitude || '',
         longitude: initialData.longitude || '',
-        statut: initialData.statut || 'actif',
-        altitude: initialData.altitude || '',
-        partenaire_id: initialData.partenaire_id || '',
-        date_installation: initialData.date_installation || '',
+        capacite_max: initialData.capacite_max || '',
+        date_mise_service: initialData.date_mise_service || '',
+        statut: initialData.statut || 'ACTIF',
       })
     }
   }, [initialData])
@@ -48,9 +54,14 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
 
   const validate = () => {
     const newErrors = {}
-    if (!form.code.trim()) newErrors.code = 'Le code est requis'
-    if (!form.nom.trim()) newErrors.nom = 'Le nom est requis'
-    if (!form.localisation.trim()) newErrors.localisation = 'La localisation est requise'
+    if (!form.code_bts.trim()) newErrors.code_bts = 'Le code BTS est requis.'
+    if (!form.nom.trim()) newErrors.nom = 'Le nom est requis.'
+    if (!form.partenaire_id) newErrors.partenaire_id = 'Le partenaire est requis.'
+    if (!form.operateur.trim()) newErrors.operateur = "L'opérateur est requis."
+    if (!form.technologie.trim()) newErrors.technologie = 'La technologie est requise.'
+    if (!form.capacite_max || parseFloat(form.capacite_max) <= 0) {
+      newErrors.capacite_max = 'La capacité maximale doit être un nombre positif.'
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -66,21 +77,19 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <label htmlFor="code" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="code_bts" className="block text-sm font-medium text-gray-700">
             Code BTS <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            id="code"
-            name="code"
-            value={form.code}
+            id="code_bts"
+            name="code_bts"
+            value={form.code_bts}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${
-              errors.code ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-            }`}
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.code_bts ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
             placeholder="Ex: BTS-001"
           />
-          {errors.code && <p className="mt-1 text-xs text-red-600">{errors.code}</p>}
+          {errors.code_bts && <p className="mt-1 text-xs text-red-600">{errors.code_bts}</p>}
         </div>
 
         <div>
@@ -93,87 +102,22 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             name="nom"
             value={form.nom}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${
-              errors.nom ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-            }`}
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.nom ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
             placeholder="Ex: BTS Centrale Douala"
           />
           {errors.nom && <p className="mt-1 text-xs text-red-600">{errors.nom}</p>}
         </div>
 
-        <div className="md:col-span-2">
-          <label htmlFor="localisation" className="block text-sm font-medium text-gray-700">
-            Localisation <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="localisation"
-            name="localisation"
-            value={form.localisation}
-            onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${
-              errors.localisation ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-            }`}
-            placeholder="Ex: Douala, quartier Akwa"
-          />
-          {errors.localisation && <p className="mt-1 text-xs text-red-600">{errors.localisation}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="latitude" className="block text-sm font-medium text-gray-700">
-            Latitude
-          </label>
-          <input
-            type="text"
-            id="latitude"
-            name="latitude"
-            value={form.latitude}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            placeholder="Ex: 4.0511"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="longitude" className="block text-sm font-medium text-gray-700">
-            Longitude
-          </label>
-          <input
-            type="text"
-            id="longitude"
-            name="longitude"
-            value={form.longitude}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            placeholder="Ex: 9.6843"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="altitude" className="block text-sm font-medium text-gray-700">
-            Altitude (m)
-          </label>
-          <input
-            type="text"
-            id="altitude"
-            name="altitude"
-            value={form.altitude}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            placeholder="Ex: 50"
-          />
-        </div>
-
         <div>
           <label htmlFor="partenaire_id" className="block text-sm font-medium text-gray-700">
-            Partenaire
+            Partenaire <span className="text-red-500">*</span>
           </label>
           <select
             id="partenaire_id"
             name="partenaire_id"
             value={form.partenaire_id}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.partenaire_id ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
           >
             <option value="">Sélectionner un partenaire</option>
             {partenaires.map((p) => (
@@ -182,11 +126,75 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
               </option>
             ))}
           </select>
+          {errors.partenaire_id && <p className="mt-1 text-xs text-red-600">{errors.partenaire_id}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="operateur" className="block text-sm font-medium text-gray-700">
+            Opérateur <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="operateur"
+            name="operateur"
+            value={form.operateur}
+            onChange={handleChange}
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.operateur ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+            placeholder="Ex: Orange, MTN"
+          />
+          {errors.operateur && <p className="mt-1 text-xs text-red-600">{errors.operateur}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="technologie" className="block text-sm font-medium text-gray-700">
+            Technologie <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="technologie"
+            name="technologie"
+            value={form.technologie}
+            onChange={handleChange}
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.technologie ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+            placeholder="Ex: 4G, 5G"
+          />
+          {errors.technologie && <p className="mt-1 text-xs text-red-600">{errors.technologie}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="capacite_max" className="block text-sm font-medium text-gray-700">
+            Capacité max <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id="capacite_max"
+            name="capacite_max"
+            value={form.capacite_max}
+            onChange={handleChange}
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.capacite_max ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+            placeholder="Ex: 1000"
+          />
+          {errors.capacite_max && <p className="mt-1 text-xs text-red-600">{errors.capacite_max}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="date_mise_service" className="block text-sm font-medium text-gray-700">
+            Date de mise en service <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            id="date_mise_service"
+            name="date_mise_service"
+            value={form.date_mise_service}
+            onChange={handleChange}
+            className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.date_mise_service ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+          />
+          {errors.date_mise_service && <p className="mt-1 text-xs text-red-600">{errors.date_mise_service}</p>}
         </div>
 
         <div>
           <label htmlFor="statut" className="block text-sm font-medium text-gray-700">
-            Statut
+            Statut <span className="text-red-500">*</span>
           </label>
           <select
             id="statut"
@@ -204,16 +212,62 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
         </div>
 
         <div>
-          <label htmlFor="date_installation" className="block text-sm font-medium text-gray-700">
-            Date d'installation
+          <label htmlFor="region" className="block text-sm font-medium text-gray-700">
+            Région
           </label>
           <input
-            type="date"
-            id="date_installation"
-            name="date_installation"
-            value={form.date_installation}
+            type="text"
+            id="region"
+            name="region"
+            value={form.region}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="Ex: Littoral"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="ville" className="block text-sm font-medium text-gray-700">
+            Ville
+          </label>
+          <input
+            type="text"
+            id="ville"
+            name="ville"
+            value={form.ville}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="Ex: Douala"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="latitude" className="block text-sm font-medium text-gray-700">
+            Latitude
+          </label>
+          <input
+            type="number"
+            id="latitude"
+            name="latitude"
+            value={form.latitude}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="Ex: 4.0489"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="longitude" className="block text-sm font-medium text-gray-700">
+            Longitude
+          </label>
+          <input
+            type="number"
+            id="longitude"
+            name="longitude"
+            value={form.longitude}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="Ex: 9.7034"
           />
         </div>
       </div>

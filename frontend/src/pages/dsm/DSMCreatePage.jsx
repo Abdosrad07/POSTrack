@@ -28,11 +28,11 @@ export default function DSMCreatePage() {
         return
       }
       await api.post('/dsm', { nom, email, region, statut })
-      setSuccess('DSM créé avec succès')
+      setSuccess('DSM crÃ©Ã© avec succÃ¨s')
       setTimeout(() => navigate('/dsm'), 700)
     } catch (err) {
       console.error(err)
-      setError('Erreur lors de la création. Mode mock utilisé.')
+      setError('Erreur lors de la crÃ©ation. Mode mock utilisÃ©.')
       setTimeout(() => navigate('/dsm'), 700)
     } finally {
       setLoading(false)
@@ -42,7 +42,7 @@ export default function DSMCreatePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Nouveau DSM</h1>
-        <p className="mt-1 text-sm text-gray-600">Créez un nouveau délégué commercial.</p>
+        <p className="mt-1 text-sm text-gray-600">CrÃ©ez un nouveau dÃ©lÃ©guÃ© commercial.</p>
       </div>
       <form onSubmit={handleSubmit} className="rounded-lg bg-white p-6 shadow-sm">
         {error && <div className="mb-4"><Alert type="error" message={error} onClose={() => setError('')} /></div>}
@@ -57,7 +57,7 @@ export default function DSMCreatePage() {
             <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="mt-1 block w-full rounded-md border px-3 py-2" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Région</label>
+            <label className="block text-sm font-medium text-gray-700">RÃ©gion</label>
             <select value={region} onChange={(e) => setRegion(e.target.value)} className="mt-1 block w-full rounded-md border px-3 py-2">
               <option value="Nord">Nord</option>
               <option value="Sud">Sud</option>
@@ -74,7 +74,7 @@ export default function DSMCreatePage() {
           </div>
         </div>
         <div className="mt-4">
-          <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-white">{loading ? 'Enregistrement...' : 'Créer'}</button>
+          <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-white">{loading ? 'Enregistrement...' : 'CrÃ©er'}</button>
         </div>
       </form>
     </div>

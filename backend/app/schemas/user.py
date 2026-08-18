@@ -20,6 +20,8 @@ class UserCreate(BaseModel):
     password: str
     nom_complet: str
     role: RoleUser
+    partenaire_id: int | None = None
+    pos_id: int | None = None
 
     _check_email = field_validator("email")(_validate_email_format)
 
@@ -39,6 +41,10 @@ class UserOut(BaseModel):
     nom_complet: str
     role: RoleUser
     actif: bool
+    partenaire_id: int | None = None
+    pos_id: int | None = None
+    dsm_id: int | None = None
+
 
 
 class Token(BaseModel):

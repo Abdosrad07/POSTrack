@@ -1,17 +1,15 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import LoadingSpinner from '../components/Common/LoadingSpinner/LoadingSpinner';
 
+/** Gate authentification seule (ex. /select-partner). */
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-100">
-        <div className="text-lg font-semibold text-gray-600">Chargement...</div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen label="Chargement de la session..." />;
   }
 
   if (!isAuthenticated) {
@@ -22,4 +20,3 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
-

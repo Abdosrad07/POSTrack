@@ -26,8 +26,19 @@ def list_pos(
     region: str | None = None,
     sort_by: str = "date_creation",
     order: str = "desc",
+    pos_ids: list[int] | None = None,
+    partenaire_ids: list[int] | None = None,
+    dsm_ids: list[int] | None = None,
 ) -> tuple[list[POS], dict]:
     query = db.query(POS).options(joinedload(POS.partenaire), joinedload(POS.dsm))
+
+    # Portée d'accès (Access Scope)
+    if pos_ids is not None:
+        query = query.filter(POS.id.in_(pos_ids or [-1]))
+    if partenaire_ids is not None:
+        query = query.filter(POS.partenaire_id.in_(partenaire_ids or [-1]))
+    if dsm_ids is not None:
+        query = query.filter(POS.dsm_id.in_(dsm_ids or [-1]))
 
     if search:
         like = f"%{search}%"

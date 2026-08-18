@@ -51,10 +51,13 @@ from app.security.password import hash_password
 
 # Comptes frontend (connexion via l'interface)
 FRONTEND_USERS = [
-    ("admin@postrack.local", "admin123", "Admin Demo", RoleUser.ADMIN),
-    ("manager@postrack.local", "manager123", "Manager Demo", RoleUser.MANAGER),
-    ("dsm@postrack.local", "dsm123", "DSM Demo", RoleUser.DSM),
-    ("viewer@postrack.local", "viewer123", "Viewer Demo", RoleUser.VIEWER),
+    ("admin@postrack.local", "admin123", "Admin Demo (Accès Global)", RoleUser.ADMIN),
+    ("manager@postrack.local", "manager123", "Manager Camtel Express (Partenaire)", RoleUser.MANAGER),
+    ("manager.mc@postrack.local", "manager123", "Manager Master Color (Partenaire)", RoleUser.MANAGER),
+    ("dsm@postrack.local", "dsm123", "DSM Jean Marc (Douala Akwa)", RoleUser.DSM),
+    ("dsm.mc@postrack.local", "dsm123", "DSM Master Color", RoleUser.DSM),
+    ("viewer@postrack.local", "viewer123", "Viewer Kiosque Akwa Liberté (POS)", RoleUser.VIEWER),
+    ("viewer.mc@postrack.local", "viewer123", "Viewer ALI - NEWBELL (POS)", RoleUser.VIEWER),
 ]
 
 # Comptes database/seed.sql (référence équipe DB)
@@ -97,15 +100,33 @@ def clear_all(db):
 
 
 def import_data(force: bool = False) -> dict:
+    from app.database import Base
+    if force:
+        with engine.connect() as conn:
+            conn.execute(text("PRAGMA foreign_keys=OFF;"))
+            for table_name in [
+                "audit_logs",
+                "requetes",
+                "sims",
+                "bts_releves",
+                "primes",
+                "reconductions",
+                "clients",
+                "pos",
+                "bts",
+                "dsm",
+                "partenaires",
+                "users",
+            ]:
+                conn.execute(text(f"DROP TABLE IF EXISTS {table_name};"))
+            conn.commit()
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     stats = {}
     try:
         if db.query(User).count() > 0 and not force:
             print("Base déjà peuplée. Utilisez --force pour réimporter.")
             return {"skipped": True}
-
-        if force:
-            clear_all(db)
 
         # --- 1. USERS ---
         users = {}
@@ -216,6 +237,15 @@ def import_data(force: bool = False) -> dict:
             db.flush()
             pos_list[p["id"]] = obj
         stats["pos"] = len(pos_list)
+
+        # --- 4b. LIENS D'ACCÈS UTILISATEURS (Scope des 4 rôles) ---
+        users["manager@postrack.local"].partenaire_id = partenaires[1].id
+        users["manager.mc@postrack.local"].partenaire_id = partenaires[2].id
+        dsms[1].user_id = users["dsm@postrack.local"].id
+        dsms[2].user_id = users["dsm.mc@postrack.local"].id
+        users["viewer@postrack.local"].pos_id = pos_list[101].id
+        users["viewer.mc@postrack.local"].pos_id = pos_list[201].id
+        db.flush()
 
         # --- 5. RECONDUCTION (POS 102 → RECONDUIT) ---
         recon = Reconduction(

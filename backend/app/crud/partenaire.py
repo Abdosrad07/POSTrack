@@ -13,11 +13,17 @@ def get_partenaire_by_code(db: Session, code: str) -> Partenaire | None:
 
 
 def list_partenaires(
-    db: Session, skip: int = 0, limit: int = 50, statut: str | None = None
+    db: Session,
+    skip: int = 0,
+    limit: int = 50,
+    statut: str | None = None,
+    partenaire_ids: list[int] | None = None,
 ) -> list[Partenaire]:
     query = db.query(Partenaire)
     if statut:
         query = query.filter(Partenaire.statut == statut)
+    if partenaire_ids is not None:
+        query = query.filter(Partenaire.id.in_(partenaire_ids or [-1]))
     return query.offset(skip).limit(limit).all()
 
 
