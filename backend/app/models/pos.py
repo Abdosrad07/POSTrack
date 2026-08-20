@@ -57,21 +57,8 @@ class POS(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-<<<<<<< HEAD
     partner = relationship("Partner")
     dsm = relationship("DSM")
     holder = relationship("User", foreign_keys=[holder_user_id])
     reconductions = relationship("Reconduction", back_populates="pos", cascade="all, delete-orphan")
     primes = relationship("Prime", back_populates="pos", cascade="all, delete-orphan")
-=======
-    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-    updated_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-
-    partenaire: Mapped["Partenaire"] = relationship(back_populates="pos_list")
-    dsm: Mapped["DSM"] = relationship(back_populates="pos_list")
-    reconductions: Mapped[list["Reconduction"]] = relationship(back_populates="pos")
-    primes: Mapped[list["Prime"]] = relationship(back_populates="pos")
-    clients: Mapped[list["Client"]] = relationship(back_populates="pos")
-    sims: Mapped[list["SIM"]] = relationship(back_populates="pos")
-
->>>>>>> origin/dev

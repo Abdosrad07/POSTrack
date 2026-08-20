@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Jeu de donnees de demonstration (Jour 14 - deploiement et presentation
 finale). Cree :
   - 1 compte ADMIN, 1 Representant Partenaire, 1 Representant DSM,
@@ -138,20 +137,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-=======
-Point d'entrée rétrocompatible — délègue à import_database.py.
-
-Usage (depuis backend/) : python scripts/seed.py [--force]
-"""
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from import_database import import_data
-
-if __name__ == "__main__":
-    force = "--force" in sys.argv
-    import_data(force=force)
->>>>>>> origin/dev
