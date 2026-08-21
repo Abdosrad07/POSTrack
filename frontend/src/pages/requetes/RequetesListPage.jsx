@@ -12,7 +12,7 @@ const RequetesListPage = () => (
     />
     <EmptyState
       title="Module Requêtes"
-      message="Le workflow des requêtes sera livré par le module Frontend Clients (C3)."
+      message="Le workflow des requêtes sera livré par le module Requêtes."
     />
   </div>
 );

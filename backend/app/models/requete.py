@@ -8,10 +8,10 @@ from app.core.database import Base
 
 
 class TypeRequete(str, enum.Enum):
-    APPROVISIONNEMENT_SIM = "APPROVISIONNEMENT_SIM"
-    MAINTENANCE_BTS = "MAINTENANCE_BTS"
-    RECLAMATION_CLIENT = "RECLAMATION_CLIENT"
-    SUPPORT_POS = "SUPPORT_POS"
+    AJOUT = "AJOUT"
+    RECONDUCTION = "RECONDUCTION"
+    DELINKAGE = "DELINKAGE"
+    BASCULEMENT = "BASCULEMENT"
     AUTRE = "AUTRE"
 
 
@@ -22,21 +22,10 @@ class PrioriteRequete(str, enum.Enum):
     URGENTE = "URGENTE"
 
 
-class StatutRequete(str, enum.Enum):
-    OUVERTE = "OUVERTE"
-    EN_COURS = "EN_COURS"
-    EN_ATTENTE = "EN_ATTENTE"
-    RESOLUE = "RESOLUE"
-    FERMEE = "FERMEE"
-    REJETEE = "REJETEE"
-
-
 class Requete(Base):
     __tablename__ = "requetes"
     __table_args__ = (
-        # Filtre le plus frequent du module Requetes (liste des requetes
-        # ouvertes/en cours d'un Partenaire, comptage du Dashboard).
-        Index("ix_requete_partner_statut", "partner_id", "statut"),
+        Index("ix_requete_partner_type", "partner_id", "type_requete"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -50,7 +39,12 @@ class Requete(Base):
     titre = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     priorite = Column(SAEnum(PrioriteRequete), nullable=False, default=PrioriteRequete.NORMALE)
-    statut = Column(SAEnum(StatutRequete), nullable=False, default=StatutRequete.OUVERTE)
+    date_creation = Column(DateTime(timezone=True), nullable=True)
+    nombre_demande = Column(Integer, nullable=False, default=0)
+    nombre_effectue = Column(Integer, nullable=False, default=0)
+    nombre_rejete = Column(Integer, nullable=False, default=0)
+    delai = Column(Integer, nullable=True)
+    date_finalisation = Column(DateTime(timezone=True), nullable=True)
 
     demandeur_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     responsable_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -76,13 +70,12 @@ class RequeteEntite(Base):
 
 
 class RequeteCommentaire(Base):
-    """Historique des commentaires / changements de statut d'une Requete."""
+    """Historique des commentaires d'une Requete."""
     __tablename__ = "requete_commentaires"
 
     id = Column(Integer, primary_key=True, index=True)
     requete_id = Column(Integer, ForeignKey("requetes.id"), nullable=False, index=True)
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    statut_apres = Column(SAEnum(StatutRequete), nullable=True)
     commentaire = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

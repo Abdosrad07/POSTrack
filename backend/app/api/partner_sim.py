@@ -6,9 +6,9 @@ from app.core.database import get_db
 from app.api.deps import get_current_user, get_partner_context
 from app.crud.sim_crud import sim_crud, sim_movement_crud
 from app.models.user import User
-from app.schemas.sim import SIMCreate, SIMAssign, SIMStatusUpdate, SIMOut, SIMMovementCreate, SIMMovementOut
+from app.schemas.sim import SIMCreate, SIMStatusUpdate, SIMOut, SIMMovementCreate, SIMMovementOut
 from app.schemas.pagination import Page
-from app.services.sim_service import create_sim, assign_sim, update_status, record_movement, get_sim_in_partner
+from app.services.sim_service import create_sim, update_status, record_movement, get_sim_in_partner
 
 router = APIRouter(prefix="/api/partners/{partner_id}/sim", tags=["SIM"])
 
@@ -24,12 +24,6 @@ def list_sim(partner_id: int = Depends(get_partner_context), pos_id: int | None 
 def create_sim_route(payload: SIMCreate, partner_id: int = Depends(get_partner_context),
                       db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return create_sim(db, partner_id=partner_id, user_id=user.id, data=payload.model_dump())
-
-
-@router.post("/{sim_id}/assign", response_model=SIMOut)
-def assign_sim_route(sim_id: int, payload: SIMAssign, partner_id: int = Depends(get_partner_context),
-                      db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    return assign_sim(db, partner_id=partner_id, user_id=user.id, sim_id=sim_id, client_id=payload.client_id)
 
 
 @router.patch("/{sim_id}/status", response_model=SIMOut)

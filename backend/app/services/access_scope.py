@@ -1,25 +1,21 @@
-"""Service de portée d'accès (Access Scope).
+"""Service de portee d'acces (Access Scope) pour les 4 roles applicatifs.
 
-Détermine, selon le rôle de l'utilisateur connecté, quelles entités
-(partenaires, DSM, BTS, POS) il est autorisé à voir dans la plateforme.
-
-Matrice d'accès :
-- ADMIN                 → tous les partenaires + leurs DSM, BTS, POS
-- MANAGER               → uniquement les DSM, BTS, POS de SON partenaire
-- DSM                   → uniquement les POS de SON périmètre DSM
-- VIEWER (Détenteur)    → uniquement SON POS
+- ADMIN            -> tous les partenaires + DSM, BTS, POS
+- MANAGER          -> consultation de tous les partenaires
+- CHEF_OPERATIONNEL-> tous les partenaires (entree de donnees + validation)
+- OPERATIONNEL     -> un seul partenaire (user.partner_id)
 """
 from sqlalchemy.orm import Session
 
-from app.models.enums import RoleUser
 from app.models.user import User
 from app.models.pos import POS
 from app.models.bts import BTS
 from app.models.dsm import DSM
+from app.security.permissions import Role
 
 
 class AccessScope:
-    """Portée d'accès d'un utilisateur : listes d'IDs autorisés."""
+    """Portee d'acces d'un utilisateur : listes d'IDs autorises (None = illimite)."""
 
     def __init__(
         self,
@@ -28,7 +24,6 @@ class AccessScope:
         pos_ids: list[int] | None = None,
         bts_ids: list[int] | None = None,
     ):
-        # None = accès illimité (ADMIN)
         self.partenaire_ids = partenaire_ids
         self.dsm_ids = dsm_ids
         self.pos_ids = pos_ids
@@ -59,60 +54,39 @@ class AccessScope:
         return [i for i in ids if i in self.bts_ids]
 
 
-def get_access_scope(db: Session, user: User) -> AccessScope:
-    """Calcule la portée d'accès de l'utilisateur connecté.
+def _scope_for_partners(db: Session, partner_ids: list[int]) -> AccessScope:
+    partner_ids = list(dict.fromkeys(partner_ids))
+    pos_list = db.query(POS).filter(POS.partner_id.in_(partner_ids)).all()
+    pos_ids = [p.id for p in pos_list]
+    dsm_ids = list({p.dsm_id for p in pos_list if p.dsm_id})
+    bts_ids = [b.id for b in db.query(BTS).filter(BTS.partner_id.in_(partner_ids)).all()]
+    return AccessScope(
+        partenaire_ids=partner_ids,
+        dsm_ids=dsm_ids,
+        pos_ids=pos_ids,
+        bts_ids=bts_ids,
+    )
 
-    - ADMIN   → portée illimitée (tous les partenaires, DSM, BTS, POS)
-    - MANAGER → uniquement les DSM, BTS et POS de SON partenaire (user.partenaire_id)
-    - DSM     → uniquement les POS de SON périmètre DSM (user.dsm_profile)
-    - VIEWER  → uniquement SON POS (user.pos_id)
-    """
+
+def get_access_scope(db: Session, user: User) -> AccessScope:
     role = user.role
 
-    if role == RoleUser.ADMIN:
-        return AccessScope()  # Tous les champs à None → illimité
+    if role == Role.ADMIN:
+        # Tous les champs a None -> illimite
+        return AccessScope()
 
-    if role == RoleUser.MANAGER:
-        if not user.partenaire_id:
-            return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
-        pos_list = db.query(POS).filter(POS.partenaire_id == user.partenaire_id).all()
-        pos_ids = [p.id for p in pos_list]
-        dsm_ids = list({p.dsm_id for p in pos_list if p.dsm_id})
-        bts_list = db.query(BTS).filter(BTS.partenaire_id == user.partenaire_id).all()
-        bts_ids = [b.id for b in bts_list]
-        return AccessScope(
-            partenaire_ids=[user.partenaire_id],
-            dsm_ids=dsm_ids,
-            pos_ids=pos_ids,
-            bts_ids=bts_ids,
-        )
+    if role == Role.MANAGER:
+        ids = [p[0] for p in db.query(DSM.partner_id).distinct().all()]
+        return _scope_for_partners(db, ids)
 
-    if role == RoleUser.DSM:
-        from app.models.dsm import DSM
-        dsm = user.dsm_profile or db.query(DSM).filter(DSM.user_id == user.id).first()
-        if not dsm:
-            return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
-        pos_ids = [p.id for p in dsm.pos_list]
-        partenaire_ids = list({p.partenaire_id for p in dsm.pos_list if p.partenaire_id})
-        return AccessScope(
-            partenaire_ids=partenaire_ids,
-            dsm_ids=[dsm.id],
-            pos_ids=pos_ids,
-            bts_ids=[],
-        )
+    if role == Role.CHEF_OPERATIONNEL:
+        ids = [p[0] for p in db.query(DSM.partner_id).distinct().all()]
+        return _scope_for_partners(db, ids)
 
-    if role == RoleUser.VIEWER:
-        if not user.pos_id:
+    if role == Role.OPERATIONNEL:
+        if not user.partner_id:
             return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
-        pos = db.get(POS, user.pos_id)
-        if not pos:
-            return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
-        return AccessScope(
-            partenaire_ids=[pos.partenaire_id] if pos.partenaire_id else [],
-            dsm_ids=[pos.dsm_id] if pos.dsm_id else [],
-            pos_ids=[pos.id],
-            bts_ids=[],
-        )
+        return _scope_for_partners(db, [user.partner_id])
 
     return AccessScope(partenaire_ids=[], dsm_ids=[], pos_ids=[], bts_ids=[])
 
@@ -131,3 +105,4 @@ def get_visible_pos_ids(db: Session, user: User) -> list[int] | None:
 
 def get_visible_bts_ids(db: Session, user: User) -> list[int] | None:
     return get_access_scope(db, user).bts_ids
+

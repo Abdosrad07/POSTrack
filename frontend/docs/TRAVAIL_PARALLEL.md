@@ -31,8 +31,8 @@ Lead Frontend
 Dev Frontend — Cycle de vie POS
     → POS, Reconduction, Primes
 
-Dev Frontend — Chaîne Client
-    → Clients, SIM, Requêtes, Dashboard, Import/Export
+Dev Frontend — SIM / Requêtes / Dashboard
+    → SIM, Requêtes, Dashboard, Import/Export
 ```
 
 Cette répartition est conservée sans modification.
@@ -154,12 +154,11 @@ Il est également responsable de la **restitution visuelle de la règle métier 
 
 ---
 
-# 6. Développeur 3 — Chaîne Client
+# 6. Développeur 3 — SIM / Requêtes / Dashboard
 
 ### Domaine
 
 ```text
-CLIENTS
 SIM
 REQUÊTES
 DASHBOARD
@@ -169,9 +168,6 @@ IMPORT / EXPORT
 ### Responsabilités
 
 ```text
-ClientsListPage
-ClientForm
-
 SimsStockPage
 
 RequetesListPage
@@ -182,7 +178,7 @@ DashboardPage
 ImportExportPage
 ```
 
-La roadmap attribue explicitement ces pages au développeur Chaîne Client.
+La roadmap attribue désormais ces pages au développeur Frontend transverse.
 
 ---
 
@@ -204,7 +200,6 @@ Cette matrice est la règle principale contre les conflits.
 | `components/POS/`           |     —     |       **OWNER**      |           —          |
 | `components/Reconductions/` |     —     |       **OWNER**      |           —          |
 | `components/Primes/`        |     —     |       **OWNER**      |           —          |
-| `components/Clients/`       |     —     |           —          |       **OWNER**      |
 | `components/Sims/`          |     —     |           —          |       **OWNER**      |
 | `components/Requetes/`      |     —     |           —          |       **OWNER**      |
 | `components/Dashboard/`     |     —     |           —          |       **OWNER**      |
@@ -215,7 +210,6 @@ Cette matrice est la règle principale contre les conflits.
 | `pages/pos/`                |     —     |       **OWNER**      |           —          |
 | `pages/reconductions/`      |     —     |       **OWNER**      |           —          |
 | `pages/primes/`             |     —     |       **OWNER**      |           —          |
-| `pages/clients/`            |     —     |           —          |       **OWNER**      |
 | `pages/sims/`               |     —     |           —          |       **OWNER**      |
 | `pages/requetes/`           |     —     |           —          |       **OWNER**      |
 | `pages/dashboard/`          |     —     |           —          |       **OWNER**      |
@@ -322,14 +316,14 @@ Dev 2 ──→ pages/pos/
            │
            └──→ PR
 
-Dev 3 ──→ pages/clients/
+Dev 3 ──→ pages/sims/
            │
            └──→ PR
 
 Dev 1 ──→ routes/
            │
            ├──→ /pos
-           └──→ /clients
+            └──→ /sims
 ```
 
 Cela réduit fortement les conflits.
@@ -467,9 +461,9 @@ mocks/pos.js
 Travail parallèle :
 
 ```text
-components/Clients/
 pages/clients/
-mocks/clients.js
+pages/sims/
+mocks/sims.js
 ```
 
 Ils utilisent uniquement les composants Common existants.
@@ -513,9 +507,9 @@ POS validation
 Continue :
 
 ```text
-Clients UI
-Clients mocks
-Clients validation
+SIM UI
+SIM mocks
+SIM validation
 ```
 
 Ils ne modifient pas `AuthContext`.
@@ -598,7 +592,6 @@ POS UI
 Finalise :
 
 ```text
-Clients UI
 SIM UI
 ```
 
@@ -1586,11 +1579,11 @@ La roadmap prévoit une fusion de `develop` vers `main` à chaque fin de journé
 
 | Jour | Dev 1 — Lead          | Dev 2 — POS                | Dev 3 — Client               |
 | ---- | --------------------- | -------------------------- | ---------------------------- |
-| J1   | Core / Architecture   | Préparation POS            | Préparation Clients          |
-| J2   | Core                  | POS UI / mocks             | Clients UI / mocks           |
-| J3   | Auth                  | POS                        | Clients                      |
-| J4   | Partenaires + DSM     | POS                        | Clients + SIM                |
-| J5   | BTS + relevés         | POS                        | Clients + SIM                |
+| J1   | Core / Architecture   | Préparation POS            | Préparation SIM               |
+| J2   | Core                  | POS UI / mocks             | SIM UI / mocks                |
+| J3   | Auth                  | POS                        | SIM                           |
+| J4   | Partenaires + DSM     | POS                        | SIM + Requêtes                |
+| J5   | BTS + relevés         | POS                        | SIM + Requêtes                |
 | J6-7 | Rattrapage            | Rattrapage                 | Rattrapage                   |
 | J8   | Intégration           | **POS complet**            | Préparation SIM              |
 | J9   | Intégration           | **Reconductions + Primes** | Clients / SIM                |
@@ -1663,7 +1656,7 @@ Ainsi :
 ```text
 Dev 1 → protège le socle
 Dev 2 → protège le cycle de vie POS
-Dev 3 → protège la chaîne Client
+Dev 3 → protège la chaîne SIM / Requêtes / Dashboard
 ```
 
 Les trois peuvent avancer simultanément, puis leurs travaux sont réunis progressivement dans `develop` par Pull Requests validées.

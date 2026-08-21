@@ -1,11 +1,11 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-from app.models.requete import TypeRequete, PrioriteRequete, StatutRequete
+from app.models.requete import TypeRequete, PrioriteRequete
 
 
 class RequeteEntiteIn(BaseModel):
-    entity_type: str   # POS, BTS, CLIENT, PARTNER
+    entity_type: str   # POS, BTS, PARTNER
     entity_id: int
 
 
@@ -15,11 +15,19 @@ class RequeteCreate(BaseModel):
     description: str | None = None
     priorite: PrioriteRequete = PrioriteRequete.NORMALE
     responsable_id: int | None = None
+    nombre_demande: int = 1
+    nombre_effectue: int = 0
+    nombre_rejete: int = 0
     entites: list[RequeteEntiteIn] = []
 
 
-class RequeteStatusUpdate(BaseModel):
-    statut: StatutRequete
+class RequeteUpdate(BaseModel):
+    """Mise a jour des compteurs et de la finalisation d'une Requete."""
+    nombre_demande: int | None = None
+    nombre_effectue: int | None = None
+    nombre_rejete: int | None = None
+    delai: int | None = None
+    date_finalisation: datetime | None = None
     commentaire: str | None = None
 
 
@@ -27,34 +35,34 @@ class RequeteEntiteOut(BaseModel):
     entity_type: str
     entity_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RequeteCommentaireOut(BaseModel):
     id: int
     author_id: int
-    statut_apres: StatutRequete | None
     commentaire: str | None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RequeteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     partner_id: int
     type_requete: TypeRequete
     titre: str
     description: str | None
     priorite: PrioriteRequete
-    statut: StatutRequete
+    date_creation: datetime | None
+    nombre_demande: int
+    nombre_effectue: int
+    nombre_rejete: int
+    delai: int | None
+    date_finalisation: datetime | None
     demandeur_id: int
     responsable_id: int | None
     created_at: datetime
-    closed_at: datetime | None
     entites: list[RequeteEntiteOut] = []
-
-    class Config:
-        from_attributes = True

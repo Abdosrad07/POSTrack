@@ -25,7 +25,7 @@ def test_prime_validation_requires_admin_role(client, rep1_token, admin_token, s
     assert prime_pos1["status"] == "EN_ATTENTE"
     prime_id = prime_pos1["id"]
 
-    # Un Representant Partenaire ne peut pas valider une prime (reserve a l'ADMIN)
+    # Un representant partenaire ne peut pas valider une prime (reserve a l'ADMIN)
     forbidden = client.patch(
         f"/api/partners/{seed['p1']}/primes/{prime_id}/status",
         json={"status": "VALIDEE"},

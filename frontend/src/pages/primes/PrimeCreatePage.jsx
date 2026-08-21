@@ -50,12 +50,12 @@ export default function PrimeCreatePage() {
 	}
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-8">
 			<div>
-				<h1 className="text-2xl font-bold text-gray-900">Nouvelle Prime</h1>
-				<p className="mt-1 text-sm text-gray-600">Créez une prime pour un POS.</p>
+				<h1 className="text-3xl font-semibold tracking-tight text-slate-900">Nouvelle prime</h1>
+				<p className="mt-2 max-w-2xl text-sm text-slate-600">Saisissez une prime liée à un POS du partenaire actif.</p>
 			</div>
-			<form onSubmit={handleSubmit} className="rounded-lg bg-white p-6 shadow-sm">
+			<form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
 				{error && <div className="mb-4"><Alert type="error" message={error} onClose={() => setError('')} /></div>}
 				{success && <div className="mb-4"><Alert type="success" message={success} /></div>}
 				<div className="space-y-4">
@@ -81,8 +81,8 @@ export default function PrimeCreatePage() {
 						<input value={date} onChange={(e)=>setDate(e.target.value)} type="date" className="mt-1 block w-full rounded-md border px-3 py-2" />
 					</div>
 				</div>
-				<div className="mt-4">
-					<button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-white">{loading ? 'Enregistrement...' : 'Créer'}</button>
+				<div className="mt-6 flex items-center justify-end gap-3">
+					<button type="submit" className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">{loading ? 'Enregistrement…' : 'Créer la prime'}</button>
 				</div>
 			</form>
 		</div>

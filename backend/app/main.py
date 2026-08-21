@@ -22,7 +22,7 @@ from app.core.errors import AppError, app_error_handler
 from app import models as _all_models  # noqa: F401  (charge tous les modeles avant create_all)
 
 from app.api import auth as auth_router
-from app.api import partner_pos, partner_clients, partner_bts, partner_sim
+from app.api import partner_pos, partner_bts, partner_sim
 from app.api import partner_primes, partner_requests, imports, analytics, admin
 
 class _RequestIdFilter(logging.Filter):
@@ -119,7 +119,6 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_router.router)
 app.include_router(partner_pos.router)
-app.include_router(partner_clients.router)
 app.include_router(partner_bts.router)
 app.include_router(partner_sim.router)
 app.include_router(partner_primes.router)

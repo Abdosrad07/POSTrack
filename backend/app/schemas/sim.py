@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.models.sim import StatutSim, TypeMouvementSim
 
@@ -9,25 +9,19 @@ class SIMCreate(BaseModel):
     iccid: str
 
 
-class SIMAssign(BaseModel):
-    client_id: int
-
-
 class SIMStatusUpdate(BaseModel):
     status: StatutSim
 
 
 class SIMOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     partner_id: int
     pos_id: int
-    client_id: int | None
     iccid: str
     status: StatutSim
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class SIMMovementCreate(BaseModel):
@@ -36,6 +30,8 @@ class SIMMovementCreate(BaseModel):
 
 
 class SIMMovementOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     sim_id: int
     partner_id: int
@@ -43,6 +39,3 @@ class SIMMovementOut(BaseModel):
     author_id: int
     comment: str | None
     created_at: datetime
-
-    class Config:
-        from_attributes = True

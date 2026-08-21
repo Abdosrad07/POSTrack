@@ -1,7 +1,7 @@
 import api from './api';
 
 export const analyticsService = {
-  getDashboard: () => api.get('/analytics/dashboard'),
+  getDashboard: (partnerId, dsmId) => api.get(`/partners/${partnerId}/analytics/dashboard`, { params: dsmId ? { dsm_id: dsmId } : {} }),
 };
 
 export default analyticsService;

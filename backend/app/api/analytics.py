@@ -1,11 +1,4 @@
-<<<<<<< HEAD
-"""
-Dashboard / Analytics sous /api/partners/{partner_id}/analytics.
-
-Reprend les routes prevues par l'architecture technique v3.1-R7,
-section 6.3 : GET .../analytics/overview (dashboard), GET
-.../analytics/pos-performance et GET .../analytics/commissions.
-"""
+"""Dashboard / Analytics sous /api/partners/{partner_id}/analytics."""
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -41,7 +34,7 @@ def list_pos_performance(partner_id: int = Depends(get_partner_context), pos_id:
 def calculate_pos_performance_route(payload: POSPerformanceCalculateRequest,
                                      partner_id: int = Depends(get_partner_context),
                                      db: Session = Depends(get_db),
-                                     _user: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+                                     _user: User = Depends(require_roles(Role.ADMIN, Role.CHEF_OPERATIONNEL, Role.OPERATIONNEL))):
     return calculate_pos_performance(
         db, partner_id=partner_id, period_start=payload.period_start, period_end=payload.period_end,
     )
@@ -53,36 +46,3 @@ def list_commissions(partner_id: int = Depends(get_partner_context), period_id: 
                       db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     return dsm_commission_crud.list_paginated(db, skip=skip, limit=limit, partner_id=partner_id,
                                                prime_period_id=period_id)
-=======
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
-from app.database import get_db
-from app.models.user import User
-from app.models.pos import POS
-from app.models.partenaire import Partenaire
-from app.models.prime import Prime
-from app.models.dsm import DSM
-from app.models.bts import BTS
-from app.models.client import Client
-from app.models.enums import StatutPOS
-from app.security.permissions import require_role, TOUS_ROLES
-
-router = APIRouter()
-
-
-@router.get("/dashboard")
-def dashboard_stats(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role(TOUS_ROLES)),
-):
-    return {
-        "total_pos": db.query(POS).count(),
-        "pos_actifs": db.query(POS).filter(POS.statut == StatutPOS.ACTIF).count(),
-        "total_partenaires": db.query(Partenaire).count(),
-        "total_dsm": db.query(DSM).count(),
-        "total_bts": db.query(BTS).count(),
-        "total_primes": db.query(Prime).count(),
-        "total_clients": db.query(Client).count(),
-    }
->>>>>>> origin/dev

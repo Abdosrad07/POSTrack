@@ -326,20 +326,19 @@ def import_data(force: bool = False) -> dict:
 
         # --- 9. SIMS ---
         sims_data = [
-            ("89237010000000000001", StatutSIM.EN_STOCK, 101, None),
-            ("89237010000000000002", StatutSIM.VENDUE, 101, 1),
-            ("89237010000000000003", StatutSIM.ACTIVEE, 101, 1),
-            ("89237010000000000004", StatutSIM.DEFECTUEUSE, 102, None),
-            ("89237010000000000005", StatutSIM.RETOURNEE, 102, None),
+            ("89237010000000000001", StatutSIM.EN_STOCK, 101),
+            ("89237010000000000002", StatutSIM.VENDUE, 101),
+            ("89237010000000000003", StatutSIM.ACTIVEE, 101),
+            ("89237010000000000004", StatutSIM.DEFECTUEUSE, 102),
+            ("89237010000000000005", StatutSIM.RETOURNEE, 102),
         ]
-        for iccid, statut, pos_id, client_id in sims_data:
+        for iccid, statut, pos_id in sims_data:
             db.add(
                 SIM(
                     iccid=iccid,
                     operateur=Operateur.CAMTEL,
                     statut=statut,
                     pos_id=pos_list[pos_id].id,
-                    client_id=client.id if client_id else None,
                 )
             )
         stats["sims"] = len(sims_data)

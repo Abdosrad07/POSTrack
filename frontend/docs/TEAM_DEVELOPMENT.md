@@ -40,7 +40,7 @@ L'objectif est de permettre aux trois développeurs de travailler en parallèle 
                              │
             ┌────────────────┼────────────────┐
             │                │                │
-      Lead Frontend    Frontend POS    Frontend Clients
+      Lead Frontend    Frontend POS    Frontend C
             │                │                │
             ├─ Arch & Auth   ├─ POS           ├─ Clients
             ├─ PartnerContext├─ Reconduction  ├─ SIM & Stock
@@ -67,7 +67,7 @@ L'équipe Frontend est composée de trois développeurs dont le périmètre s'al
 | **Développeur B — Frontend POS** | Gestion des POS, Cycle de vie Nouveau/Reconduit, Reconductions, Primes par Période (`PrimePeriod`), Commissions DSM (`DSMCommission`)
 
  | **Représentant Partenaire**, **Représentant DSM**, **Détenteur POS**<br> |
-| **Développeur C — Frontend Clients & Ops** | Clients, Stock SIM & Mouvements, Requêtes multi-entités, Dashboard Partenaire & Analytics
+| **Développeur C — Frontend transverse** | Clients, Stock SIM & Mouvements, Requêtes multi-entités, Dashboard Partenaire & Analytics
 
  | **Représentant Partenaire**, **Représentant DSM**, **Détenteur POS**<br> |
 
@@ -366,14 +366,14 @@ Prime Eligible  DSMCommission              Prime Bloquée !
 
 ---
 
-# 6. Développeur C — Frontend Clients, SIM, Requêtes & Analytics
+# 6. Développeur C — Frontend transverse, SIM, Requêtes & Analytics
 
 ## Responsabilité générale
 
 Le Développeur C prend en charge le suivi du **fichier Client**, la gestion du **stock SIM**, le module de **Requêtes multi-entités** ainsi que le **Dashboard Partenaire et Analytics**.
 
 ```text
-C — Frontend Clients & Operations
+C — Frontend transverse & Operations
 │
 ├── 1. Clients rattachés aux POS[cite: 1, 3]
 ├── 2. Stock SIM & Attribution (MSISDN / ICCID)[cite: 1, 3]
@@ -384,7 +384,7 @@ C — Frontend Clients & Operations
 
 ---
 
-## 12. Module C1 — Gestion des Clients
+## 12. Module C1 — Gestion des Clients (historique)
 
 ### Objectif
 
@@ -392,19 +392,19 @@ Consulter et gérer les clients finaux enregistrés auprès des différents POS 
 
 ### Frontend & Endpoints
 
-* **Pages** : `/clients`, `/clients/:id`.
+* **Pages** : module historique, remplacé côté frontend par les parcours SIM / Requêtes et les vues de contexte partenaire.
 
 
-* **Endpoints** : `GET /api/partners/{id}/clients`, `GET /api/partners/{id}/clients/{client_id}`, `PATCH /api/partners/{id}/clients/{client_id}`.
+* **Endpoints** : conservés pour compatibilité backend historique uniquement.
 
 
-* **Fonctionnalités** : Recherche, filtres par POS, consultation de la fiche client et mises à jour autorisées. (L'alimentation massive est assurée par l'import Excel).
+* **Fonctionnalités** : section conservée pour historique technique.
 
 
 
 ---
 
-## 13. Module C2 — Stock SIM & Assignation Client
+## 13. Module C2 — Stock SIM & Assignation
 
 ### Objectif
 
@@ -422,10 +422,10 @@ Piloter le stock des cartes SIM par POS et suivre leur statut d'attribution.
 * Recherche par ICCID / MSISDN.
 
 
-* Filtrage par POS et par Client assigné.
+* Filtrage par POS et par affectation.
 
 
-* Consultation des mouvements et attribution à un client.
+* Consultation des mouvements et attribution à un bénéficiaire.
 
 
 
@@ -512,10 +512,10 @@ Toutes les routes métier consommées par l'équipe Frontend doivent être préf
 | **POS** | `POST` | `/api/partners/{id}/pos/{pos_id}/reconduction`<br> | Développeur B (POS) |
 | **Primes** | `GET` / `POST` | `/api/partners/{id}/primes` & `/calculate`<br> | Développeur B (POS) |
 | **Primes** | `POST` | `/api/partners/{id}/primes/{prime_id}/validate`<br> | Développeur B (POS) |
-| **Clients** | `GET` / `PATCH` | `/api/partners/{id}/clients`<br> | Développeur C (Clients) |
-| **SIM** | `GET` | `/api/partners/{id}/sims`<br> | Développeur C (Clients) |
-| **Requêtes** | `GET` / `POST` | `/api/partners/{id}/requests`<br> | Développeur C (Clients) |
-| **Analytics** | `GET` | `/api/partners/{id}/analytics/overview`<br> | Développeur C (Clients) |
+| **Clients** | `GET` / `PATCH` | endpoints conservés pour compatibilité historique |
+| **SIM** | `GET` | `/api/partners/{id}/sims`<br> | Frontend |
+| **Requêtes** | `GET` / `POST` | `/api/partners/{id}/requests`<br> | Frontend |
+| **Analytics** | `GET` | `/api/partners/{id}/analytics/overview`<br> | Frontend |
 
 ---
 

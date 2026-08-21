@@ -4,11 +4,11 @@ import posService from '../../services/posService';
 import StatusBadge from '../../components/Common/StatusBadge';
 
 // Onglets qui pointent vers des modules hors de ton lot de travail (Reconductions,
-// Primes, Chaîne Client) — simples liens d'intégration, pas de logique ici.
+// Primes, SIM / Requêtes) — simples liens d'intégration, pas de logique ici.
 const LIENS_EXTERNES = [
   { label: 'Reconductions', href: (id) => `/pos/${id}/reconductions` },
   { label: 'Primes', href: (id) => `/pos/${id}/primes` },
-  { label: 'Clients', href: (id) => `/pos/${id}/clients` },
+  { label: 'SIM', href: (id) => `/pos/${id}/sims` },
 ];
 
 export default function POSDetailPage() {

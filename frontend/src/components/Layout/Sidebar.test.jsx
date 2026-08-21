@@ -30,8 +30,8 @@ describe('Sidebar', () => {
     expect(screen.getByText('Audit')).toBeInTheDocument()
   })
 
-  it('cache DSM et Import pour Détenteur POS (VIEWER)', () => {
-    renderSidebar('VIEWER')
+  it('cache DSM et Import pour Operationnel', () => {
+    renderSidebar('OPERATIONNEL')
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.getByText('POS')).toBeInTheDocument()
     expect(screen.queryByText('DSM')).not.toBeInTheDocument()

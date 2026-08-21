@@ -5,10 +5,10 @@ import { hasRole } from '../../utils/roles';
 import EmptyState from '../Common/EmptyState/EmptyState';
 
 /**
- * Garde d'affichage / de route selon la matrice des rôles R7 (Module A2).
+ * Garde d'affichage / de route selon la matrice des 4 rôles cibles.
  *
  * @param {Object} props — propriétés du composant
- * @param {string[]} [props.roles] — rôles autorisés (R7 ou alias)
+ * @param {string[]} [props.roles] — rôles autorisés (nouveaux rôles ou alias)
  * @param {React.ReactNode} [props.children]
  * @param {'redirect' | 'hide' | 'message'} [props.mode]
  * @param {string} [props.redirectTo]

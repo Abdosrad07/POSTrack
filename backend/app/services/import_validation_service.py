@@ -45,20 +45,18 @@ from app.models.import_batch import StatutImport
 from app.models.partner import Partner
 from app.models.pos import POS, TypePos
 from app.models.dsm import DSM
-from app.models.client import Client
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
 from app.models.sim import SIM, StatutSim
 from app.models.prime_period import PrimePeriod, StatutPeriode
 from app.models.prime import Prime, StatutPrime
-from app.models.requete import Requete, TypeRequete, PrioriteRequete, StatutRequete
+from app.models.requete import Requete, TypeRequete, PrioriteRequete
 from app.services import audit_service
 
 REQUIRED_COLUMNS = {
     "PARTNER": ["code_partenaire", "name"],
     "DSM": ["matricule", "full_name"],
     "POS": ["code_pos", "name", "dsm_matricule", "date_creation", "date_expiration"],
-    "CLIENT": ["pos_code", "full_name"],
     "BTS": ["code_bts"],
     "BTS_RELEVE": ["bts_code", "charge", "taux_saturation", "rendement"],
     "SIM": ["iccid", "pos_code"],
@@ -229,13 +227,6 @@ def _validate_row(db: Session, partner_id: int, entity_type: str, row, line_no: 
         except Exception:
             errors.append(_err(line_no, "date_creation/date_expiration", None, "Format de date invalide."))
 
-    elif entity_type == "CLIENT":
-        pos = db.query(POS).filter(POS.partner_id == partner_id, POS.code_pos == str(row["pos_code"])).first()
-        if not pos:
-            errors.append(_err(line_no, "pos_code", row["pos_code"], "POS inconnu dans ce Partenaire."))
-        if _is_blank(row.get("full_name")):
-            errors.append(_err(line_no, "full_name", row.get("full_name"), "full_name obligatoire."))
-
     elif entity_type == "BTS":
         if _is_blank(row.get("code_bts")):
             errors.append(_err(line_no, "code_bts", row.get("code_bts"), "code_bts obligatoire."))
@@ -356,15 +347,6 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
             date_expiration=pd.to_datetime(row["date_expiration"]).date(),
         ))
 
-    elif entity_type == "CLIENT":
-        pos = db.query(POS).filter(POS.partner_id == partner_id, POS.code_pos == str(row["pos_code"])).first()
-        if not pos:
-            raise ConflictError(f"POS '{row['pos_code']}' introuvable au moment de l'application.")
-        db.add(Client(
-            partner_id=partner_id, pos_id=pos.id, full_name=str(row["full_name"]),
-            phone=_clean_optional(row.get("phone")), id_number=_clean_optional(row.get("id_number")),
-        ))
-
     elif entity_type == "BTS":
         existing = db.query(BTS).filter(BTS.partner_id == partner_id, BTS.code_bts == str(row["code_bts"])).first()
         if existing:
@@ -400,6 +382,12 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
             existing.pos_id = pos.id
             db.add(existing)
         else:
+            if pos.stock_actuel <= 0:
+                raise ConflictError(
+                    f"Stock SIM epuise pour le POS '{row['pos_code']}' ({pos.stock_actuel} restantes)."
+                )
+            pos.stock_actuel -= 1
+            db.add(pos)
             db.add(SIM(partner_id=partner_id, pos_id=pos.id, iccid=str(row["iccid"]), status=StatutSim.EN_STOCK))
 
     elif entity_type == "PRIME_PERIOD":
@@ -451,7 +439,8 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
                 titre=str(row["titre"]),
                 description=_clean_optional(row.get("description")),
                 priorite=_clean_str(row.get("priorite"), "NORMALE").upper(),
-                statut=StatutRequete.OUVERTE,
+                nombre_demande=1, nombre_effectue=0, nombre_rejete=0,
+                date_creation=datetime.now(timezone.utc),
                 demandeur_id=user_id,
             ))
 

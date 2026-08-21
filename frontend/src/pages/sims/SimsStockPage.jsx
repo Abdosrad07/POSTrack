@@ -12,7 +12,7 @@ const SimsStockPage = () => (
     />
     <EmptyState
       title="Module Stock SIM"
-      message="Le stock et les mouvements seront livrés par le module Frontend Clients (C2)."
+      message="Le stock et les mouvements seront livrés par le module Stock SIM."
     />
   </div>
 );

@@ -2,7 +2,7 @@
 import enum
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, DateTime, Date, Enum as SAEnum,
-    UniqueConstraint, Index,
+    UniqueConstraint, Index, JSON,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -50,6 +50,16 @@ class POS(Base):
     type_pos = Column(SAEnum(TypePos), nullable=False, default=TypePos.NOUVEAU)
     status = Column(SAEnum(StatutPos), nullable=False, default=StatutPos.ACTIF)
 
+    # Stock SIM concerne au POS : stock_initial est fixe une fois (valeur
+    # de depart), stock_actuel est mutable et decremente en continu par
+    # sim_service a chaque creation/reconduction de SIM (section 3.6).
+    stock_initial = Column(Integer, nullable=False, default=0, server_default="0")
+    stock_actuel = Column(Integer, nullable=False, default=0, server_default="0")
+
+    # Colonnes additionnelles dynamiques definies par l'ADMIN avant un
+    # import Excel (section 3.10) : stockage JSON generique.
+    donnees_additionnelles = Column(JSON, nullable=True)
+
     date_creation = Column(Date, nullable=False)
     date_expiration = Column(Date, nullable=False)
     date_derniere_reconduction = Column(Date, nullable=True)
@@ -57,21 +67,8 @@ class POS(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-<<<<<<< HEAD
     partner = relationship("Partner")
     dsm = relationship("DSM")
     holder = relationship("User", foreign_keys=[holder_user_id])
     reconductions = relationship("Reconduction", back_populates="pos", cascade="all, delete-orphan")
     primes = relationship("Prime", back_populates="pos", cascade="all, delete-orphan")
-=======
-    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-    updated_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-
-    partenaire: Mapped["Partenaire"] = relationship(back_populates="pos_list")
-    dsm: Mapped["DSM"] = relationship(back_populates="pos_list")
-    reconductions: Mapped[list["Reconduction"]] = relationship(back_populates="pos")
-    primes: Mapped[list["Prime"]] = relationship(back_populates="pos")
-    clients: Mapped[list["Client"]] = relationship(back_populates="pos")
-    sims: Mapped[list["SIM"]] = relationship(back_populates="pos")
-
->>>>>>> origin/dev

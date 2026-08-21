@@ -26,14 +26,39 @@ def create_partner(payload: PartnerCreate, db: Session = Depends(get_db),
 
 @router.get("/dsm", response_model=list[DSMOut])
 def list_dsm(partner_id: int | None = None, db: Session = Depends(get_db),
-             _admin: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+             _admin: User = Depends(require_roles(Role.ADMIN))):
     return dsm_crud.list(db, partner_id=partner_id, limit=500)
 
 
 @router.post("/dsm", response_model=DSMOut, status_code=201)
 def create_dsm(payload: DSMCreate, db: Session = Depends(get_db),
-               _admin: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+               _admin: User = Depends(require_roles(Role.ADMIN))):
     return dsm_crud.create(db, payload.model_dump())
+
+
+@router.patch("/dsm/{dsm_id}/deactivate")
+def deactivate_dsm(dsm_id: int, db: Session = Depends(get_db),
+                   _admin: User = Depends(require_roles(Role.ADMIN))):
+    dsm = dsm_crud.get(db, dsm_id)
+    if dsm:
+        dsm.is_active = False if hasattr(dsm, "is_active") else dsm.is_active
+        db.add(dsm)
+        db.commit()
+        db.refresh(dsm)
+    return dsm
+
+
+@router.post("/pos/{pos_id}/move-dsm")
+def move_pos_between_dsm(pos_id: int, new_dsm_id: int, db: Session = Depends(get_db),
+                         _admin: User = Depends(require_roles(Role.ADMIN))):
+    from app.crud.pos_crud import pos_crud
+    pos = pos_crud.get(db, pos_id)
+    if pos:
+        pos.dsm_id = new_dsm_id
+        db.add(pos)
+        db.commit()
+        db.refresh(pos)
+    return pos
 
 
 @router.get("/audit")

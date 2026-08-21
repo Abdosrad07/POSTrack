@@ -11,7 +11,7 @@ from app.core.database import get_db
 from app.core.errors import UnauthorizedError, ForbiddenError
 from app.security.jwt import decode_token
 from app.security.permissions import Role
-from app.crud.user_crud import user_crud, get_authorized_partner_ids, get_authorized_pos_ids
+from app.crud.user_crud import user_crud
 from app.crud.revoked_token_crud import is_revoked
 from app.models.user import User
 from app.models.dsm import DSM
@@ -62,15 +62,12 @@ def get_authorized_partners(db: Session, user: User) -> list[int]:
     if user.role == Role.ADMIN:
         from app.models.partner import Partner
         return [p.id for p in db.query(Partner.id).all()]
-    if user.role == Role.PARTENAIRE:
-        return get_authorized_partner_ids(db, user)
-    if user.role == Role.DSM:
-        dsm = db.query(DSM).filter(DSM.id == user.dsm_id).first()
-        return [dsm.partner_id] if dsm else []
-    if user.role == Role.POS_HOLDER:
-        pos_ids = get_authorized_pos_ids(db, user)
-        partner_ids = {p.partner_id for p in db.query(POS).filter(POS.id.in_(pos_ids)).all()} if pos_ids else set()
-        return list(partner_ids)
+    if user.role == Role.MANAGER:
+        return [p[0] for p in db.query(DSM.partner_id).distinct().all()]
+    if user.role == Role.CHEF_OPERATIONNEL:
+        return [p[0] for p in db.query(DSM.partner_id).distinct().all()]
+    if user.role == Role.OPERATIONNEL:
+        return [user.partner_id] if user.partner_id else []
     return []
 
 
@@ -84,6 +81,13 @@ def get_partner_context(
     Verifie que l'utilisateur connecte a effectivement acces a ce
     Partenaire ; leve 403 sinon. Retourne le partner_id valide.
     """
+    if user.role == Role.OPERATIONNEL:
+        forced_partner = user.partner_id
+        if not forced_partner:
+            raise ForbiddenError("Compte OPERATIONNEL sans partenaire rattaché.")
+        if partner_id != forced_partner:
+            raise ForbiddenError("Acces refuse : un OPERATIONNEL ne peut pas changer de Partenaire.")
+        return forced_partner
     authorized = get_authorized_partners(db, user)
     if partner_id not in authorized:
         raise ForbiddenError("Acces refuse : ce Partenaire n'est pas dans votre perimetre.")

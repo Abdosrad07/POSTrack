@@ -156,7 +156,7 @@ cd backend && python main.py        # http://localhost:8000
 # Doc interactive
 # http://localhost:8000/docs
 # Tests
-pytest --cov=app
+python -m pytest --cov=app
 ```
 
 ## Ce que Gemini ne doit jamais faire

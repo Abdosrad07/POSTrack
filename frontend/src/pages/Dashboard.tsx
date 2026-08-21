@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import usePartner from '../hooks/usePartner'
 import analyticsService from '../services/analyticsService'
 import api from '../services/api'
+import { getRoleLabel } from '../utils/roles'
 
 type Stats = {
   total_pos: number
@@ -9,7 +11,6 @@ type Stats = {
   total_dsm: number
   total_bts: number
   total_primes: number
-  total_clients: number
 }
 
 type PosRow = {
@@ -22,6 +23,7 @@ type PosRow = {
 }
 
 function Dashboard() {
+  const { partnerContextId, partner, user } = usePartner() as any
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentPos, setRecentPos] = useState<PosRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +33,7 @@ function Dashboard() {
     const load = async () => {
       try {
         const [statsRes, posRes] = await Promise.all([
-          analyticsService.getDashboard(),
+          analyticsService.getDashboard(partnerContextId),
           api.get('/pos', { params: { limit: 5, page: 1 } }),
         ])
         if (!ignore) {
@@ -49,7 +51,7 @@ function Dashboard() {
     }
     void load()
     return () => { ignore = true }
-  }, [])
+  }, [partnerContextId])
 
   return (
     <div className="space-y-6">
@@ -58,6 +60,12 @@ function Dashboard() {
         <p className="mt-1 text-sm text-gray-600">
           Vue d'ensemble de l'activité des terminaux de paiement.
         </p>
+        <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-600">
+          <span className="rounded-full bg-gray-100 px-3 py-1">Rôle : {getRoleLabel(user?.role)}</span>
+          <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+            Contexte : {partner?.nom ?? partner?.code_partenaire ?? (partnerContextId ? `Partenaire #${partnerContextId}` : '—')}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -70,7 +78,7 @@ function Dashboard() {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         <StatCard label="DSM" value={stats?.total_dsm} loading={loading} small />
         <StatCard label="BTS" value={stats?.total_bts} loading={loading} small />
-        <StatCard label="Clients" value={stats?.total_clients} loading={loading} small />
+        <StatCard label="Primes" value={stats?.total_primes} loading={loading} small />
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">

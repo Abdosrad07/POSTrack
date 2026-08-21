@@ -60,7 +60,7 @@ backend/
 ```powershell
 cd backend
 .\venv\Scripts\python main.py          # http://localhost:8000
-.\venv\Scripts\pytest --cov=app        # tests
+python -m pytest --cov=app               # tests (verdict stable, sans dépendre du wrapper venv)
 ```
 
 Voir [../guides/GETTING_STARTED.md](../guides/GETTING_STARTED.md) pour l'installation complète.

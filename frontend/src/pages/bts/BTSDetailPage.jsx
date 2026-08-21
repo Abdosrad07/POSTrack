@@ -18,9 +18,9 @@ const getStatusBadge = (status) => {
 }
 
 const DetailCard = ({ label, value, children }) => (
-  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-    <p className="text-sm font-medium text-gray-500">{label}</p>
-    <div className="mt-1 text-lg font-semibold text-gray-900">{children || value || 'N/A'}</div>
+  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-100">
+    <p className="text-sm font-medium text-slate-500">{label}</p>
+    <div className="mt-1 text-lg font-semibold text-slate-900">{children || value || '—'}</div>
   </div>
 )
 
@@ -110,11 +110,11 @@ export default function BTSDetailPage() {
 
   if (error || !bts) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">{error || 'BTS introuvable.'}</p>
+      <div className="py-12 text-center">
+        <p className="text-slate-700">{error || 'BTS introuvable.'}</p>
         <button
           onClick={() => navigate('/bts')}
-          className="mt-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
         >
           Retour à la liste
         </button>
@@ -125,24 +125,24 @@ export default function BTSDetailPage() {
   const current = selectedBts || normalizeBts(bts)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{bts.nom}</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{bts.nom}</h1>
+          <p className="mt-2 text-sm text-slate-600">
             {bts.code_bts} — {bts.localisation}
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             to={`/bts/${id}/modifier`}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
           >
             Modifier
           </Link>
           <Link
             to="/bts/releves"
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
           >
             Historique des relevés
           </Link>
@@ -162,12 +162,12 @@ export default function BTSDetailPage() {
           <span className="text-sm">Lat: {bts.latitude || 'N/A'}, Long: {bts.longitude || 'N/A'}</span>
         </DetailCard>
         <DetailCard label="Date de mise en service" value={bts.date_mise_service} />
-        <div className="md:col-span-2 lg:col-span-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="md:col-span-2 lg:col-span-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
           <SaturationGauge value={bts.dernier_taux_saturation || 0} />
         </div>
       </div>
 
-      <h2 className="text-lg font-semibold text-gray-900">Couverture géographique</h2>
+      <h2 className="text-lg font-semibold text-slate-900">Couverture géographique</h2>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <CarteBTS

@@ -22,14 +22,6 @@ from app.crud.revoked_token_crud import revoke, is_revoked
 from app.security.login_guard import register_failed_attempt, register_success, is_locked, seconds_until_unlock
 from app.security.permissions import Role
 from app.models.user import User
-<<<<<<< HEAD
-=======
-from app.crud.user import get_user_by_email, create_user
-from app.schemas.user import UserCreate, UserLogin, UserOut, Token, RefreshRequest
-from app.security.password import verify_password
-from app.security.jwt import create_access_token, create_refresh_token, decode_token, InvalidTokenError
-from app.security.permissions import get_current_user
->>>>>>> origin/dev
 
 router = APIRouter(prefix="/api/auth", tags=["Authentification"])
 
@@ -53,16 +45,12 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     )
 
 
-<<<<<<< HEAD
-@router.post("/refresh", response_model=TokenResponse)
-=======
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.post("/refresh", response_model=Token)
->>>>>>> origin/dev
+@router.post("/refresh", response_model=TokenResponse)
 def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
     data = decode_token(payload.refresh_token)
     if not data or data.get("type") != "refresh":

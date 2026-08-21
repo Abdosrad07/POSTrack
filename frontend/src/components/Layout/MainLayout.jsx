@@ -15,7 +15,6 @@ const MainLayout = () => {
     <div className="min-h-screen bg-slate-100">
       <Header onToggleSidebar={() => setSidebarOpen((open) => !open)} />
       <div className="pt-16">
-        <PartnerSelectorBar />
         <div className="relative flex">
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <main className="min-h-[calc(100vh-4rem)] flex-1 p-4 md:ml-64 md:p-6">

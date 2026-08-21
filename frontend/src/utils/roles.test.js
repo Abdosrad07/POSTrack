@@ -35,7 +35,6 @@ describe('roles — matrice A2', () => {
     const ids = items.map((i) => i.id)
     expect(ids).toContain('dashboard')
     expect(ids).toContain('pos')
-    expect(ids).toContain('clients')
     expect(ids).not.toContain('dsm')
     expect(ids).not.toContain('primes')
     expect(ids).not.toContain('import-export')

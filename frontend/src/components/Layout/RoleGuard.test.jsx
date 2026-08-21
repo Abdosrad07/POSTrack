@@ -33,12 +33,12 @@ describe('RoleGuard', () => {
   })
 
   it('bloque un rôle non autorisé en mode message', () => {
-    renderGuard({ role: 'VIEWER' }, { mode: 'message' })
+    renderGuard({ role: 'OPERATIONNEL' }, { mode: 'message' })
     expect(screen.queryByText('Contenu protégé')).not.toBeInTheDocument()
     expect(screen.getByText('Accès refusé')).toBeInTheDocument()
   })
 
-  it('accepte l’alias MANAGER pour REPRESENTANT_PARTENAIRE', () => {
+  it('accepte MANAGER pour les écrans réservés au portefeuille partenaire', () => {
     render(
       <AuthContext.Provider
         value={{
@@ -51,7 +51,7 @@ describe('RoleGuard', () => {
         }}
       >
         <MemoryRouter>
-          <RoleGuard roles={[ROLES.REPRESENTANT_PARTENAIRE]} mode="message">
+          <RoleGuard roles={[ROLES.MANAGER]} mode="message">
             <div>OK Partenaire</div>
           </RoleGuard>
         </MemoryRouter>

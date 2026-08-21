@@ -4,8 +4,9 @@ import usePartner from '../../hooks/usePartner';
 import Button from '../Common/Button/Button';
 
 /**
- * Barre de contexte partenaire actif (Module A2).
- * Le changement de partenaire passe par /select-partner (A1).
+ * Barre de contexte partenaire actif.
+ * Pour le nouveau modèle, le changement de contexte reste géré via
+ * la sélection hiérarchique dans la sidebar.
  */
 const PartnerSelectorBar = () => {
   const { partner, partnerContextId, hasPartner } = usePartner();

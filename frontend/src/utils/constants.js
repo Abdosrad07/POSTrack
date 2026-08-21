@@ -7,42 +7,26 @@ export const STORAGE_KEYS = {
   PARTNER_CONTEXT: 'partner_context',
 };
 
-/** Rôles applicatifs v3.1-R7 (+ alias backend legacy) */
+/** Rôles applicatifs cible (ADMIN / MANAGER / CHEF_OPERATIONNEL / OPERATIONNEL). */
 export const ROLES = {
   ADMIN: 'ADMIN',
-  REPRESENTANT_PARTENAIRE: 'REPRESENTANT_PARTENAIRE',
-  REPRESENTANT_DSM: 'REPRESENTANT_DSM',
-  DETENTEUR_POS: 'DETENTEUR_POS',
-  /** Alias backend actuel */
   MANAGER: 'MANAGER',
-  DSM: 'DSM',
-  VIEWER: 'VIEWER',
+  CHEF_OPERATIONNEL: 'CHEF_OPERATIONNEL',
+  OPERATIONNEL: 'OPERATIONNEL',
 };
 
 export const ROLE_LABELS = {
   [ROLES.ADMIN]: 'Administrateur',
-  [ROLES.REPRESENTANT_PARTENAIRE]: 'Représentant Partenaire',
-  [ROLES.REPRESENTANT_DSM]: 'Représentant DSM',
-  [ROLES.DETENTEUR_POS]: 'Détenteur POS',
-  [ROLES.MANAGER]: 'Manager / Représentant Partenaire',
-  [ROLES.DSM]: 'Représentant DSM',
-  [ROLES.VIEWER]: 'Détenteur POS / Lecteur',
+  [ROLES.MANAGER]: 'Manager',
+  [ROLES.CHEF_OPERATIONNEL]: 'Chef opérationnel',
+  [ROLES.OPERATIONNEL]: 'Opérationnel',
 };
 
-/** Groupes de rôles réutilisables (matrice A2) */
+/** Groupes de rôles réutilisables (matrice d'accès cible). */
 export const ROLE_GROUPS = {
-  ALL: [
-    ROLES.ADMIN,
-    ROLES.REPRESENTANT_PARTENAIRE,
-    ROLES.REPRESENTANT_DSM,
-    ROLES.DETENTEUR_POS,
-  ],
-  PARTNER_PORTFOLIO: [ROLES.ADMIN, ROLES.REPRESENTANT_PARTENAIRE],
-  NETWORK_OPS: [
-    ROLES.ADMIN,
-    ROLES.REPRESENTANT_PARTENAIRE,
-    ROLES.REPRESENTANT_DSM,
-  ],
+  ALL: [ROLES.ADMIN, ROLES.MANAGER, ROLES.CHEF_OPERATIONNEL, ROLES.OPERATIONNEL],
+  PARTNER_PORTFOLIO: [ROLES.ADMIN, ROLES.MANAGER, ROLES.CHEF_OPERATIONNEL],
+  OPERATIONS: [ROLES.ADMIN, ROLES.MANAGER, ROLES.CHEF_OPERATIONNEL, ROLES.OPERATIONNEL],
   ADMIN_ONLY: [ROLES.ADMIN],
 };
 
@@ -68,19 +52,13 @@ export const NAV_ITEMS = [
     id: 'dsm',
     to: '/dsm',
     label: 'DSM',
-    roles: ROLE_GROUPS.NETWORK_OPS,
+    roles: ROLE_GROUPS.OPERATIONS,
   },
   {
     id: 'bts',
     to: '/bts',
     label: 'BTS',
-    roles: ROLE_GROUPS.NETWORK_OPS,
-  },
-  {
-    id: 'clients',
-    to: '/clients',
-    label: 'Clients',
-    roles: ROLE_GROUPS.ALL,
+    roles: ROLE_GROUPS.OPERATIONS,
   },
   {
     id: 'sims',
@@ -131,7 +109,6 @@ export const PARTNER_PREFIX_EXCLUDES = [
 /** Types d'entités importables — Module A3 (Import Excel centralisé / ImportBatch) */
 export const IMPORT_ENTITY_TYPES = [
   { value: 'POS', label: 'Points de Vente (POS)' },
-  { value: 'CLIENT', label: 'Clients' },
   { value: 'DSM', label: 'DSM' },
   { value: 'BTS', label: 'BTS' },
   { value: 'SIM', label: 'Stock SIM' },

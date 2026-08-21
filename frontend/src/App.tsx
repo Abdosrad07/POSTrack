@@ -16,7 +16,6 @@ import DSMDetailPage from './pages/dsm/DSMDetailPage'
 import LoginPage from './pages/auth/LoginPage'
 import SelectPartnerPage from './pages/auth/SelectPartnerPage'
 import UnauthorizedPage from './pages/auth/UnauthorizedPage'
-import ClientsListPage from './pages/clients/ClientsListPage'
 import SimsStockPage from './pages/sims/SimsStockPage'
 import RequetesListPage from './pages/requetes/RequetesListPage'
 import ImportExportPage from './pages/import-export/ImportExportPage'
@@ -96,7 +95,7 @@ function App() {
             <Route
               path="dsm"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <DSMListPage />
                 </RoleGuard>
               }
@@ -104,7 +103,7 @@ function App() {
             <Route
               path="dsm/new"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <DSMCreatePage />
                 </RoleGuard>
               }
@@ -112,7 +111,7 @@ function App() {
             <Route
               path="dsm/:id"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <DSMDetailPage />
                 </RoleGuard>
               }
@@ -121,7 +120,7 @@ function App() {
             <Route
               path="bts"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <BTSListPage />
                 </RoleGuard>
               }
@@ -129,7 +128,7 @@ function App() {
             <Route
               path="bts/new"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <BTSCreatePage />
                 </RoleGuard>
               }
@@ -137,7 +136,7 @@ function App() {
             <Route
               path="bts/releves"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <BTSRelevesPage />
                 </RoleGuard>
               }
@@ -145,7 +144,7 @@ function App() {
             <Route
               path="bts/:id/modifier"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <BTSCreatePage />
                 </RoleGuard>
               }
@@ -153,13 +152,12 @@ function App() {
             <Route
               path="bts/:id"
               element={
-                <RoleGuard roles={ROLE_GROUPS.NETWORK_OPS}>
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <BTSDetailPage />
                 </RoleGuard>
               }
             />
 
-            <Route path="clients" element={<ClientsListPage />} />
             <Route path="sims" element={<SimsStockPage />} />
             <Route path="requetes" element={<RequetesListPage />} />
 

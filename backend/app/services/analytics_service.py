@@ -23,11 +23,10 @@ from app.core.errors import NotFoundError
 from app.models.partner import Partner
 from app.models.pos import POS, TypePos
 from app.models.prime import Prime, StatutPrime
-from app.models.requete import Requete, StatutRequete
+from app.models.requete import Requete
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
 from app.models.sim import SIM, StatutSim
-from app.models.client import Client
 from app.models.pos_performance import POSPerformance, SourcePerformance
 
 # Nombre maximum d'alertes d'expiration renvoyees par le dashboard : le
@@ -69,9 +68,12 @@ def get_dashboard(db: Session, partner_id: int) -> dict:
         Prime.status.in_([StatutPrime.VALIDEE, StatutPrime.PAYEE]),
     ).scalar() or 0
 
+    # Requetes ouvertes : derive des compteurs de traitement plutoit qu'un
+    # StatutRequete (retire). Une requete est "ouverte" tant qu'il reste
+    # des demandes non traitees (effectue + rejete < demande).
     requetes_ouvertes = db.query(func.count(Requete.id)).filter(
         Requete.partner_id == partner_id,
-        Requete.statut.in_([StatutRequete.OUVERTE, StatutRequete.EN_COURS, StatutRequete.EN_ATTENTE]),
+        Requete.nombre_effectue + Requete.nombre_rejete < Requete.nombre_demande,
     ).scalar() or 0
 
     # BTS proches / au-dela du seuil de saturation, sur leur DERNIER releve
@@ -155,27 +157,17 @@ def get_dashboard(db: Session, partner_id: int) -> dict:
 def calculate_pos_performance(db: Session, *, partner_id: int, period_start: date, period_end: date) -> list[POSPerformance]:
     """
     Calcule (ou met a jour) les indicateurs de performance de chaque POS
-    actif du Partenaire pour la periode donnee : nombre de Clients
-    rattaches et de SIM actives sur la periode. Alimente la table
-    POSPerformance avec source=CALCUL (architecture technique section
-    3.3.2 -- alternative a une alimentation par import ou saisie
-    manuelle, sources IMPORT / MANUEL).
+    actif du Partenaire pour la periode donnee : nombre de SIM actives sur
+    la periode. Alimente la table POSPerformance avec source=CALCUL.
 
-    Optimisation : agrege Clients et SIM actives par pos_id en 2
-    requetes GROUP BY (au lieu de 2 requetes par POS), puis merge en
-    memoire -- le nombre de requetes SQL reste constant quel que soit
-    le nombre de POS du Partenaire.
+    Optimisation : agrege les SIM actives par pos_id en 1 requete GROUP BY
+    (au lieu d'une requete par POS), puis merge en memoire -- le nombre de
+    requetes SQL reste constant quel que soit le nombre de POS.
     """
     pos_ids = [pid for (pid,) in db.query(POS.id).filter(POS.partner_id == partner_id).all()]
     if not pos_ids:
         return []
 
-    clients_by_pos = dict(
-        db.query(Client.pos_id, func.count(Client.id))
-        .filter(Client.pos_id.in_(pos_ids))
-        .group_by(Client.pos_id)
-        .all()
-    )
     active_sims_by_pos = dict(
         db.query(SIM.pos_id, func.count(SIM.id))
         .filter(SIM.pos_id.in_(pos_ids), SIM.status == StatutSim.ACTIVE)
@@ -194,15 +186,13 @@ def calculate_pos_performance(db: Session, *, partner_id: int, period_start: dat
     to_insert = []
     to_update = []
     for pos_id in pos_ids:
-        clients_count = clients_by_pos.get(pos_id, 0)
         active_sims_count = active_sims_by_pos.get(pos_id, 0)
-        score = float(clients_count) + float(active_sims_count) * 0.5
+        score = float(active_sims_count) * 0.5
 
         existing = existing_by_pos.get(pos_id)
         if existing:
             to_update.append({
                 "id": existing.id,
-                "clients_count": clients_count,
                 "active_sims_count": active_sims_count,
                 "performance_score": score,
                 "source": SourcePerformance.CALCUL,
@@ -211,7 +201,7 @@ def calculate_pos_performance(db: Session, *, partner_id: int, period_start: dat
             to_insert.append({
                 "partner_id": partner_id, "pos_id": pos_id,
                 "period_start": period_start, "period_end": period_end,
-                "clients_count": clients_count, "active_sims_count": active_sims_count,
+                "active_sims_count": active_sims_count,
                 "performance_score": score, "source": SourcePerformance.CALCUL,
             })
 

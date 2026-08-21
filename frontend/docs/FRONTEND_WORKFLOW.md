@@ -89,7 +89,7 @@ La règle métier `NOUVEAU → RECONDUIT` et le module des primes sont considér
 
 ---
 
-## 2.3 Développeur Frontend — Chaîne Client
+## 2.3 Développeur Frontend — SIM / Requêtes / Dashboard
 
 Responsabilités :
 
@@ -199,12 +199,11 @@ services/primeService.js
 components/Sims/
 components/Requetes/
 components/Dashboard/
-pages/clients/
 pages/sims/
 pages/requetes/
 pages/dashboard/
 pages/import-export/
-services/clientService.js
+services/simService.js
 services/simService.js
 services/requeteService.js
 ```

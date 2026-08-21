@@ -1,10 +1,13 @@
 import { ROLES, ROLE_LABELS } from './constants';
 
-/** Alias backend legacy → rôle canonique R7 */
+/** Alias backend legacy → nouveau rôle canonique. */
 export const ROLE_ALIASES = {
-  [ROLES.MANAGER]: ROLES.REPRESENTANT_PARTENAIRE,
-  [ROLES.DSM]: ROLES.REPRESENTANT_DSM,
-  [ROLES.VIEWER]: ROLES.DETENTEUR_POS,
+  REPRESENTANT_PARTENAIRE: ROLES.MANAGER,
+  REPRESENTANT_DSM: ROLES.CHEF_OPERATIONNEL,
+  DETENTEUR_POS: ROLES.OPERATIONNEL,
+  PARTENAIRE: ROLES.MANAGER,
+  DSM: ROLES.CHEF_OPERATIONNEL,
+  POS_HOLDER: ROLES.OPERATIONNEL,
 };
 
 /**
@@ -16,13 +19,7 @@ export function normalizeRole(role) {
   if (!role) return null;
   const upper = String(role).toUpperCase();
   if (ROLE_ALIASES[upper]) return ROLE_ALIASES[upper];
-  if (Object.values(ROLES).includes(upper)) {
-    // Ne pas remonter les alias comme canoniques
-    if (upper === ROLES.MANAGER || upper === ROLES.DSM || upper === ROLES.VIEWER) {
-      return ROLE_ALIASES[upper];
-    }
-    return upper;
-  }
+  if (Object.values(ROLES).includes(upper)) return upper;
   return upper;
 }
 

@@ -1,14 +1,17 @@
 import React, { useMemo } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
+import usePartner from '../../hooks/usePartner';
 import { NAV_ITEMS } from '../../utils/constants';
 import { filterNavByRole } from '../../utils/roles';
 
 /**
- * Navigation latérale filtrée par rôle R7 (Module A2).
+ * Navigation latérale filtrée par rôle selon le nouveau modèle.
  */
 const Sidebar = ({ open = false, onClose }) => {
   const { user } = useAuth();
+  const { partner, clearPartner } = usePartner();
+  const navigate = useNavigate();
   const items = useMemo(() => filterNavByRole(NAV_ITEMS, user), [user]);
 
   return (
@@ -33,6 +36,19 @@ const Sidebar = ({ open = false, onClose }) => {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          {partner ? (
+            <button
+              type="button"
+              className="mb-3 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm font-semibold text-slate-900"
+              onClick={() => {
+                clearPartner();
+                navigate('/');
+                onClose?.();
+              }}
+            >
+              Contexte actif : {partner.nom || partner.code_partenaire || `Partenaire #${partner.id}`}
+            </button>
+          ) : null}
           {items.map((item) => (
             <NavLink
               key={item.id}

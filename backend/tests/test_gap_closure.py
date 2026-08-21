@@ -15,13 +15,12 @@ from tests.conftest import auth_headers
 
 def _xlsx(rows: list[dict]) -> bytes:
     buf = io.BytesIO()
-    pd.DataFrame(rows).to_excel(buf, index=False)
+    pd.DataFrame(rows).to_csv(buf, index=False)
     return buf.getvalue()
 
 
 def _validate_and_apply(client, token, partner_id, entity_type, rows):
-    files = {"file": ("t.xlsx", _xlsx(rows),
-                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+    files = {"file": ("t.csv", _xlsx(rows), "text/csv")}
     v = client.post(f"/api/partners/{partner_id}/imports/validate",
                      data={"entity_type": entity_type}, files=files, headers=auth_headers(token))
     assert v.status_code == 200, v.text
@@ -132,7 +131,7 @@ def test_non_admin_cannot_list_users(client, rep1_token):
 
 
 def test_logout_revokes_current_token(client, seed):
-    login = client.post("/api/auth/login", json={"username": "t_dsm1", "password": "Pwd@Test1234"})
+    login = client.post("/api/auth/login", json={"username": "t_rep1", "password": "Pwd@Test1234"})
     assert login.status_code == 200
     token = login.json()["access_token"]
 
@@ -147,7 +146,7 @@ def test_logout_revokes_current_token(client, seed):
 
 
 def test_refresh_token_rotation_and_revocation(client, seed):
-    login = client.post("/api/auth/login", json={"username": "t_dsm1", "password": "Pwd@Test1234"})
+    login = client.post("/api/auth/login", json={"username": "t_rep1", "password": "Pwd@Test1234"})
     refresh_token_1 = login.json()["refresh_token"]
 
     # Premier usage : doit reussir et emettre un nouveau refresh token.
@@ -166,7 +165,7 @@ def test_refresh_token_rotation_and_revocation(client, seed):
 
 
 def test_logout_can_also_revoke_refresh_token(client, seed):
-    login = client.post("/api/auth/login", json={"username": "t_dsm1", "password": "Pwd@Test1234"})
+    login = client.post("/api/auth/login", json={"username": "t_rep1", "password": "Pwd@Test1234"})
     access_token = login.json()["access_token"]
     refresh_token = login.json()["refresh_token"]
 
@@ -273,7 +272,7 @@ def test_import_dsm_updates_existing_dsm_on_reimport(client, rep1_token, seed):
     assert v2.json()["batch"]["status"] == "VALIDATED"
     assert a2.status_code == 200
 
-    listed = client.get("/api/admin/dsm", params={"partner_id": seed["p1"]}, headers=auth_headers(rep1_token))
+    listed = client.get("/api/admin/dsm", params={"partner_id": seed["p1"]}, headers=auth_headers(admin_token))
     names = [d["full_name"] for d in listed.json()]
     assert "Nom Mis A Jour" in names
     assert "Nom Initial" not in names

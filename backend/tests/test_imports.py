@@ -11,14 +11,13 @@ from tests.conftest import auth_headers
 
 def _to_xlsx_bytes(df: pd.DataFrame) -> bytes:
     buf = io.BytesIO()
-    df.to_excel(buf, index=False)
+    df.to_csv(buf, index=False)
     return buf.getvalue()
 
 
 def test_import_rejects_missing_required_column(client, rep1_token, seed):
     df = pd.DataFrame([{"code_pos": "T-POS-IMP-1", "name": "Sans colonnes obligatoires"}])
-    files = {"file": ("test.xlsx", _to_xlsx_bytes(df),
-                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+    files = {"file": ("test.csv", _to_xlsx_bytes(df), "text/csv")}
     resp = client.post(
         f"/api/partners/{seed['p1']}/imports/validate",
         data={"entity_type": "POS"}, files=files, headers=auth_headers(rep1_token),
@@ -31,8 +30,7 @@ def test_import_rejects_row_with_unknown_relation(client, rep1_token, seed):
         "code_pos": "T-POS-IMP-2", "name": "DSM inconnu", "dsm_matricule": "DSM-INEXISTANT",
         "date_creation": "2026-01-01", "date_expiration": "2027-01-01",
     }])
-    files = {"file": ("test.xlsx", _to_xlsx_bytes(df),
-                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+    files = {"file": ("test.csv", _to_xlsx_bytes(df), "text/csv")}
     resp = client.post(
         f"/api/partners/{seed['p1']}/imports/validate",
         data={"entity_type": "POS"}, files=files, headers=auth_headers(rep1_token),
@@ -50,8 +48,7 @@ def test_import_apply_writes_valid_rows_to_database(client, rep1_token, seed):
         "code_pos": "T-POS-IMP-OK", "name": "POS importe", "dsm_matricule": "T-DSM1",
         "date_creation": "2026-01-01", "date_expiration": "2027-01-01",
     }])
-    files = {"file": ("test.xlsx", _to_xlsx_bytes(df),
-                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+    files = {"file": ("test.csv", _to_xlsx_bytes(df), "text/csv")}
     validate_resp = client.post(
         f"/api/partners/{seed['p1']}/imports/validate",
         data={"entity_type": "POS"}, files=files, headers=auth_headers(rep1_token),

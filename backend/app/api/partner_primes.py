@@ -29,7 +29,7 @@ def list_periods(partner_id: int = Depends(get_partner_context), db: Session = D
 @periods_router.post("", response_model=PrimePeriodOut, status_code=201)
 def create_period(payload: PrimePeriodCreate, partner_id: int = Depends(get_partner_context),
                    db: Session = Depends(get_db),
-                   _user: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+                   _user: User = Depends(require_roles(Role.ADMIN, Role.CHEF_OPERATIONNEL, Role.OPERATIONNEL))):
     return prime_period_crud.create(db, {**payload.model_dump(), "partner_id": partner_id})
 
 
@@ -37,7 +37,7 @@ def create_period(payload: PrimePeriodCreate, partner_id: int = Depends(get_part
 def update_period_status(period_id: int, payload: PrimePeriodStatusUpdate,
                           partner_id: int = Depends(get_partner_context),
                           db: Session = Depends(get_db),
-                          _user: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+                          _user: User = Depends(require_roles(Role.ADMIN, Role.CHEF_OPERATIONNEL, Role.OPERATIONNEL))):
     period = prime_period_crud.get(db, period_id)
     if not period or period.partner_id != partner_id:
         raise NotFoundError("Periode de prime introuvable dans ce Partenaire.")
@@ -54,7 +54,7 @@ def list_primes_route(partner_id: int = Depends(get_partner_context), period_id:
 @router.post("/calculate", status_code=201)
 def calculate_route(payload: PrimeCalculateRequest, partner_id: int = Depends(get_partner_context),
                      db: Session = Depends(get_db),
-                     user: User = Depends(require_roles(Role.ADMIN, Role.PARTENAIRE))):
+                      user: User = Depends(require_roles(Role.ADMIN, Role.CHEF_OPERATIONNEL))):
     result = calculate_primes_for_period(
         db, partner_id=partner_id, user_id=user.id,
         prime_period_id=payload.prime_period_id, montant_fixe=payload.montant_fixe,
@@ -69,7 +69,7 @@ def calculate_route(payload: PrimeCalculateRequest, partner_id: int = Depends(ge
 def update_prime_status(prime_id: int, payload: PrimeStatusUpdate,
                          partner_id: int = Depends(get_partner_context),
                          db: Session = Depends(get_db),
-                         user: User = Depends(require_roles(Role.ADMIN))):
+                          user: User = Depends(require_roles(Role.CHEF_OPERATIONNEL))):
     return validate_prime(db, partner_id=partner_id, user_id=user.id, prime_id=prime_id,
                            new_status=payload.status.value, commentaire=payload.commentaire)
 

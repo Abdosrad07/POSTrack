@@ -104,7 +104,6 @@ vi.mock('./services/analyticsService', () => ({
         total_dsm: 0,
         total_bts: 0,
         total_primes: 0,
-        total_clients: 0,
       },
     })),
   },

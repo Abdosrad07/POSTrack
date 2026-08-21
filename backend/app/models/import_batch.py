@@ -11,7 +11,6 @@ class EntityTypeImport(str, enum.Enum):
     PARTNER = "PARTNER"
     DSM = "DSM"
     POS = "POS"
-    CLIENT = "CLIENT"
     BTS = "BTS"
     BTS_RELEVE = "BTS_RELEVE"
     SIM = "SIM"

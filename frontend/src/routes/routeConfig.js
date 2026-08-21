@@ -16,7 +16,6 @@ export const APP_ROUTES = {
   pos: '/pos',
   dsm: '/dsm',
   bts: '/bts',
-  clients: '/clients',
   sims: '/sims',
   primes: '/primes',
   requetes: '/requetes',

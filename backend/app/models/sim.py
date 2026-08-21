@@ -36,7 +36,6 @@ class SIM(Base):
     id = Column(Integer, primary_key=True, index=True)
     partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False, index=True)
     pos_id = Column(Integer, ForeignKey("pos.id"), nullable=False, index=True)
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
 
     iccid = Column(String(30), unique=True, nullable=False, index=True)
     status = Column(SAEnum(StatutSim), nullable=False, default=StatutSim.EN_STOCK)
@@ -45,7 +44,6 @@ class SIM(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     pos = relationship("POS")
-    client = relationship("Client")
     movements = relationship("SIMMovement", back_populates="sim", cascade="all, delete-orphan",
                               order_by="desc(SIMMovement.created_at)")
 

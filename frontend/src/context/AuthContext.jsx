@@ -70,6 +70,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     isAuthenticated: !!token,
     loading,
+    role: user?.role || null,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
