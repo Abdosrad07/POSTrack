@@ -272,6 +272,7 @@ def test_import_dsm_updates_existing_dsm_on_reimport(client, rep1_token, seed):
     assert v2.json()["batch"]["status"] == "VALIDATED"
     assert a2.status_code == 200
 
+    from tests.conftest import admin_token
     listed = client.get("/api/admin/dsm", params={"partner_id": seed["p1"]}, headers=auth_headers(admin_token))
     names = [d["full_name"] for d in listed.json()]
     assert "Nom Mis A Jour" in names

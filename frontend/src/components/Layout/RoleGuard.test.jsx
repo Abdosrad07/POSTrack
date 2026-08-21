@@ -38,11 +38,11 @@ describe('RoleGuard', () => {
     expect(screen.getByText('Accès refusé')).toBeInTheDocument()
   })
 
-  it('accepte MANAGER pour les écrans réservés au portefeuille partenaire', () => {
+  it('accepte CHEF_OPERATIONNEL pour les écrans réservés au portefeuille partenaire', () => {
     render(
       <AuthContext.Provider
         value={{
-          user: { role: 'MANAGER' },
+          user: { role: 'CHEF_OPERATIONNEL' },
           loading: false,
           isAuthenticated: true,
           token: 'tok',
@@ -51,7 +51,7 @@ describe('RoleGuard', () => {
         }}
       >
         <MemoryRouter>
-          <RoleGuard roles={[ROLES.MANAGER]} mode="message">
+          <RoleGuard roles={[ROLES.CHEF_OPERATIONNEL]} mode="message">
             <div>OK Partenaire</div>
           </RoleGuard>
         </MemoryRouter>

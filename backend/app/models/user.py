@@ -1,4 +1,4 @@
-"""Comptes utilisateurs, roles et identite d'authentification."""
+"""Comptes utilisateurs, rôles et identité d'authentification."""
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum as SAEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

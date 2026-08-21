@@ -16,6 +16,7 @@ const SelectPartnerPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectingId, setSelectingId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +32,6 @@ const SelectPartnerPage = () => {
         // Auto-sélection si un seul partenaire est autorisé
         if (list.length === 1) {
           setPartner(list[0]);
-          navigate('/', { replace: true });
         }
       } catch (err) {
         if (!cancelled) {
@@ -41,7 +41,9 @@ const SelectPartnerPage = () => {
           );
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
@@ -69,6 +71,11 @@ const SelectPartnerPage = () => {
   const handleSelect = (item) => {
     setSelectingId(item.id);
     setPartner(item);
+    setSelectedId(item.id);
+  };
+
+  const handleConfirmSelection = () => {
+    if (!selectedId) return;
     navigate('/', { replace: true });
   };
 
@@ -122,30 +129,43 @@ const SelectPartnerPage = () => {
             Aucun partenaire autorisé pour ce compte.
           </div>
         ) : (
-          <ul className="space-y-3">
-            {partners.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => handleSelect(item)}
-                  disabled={selectingId === item.id}
-                  className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-4 text-left transition hover:border-sky-400 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                >
-                  <div>
-                    <p className="font-semibold text-slate-900">{item.nom}</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {item.code_partenaire}
-                      {item.ville ? ` · ${item.ville}` : ''}
-                      {item.region ? ` · ${item.region}` : ''}
-                    </p>
-                  </div>
-                  <span className="text-sm font-medium text-sky-700">
-                    {selectingId === item.id ? 'Sélection...' : 'Sélectionner'}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-4">
+            <ul className="space-y-3">
+              {partners.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(item)}
+                    disabled={selectingId === item.id}
+                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-4 text-left transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${selectedId === item.id ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white hover:border-sky-400 hover:bg-sky-50'}`}
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-900">{item.nom}</p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {item.code_partenaire}
+                        {item.ville ? ` · ${item.ville}` : ''}
+                        {item.region ? ` · ${item.region}` : ''}
+                      </p>
+                    </div>
+                    <span className="text-sm font-medium text-sky-700">
+                      {selectedId === item.id ? 'Sélectionné' : 'Sélectionner'}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="green"
+                onClick={handleConfirmSelection}
+                disabled={!selectedId}
+              >
+                Continuer
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>

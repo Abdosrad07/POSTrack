@@ -7,7 +7,7 @@ from app.core.errors import NotFoundError
 from app.api.deps import get_current_user, get_partner_context, require_roles
 from app.crud.prime_crud import prime_period_crud, dsm_commission_crud
 from app.models.user import User
-from app.security.permissions import Role
+from app.security.permissions import Role, PRIME_VALIDATION_ROLES
 from app.schemas.prime import (
     PrimePeriodCreate, PrimePeriodOut, PrimePeriodStatusUpdate,
     PrimeOut, PrimeCalculateRequest, PrimeStatusUpdate, DSMCommissionOut,
@@ -69,7 +69,7 @@ def calculate_route(payload: PrimeCalculateRequest, partner_id: int = Depends(ge
 def update_prime_status(prime_id: int, payload: PrimeStatusUpdate,
                          partner_id: int = Depends(get_partner_context),
                          db: Session = Depends(get_db),
-                          user: User = Depends(require_roles(Role.CHEF_OPERATIONNEL))):
+                           user: User = Depends(require_roles(*PRIME_VALIDATION_ROLES))):
     return validate_prime(db, partner_id=partner_id, user_id=user.id, prime_id=prime_id,
                            new_status=payload.status.value, commentaire=payload.commentaire)
 

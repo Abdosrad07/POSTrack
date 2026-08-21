@@ -1,4 +1,4 @@
-/** Partenaires mock pour la sélection de contexte (hors-ligne / démo) */
+/** Partenaires mock pour la sélection de contexte (hors-ligne / démo). */
 export const mockPartners = [
   {
     id: 1,
@@ -31,13 +31,13 @@ export const mockPartners = [
 
 /**
  * Filtre les partenaires autorisés selon le rôle (simulation métier).
- * Un Représentant Partenaire / VIEWER n'a typiquement qu'un seul partenaire.
+ * Un OPERATIONNEL n'a typiquement qu'un seul partenaire.
  */
 export function getMockPartnersForRole(role) {
-  if (role === 'MANAGER' || role === 'REPRESENTANT_PARTENAIRE' || role === 'VIEWER' || role === 'DETENTEUR_POS') {
+  if (role === 'MANAGER' || role === 'CHEF_OPERATIONNEL' || role === 'PARTENAIRE') {
     return [mockPartners[0]];
   }
-  if (role === 'DSM' || role === 'REPRESENTANT_DSM') {
+  if (role === 'OPERATIONNEL') {
     return mockPartners.slice(0, 2);
   }
   return mockPartners;

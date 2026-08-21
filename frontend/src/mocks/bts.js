@@ -56,10 +56,10 @@ export const mockBts = [
 ]
 
 export function getMockBtsForRole(role) {
-  if (role === 'VIEWER' || role === 'DETENTEUR_POS') {
+  if (role === 'OPERATIONNEL') {
     return [mockBts[0]]
   }
-  if (role === 'DSM' || role === 'REPRESENTANT_DSM') {
+  if (role === 'CHEF_OPERATIONNEL') {
     return mockBts.slice(0, 2)
   }
   return mockBts

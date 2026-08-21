@@ -1,7 +1,7 @@
-"""
-Routes d'authentification et de resolution du perimetre. Restent hors
-du prefixe /api/partners car elles etablissent l'identite avant la
-selection du contexte (section 6.4 de l'architecture technique).
+"""Routes d'authentification et de résolution du contexte.
+
+Elles restent hors du préfixe /api/partners car elles établissent
+l'identité avant la sélection du partenaire.
 """
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -106,7 +106,7 @@ def available_partners(db: Session = Depends(get_db), user: User = Depends(get_c
 @router.post("/users", response_model=UserOut, status_code=201)
 def create_user(payload: UserCreate, db: Session = Depends(get_db),
                  _admin: User = Depends(require_roles(Role.ADMIN))):
-    """Creation de compte reservee a l'ADMIN (ecran d'administration)."""
+    """Création de compte réservée à l'ADMIN (écran d'administration)."""
     data = payload.model_dump(exclude={"password", "partner_ids", "pos_ids"})
     user = user_crud.create(db, {**data, "hashed_password": hash_password(payload.password)})
     for pid in payload.partner_ids:
@@ -120,17 +120,14 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db),
 def list_users(role: Role | None = None, is_active: bool | None = None,
                skip: int = 0, limit: int = 100, db: Session = Depends(get_db),
                _admin: User = Depends(require_roles(Role.ADMIN))):
-    """Liste des comptes, reservee a l'ADMIN (ecran d'administration)."""
+    """Liste des comptes, réservée à l'ADMIN (écran d'administration)."""
     return user_crud.list_paginated(db, skip=skip, limit=limit, role=role, is_active=is_active)
 
 
 @router.patch("/users/{user_id}", response_model=UserOut)
 def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db),
                  _admin: User = Depends(require_roles(Role.ADMIN))):
-    """
-    Mise a jour d'un compte (activation/desactivation, changement de
-    role ou de rattachement DSM), reservee a l'ADMIN.
-    """
+    """Mise à jour d'un compte, réservée à l'ADMIN."""
     from app.core.errors import NotFoundError
     target = user_crud.get(db, user_id)
     if not target:

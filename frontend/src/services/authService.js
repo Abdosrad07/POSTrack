@@ -22,29 +22,47 @@ const mockUsers = [
   },
   {
     id: 3,
-    username: 'dsm',
-    email: 'dsm@postrack.local',
-    password: 'dsm123',
-    role: 'DSM',
-    full_name: 'DSM Demo',
-    nom_complet: 'DSM Demo',
+    username: 'chef',
+    email: 'chef@postrack.local',
+    password: 'chef123',
+    role: 'CHEF_OPERATIONNEL',
+    full_name: 'Chef Opérationnel Demo',
+    nom_complet: 'Chef Opérationnel Demo',
   },
   {
     id: 4,
-    username: 'viewer',
-    email: 'viewer@postrack.local',
-    password: 'viewer123',
-    role: 'VIEWER',
-    full_name: 'Viewer Demo',
-    nom_complet: 'Viewer Demo',
+    username: 'oper',
+    email: 'oper@postrack.local',
+    password: 'oper123',
+    role: 'OPERATIONNEL',
+    full_name: 'Opérationnel Demo',
+    nom_complet: 'Opérationnel Demo',
+  },
+  {
+    id: 5,
+    username: 'chef',
+    email: 'chef@postrack.local',
+    password: 'chef123',
+    role: 'CHEF_OPERATIONNEL',
+    full_name: 'Chef Opérationnel Demo',
+    nom_complet: 'Chef Opérationnel Demo',
+  },
+  {
+    id: 6,
+    username: 'oper',
+    email: 'oper@postrack.local',
+    password: 'oper123',
+    role: 'OPERATIONNEL',
+    full_name: 'Opérationnel Demo',
+    nom_complet: 'Opérationnel Demo',
   },
 ];
 
 const USERNAME_TO_EMAIL = {
   admin: 'admin@postrack.local',
   manager: 'manager@postrack.local',
-  dsm: 'dsm@postrack.local',
-  viewer: 'viewer@postrack.local',
+  chef: 'chef@postrack.local',
+  oper: 'oper@postrack.local',
 };
 
 const resolveEmail = ({ username, email, password }) => {
@@ -99,7 +117,7 @@ const saveMockSession = (user) => {
 export const authService = {
   async login(credentials) {
     const payload = {
-      email: resolveEmail(credentials),
+      username: credentials.username || credentials.email || resolveEmail(credentials),
       password: credentials.password,
     };
 
@@ -162,9 +180,17 @@ export const authService = {
       const response = await api.get('/auth/me', { skipPartnerPrefix: true });
       return response.data;
     } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw error;
+      }
+
       const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-      if (storedUser) {
-        return JSON.parse(storedUser);
+      if (storedUser && storedUser !== 'undefined') {
+        try {
+          return JSON.parse(storedUser);
+        } catch {
+          return {};
+        }
       }
       throw error;
     }

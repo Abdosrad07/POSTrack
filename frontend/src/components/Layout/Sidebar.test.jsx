@@ -30,7 +30,7 @@ describe('Sidebar', () => {
     expect(screen.getByText('Audit')).toBeInTheDocument()
   })
 
-  it('cache DSM et Import pour Operationnel', () => {
+  it('cache DSM et Import pour OPERATIONNEL', () => {
     renderSidebar('OPERATIONNEL')
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.getByText('POS')).toBeInTheDocument()

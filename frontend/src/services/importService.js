@@ -84,7 +84,7 @@ export const importService = {
     const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const path = `/imports/templates/${encodeURIComponent(entityType)}`;
     const partnerId = localStorage.getItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
-    return partnerId ? `${base}${applyPartnerPrefix(path, partnerId)}` : `${base}${path}`;
+    return partnerId ? `${base}${applyPartnerPrefix(path, partnerId).replace(/^\/api/, '')}` : `${base}${path}`;
   },
 };
 

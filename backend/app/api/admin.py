@@ -1,4 +1,4 @@
-"""Ecrans d'administration transverses (Partenaires, DSM, audit)."""
+"""Écrans d'administration transverses (Partenaires, DSM, audit)."""
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -7,38 +7,38 @@ from app.api.deps import require_roles
 from app.crud.partner_crud import partner_crud, dsm_crud
 from app.models.user import User
 from app.models.audit import AuditLog
-from app.security.permissions import Role
+from app.security.permissions import Role, ADMIN_SCREEN_ROLES
 from app.schemas.partner import PartnerCreate, PartnerOut, DSMCreate, DSMOut
 
 router = APIRouter(prefix="/api/admin", tags=["Administration"])
 
 
 @router.get("/partners", response_model=list[PartnerOut])
-def list_partners(db: Session = Depends(get_db), _admin: User = Depends(require_roles(Role.ADMIN))):
+def list_partners(db: Session = Depends(get_db), _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
     return partner_crud.list(db, limit=500)
 
 
 @router.post("/partners", response_model=PartnerOut, status_code=201)
 def create_partner(payload: PartnerCreate, db: Session = Depends(get_db),
-                    _admin: User = Depends(require_roles(Role.ADMIN))):
+                    _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
     return partner_crud.create(db, payload.model_dump())
 
 
 @router.get("/dsm", response_model=list[DSMOut])
 def list_dsm(partner_id: int | None = None, db: Session = Depends(get_db),
-             _admin: User = Depends(require_roles(Role.ADMIN))):
+             _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
     return dsm_crud.list(db, partner_id=partner_id, limit=500)
 
 
 @router.post("/dsm", response_model=DSMOut, status_code=201)
 def create_dsm(payload: DSMCreate, db: Session = Depends(get_db),
-               _admin: User = Depends(require_roles(Role.ADMIN))):
+                _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
     return dsm_crud.create(db, payload.model_dump())
 
 
 @router.patch("/dsm/{dsm_id}/deactivate")
 def deactivate_dsm(dsm_id: int, db: Session = Depends(get_db),
-                   _admin: User = Depends(require_roles(Role.ADMIN))):
+                    _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
     dsm = dsm_crud.get(db, dsm_id)
     if dsm:
         dsm.is_active = False if hasattr(dsm, "is_active") else dsm.is_active
@@ -50,7 +50,7 @@ def deactivate_dsm(dsm_id: int, db: Session = Depends(get_db),
 
 @router.post("/pos/{pos_id}/move-dsm")
 def move_pos_between_dsm(pos_id: int, new_dsm_id: int, db: Session = Depends(get_db),
-                         _admin: User = Depends(require_roles(Role.ADMIN))):
+                          _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
     from app.crud.pos_crud import pos_crud
     pos = pos_crud.get(db, pos_id)
     if pos:

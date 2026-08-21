@@ -1,5 +1,4 @@
-"""
-Endpoint hiérarchique de navigation.
+"""Endpoint hiérarchique de navigation.
 
 GET /api/hierarchy → arborescence Partenaire → DSM → POS → BTS,
 filtrée selon le rôle de l'utilisateur connecté (AccessScope).
@@ -20,10 +19,10 @@ Exemple de réponse :
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
 
-from app.database import get_db
+from app.core.database import get_db
 from app.models.user import User
 from app.models.enums import RoleUser
-from app.models.partenaire import Partenaire
+from app.models.partner import Partner
 from app.models.dsm import DSM
 from app.models.bts import BTS
 from app.models.pos import POS
@@ -82,7 +81,7 @@ def get_hierarchy(
         # Filtrer les DSM pour ce partenaire
         part_dsms = [d for d in dsms if any(p.dsm_id == d.id for p in part_pos)]
 
-        # Pour les rôles DSM et VIEWER, si aucun POS n'est visible dans ce partenaire, ne pas l'inclure
+        # Si aucun POS n'est visible dans ce partenaire, ne pas l'inclure.
         if (scope.pos_ids is not None or scope.dsm_ids is not None) and len(part_pos) == 0 and len(part_bts) == 0:
             continue
 

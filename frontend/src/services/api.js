@@ -41,6 +41,14 @@ const clearSessionAndRedirect = () => {
   }
 };
 
+export const clearAuthSession = () => {
+  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.USER);
+  localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
+  localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT);
+};
+
 const shouldSkipPartnerPrefix = (config) => {
   if (config.skipPartnerPrefix) return true;
   const url = config.url || '';
@@ -50,16 +58,46 @@ const shouldSkipPartnerPrefix = (config) => {
 
 const isPartnerScopedRequest = (config) => !shouldSkipPartnerPrefix(config);
 
+const extractErrorMessage = (data) => {
+  if (!data) return null;
+  if (typeof data === 'string') return data;
+  if (Array.isArray(data)) {
+    return data.map(extractErrorMessage).filter(Boolean).join(' · ') || null;
+  }
+  if (typeof data === 'object') {
+    if (typeof data.detail === 'string') return data.detail;
+    if (Array.isArray(data.detail)) return extractErrorMessage(data.detail);
+    if (data.msg) return data.msg;
+    if (data.message) return data.message;
+    if (data.errors) return extractErrorMessage(data.errors);
+    return Object.entries(data)
+      .map(([key, value]) => `${key}: ${extractErrorMessage(value)}`)
+      .filter((item) => !item.endsWith(': null'))
+      .join(' · ') || null;
+  }
+  return String(data);
+};
+
+const normalizeApiError = (error) => {
+  const raw = error?.response?.data;
+  const message = extractErrorMessage(raw) || error?.message || 'Erreur inattendue.';
+  const isAuthExpired =
+    (error?.response?.status === 401 || error?.response?.status === 403) &&
+    /(expire|expir|revoqu|deconnect|invalid)/i.test(message.toLowerCase());
+  return Object.assign(error, { message, apiMessage: message, isAuthExpired });
+};
+
 /**
- * Réécrit les URLs métier en /partners/{partner_id}/...
- * Ex. /pos → /partners/3/pos
+ * Réécrit les URLs métier en /api/partners/{partner_id}/...
+ * Ex. /pos → /api/partners/3/pos
  */
 export const applyPartnerPrefix = (url, partnerId) => {
   if (!url || !partnerId) return url;
   if (url.startsWith('http')) return url;
   const normalized = url.startsWith('/') ? url : `/${url}`;
+  if (normalized.startsWith('/api/')) return normalized;
   if (normalized.startsWith('/partners/')) return normalized;
-  return `/partners/${partnerId}${normalized}`;
+  return `/api/partners/${partnerId}${normalized}`;
 };
 
 api.interceptors.request.use(
@@ -92,6 +130,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    normalizeApiError(error);
     const originalRequest = error.config;
 
     if (error.code === 'NO_PARTNER_CONTEXT') {

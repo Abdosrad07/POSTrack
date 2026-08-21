@@ -36,8 +36,7 @@ vous en êtes réellement dans le planning.
   multi-agences ; à garder en tête si le référent client le demande
   en recette).
 - JWT (access + refresh token) pour l'authentification, 4 rôles :
-  ADMIN, PARTENAIRE (Représentant Partenaire), DSM (Représentant DSM),
-  POS_HOLDER (Détenteur POS).
+  ADMIN, MANAGER, CHEF_OPERATIONNEL, OPERATIONNEL.
 - Pandas + OpenPyXL pour l'import/export Excel des POS.
 - pytest + TestClient FastAPI pour les tests (objectif ≥ 70 % de
   couverture sur POS / Reconductions / Primes).
@@ -137,15 +136,15 @@ utilisateur ne peut accéder qu'aux Partenaires de son périmètre (403 sinon).
 |---|---|---|
 | POST | `/api/partners/{id}/pos/{pos_id}/reconduction` | Tous rôles authentifiés du Partenaire |
 | GET | `/api/partners/{id}/pos/{pos_id}/reconductions` | Tous rôles authentifiés du Partenaire |
-| POST | `/api/partners/{id}/primes/calculate` | ADMIN, PARTENAIRE (rejet si POS ≠ NOUVEAU ou période non OPEN) |
-| PATCH | `/api/partners/{id}/primes/{prime_id}/status` | ADMIN (validation finale) |
+| POST | `/api/partners/{id}/primes/calculate` | ADMIN, CHEF_OPERATIONNEL (rejet si POS ≠ NOUVEAU ou période non OPEN) |
+| PATCH | `/api/partners/{id}/primes/{prime_id}/status` | CHEF_OPERATIONNEL (validation finale) |
 | POST | `/api/partners/{id}/bts/{bts_id}/releves` | Tous rôles authentifiés du Partenaire |
 | POST | `/api/partners/{id}/sim/{sim_id}/movements` | Tous rôles authentifiés du Partenaire (vente = `movement_type: VENTE`) |
 | POST | `/api/partners/{id}/requests` | Tous rôles authentifiés |
 | POST | `/api/auth/login` · `/api/auth/refresh` · `/api/auth/logout` | Public (JWT, révocation) |
 | GET | `/api/partners/{id}/analytics/dashboard` | Tous rôles authentifiés du Partenaire |
 | POST | `/api/partners/{id}/imports/validate` + `/imports/{batch_id}/apply` | Rôles autorisés (`IMPORT_ROLES`) |
-| GET/POST | `/api/admin/partners` · `/api/admin/dsm` | ADMIN (DSM : ADMIN ou PARTENAIRE) |
+| GET/POST | `/api/admin/partners` · `/api/admin/dsm` | ADMIN |
 | GET/POST/PATCH | `/api/auth/users` | ADMIN |
 
 ## Commandes utiles

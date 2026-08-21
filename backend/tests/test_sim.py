@@ -22,13 +22,15 @@ def _create_pos(client, token, partner_id, dsm_id, code, stock):
 
 def test_create_sim_and_reject_duplicate_iccid(client, oper_token, seed):
     payload = {"pos_id": seed["pos1"], "iccid": "8923700000000012345"}
+    before = client.get(f"/api/partners/{seed['p1']}/pos/{seed['pos1']}", headers=auth_headers(oper_token))
+    before_stock = before.json()["stock_actuel"]
     first = client.post(f"/api/partners/{seed['p1']}/sim", json=payload, headers=auth_headers(oper_token))
     assert first.status_code == 201
     assert first.json()["status"] == "EN_STOCK"
 
-    # Le POS passe de 10 a 9 SIM disponibles.
+    # Le stock doit diminuer d'une unité.
     pos = client.get(f"/api/partners/{seed['p1']}/pos/{seed['pos1']}", headers=auth_headers(oper_token))
-    assert pos.json()["stock_actuel"] == 9
+    assert pos.json()["stock_actuel"] == before_stock - 1
 
     duplicate = client.post(f"/api/partners/{seed['p1']}/sim", json=payload, headers=auth_headers(oper_token))
     assert duplicate.status_code == 409

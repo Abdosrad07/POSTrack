@@ -84,7 +84,7 @@ export default function BTSListPage() {
         setBtsList((getMockBtsForRole(user?.role) || mockBts).map(normalizeBts))
       }
     } catch (err) {
-      setError('Erreur lors de la récupération des BTS.')
+      setError(err?.apiMessage || 'Erreur lors de la récupération des BTS.')
       btsDebug.error('BTSListPage error', err?.response?.status, err?.response?.data || err.message)
       setBtsList((getMockBtsForRole(user?.role) || mockBts).map(normalizeBts))
     } finally {

@@ -17,35 +17,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sqlalchemy import text
 
-from app.database import SessionLocal, engine
+from app.core.database import SessionLocal, engine, Base
 from app.models.user import User
-from app.models.partenaire import Partenaire
+from app.models.partner import Partner
 from app.models.dsm import DSM
 from app.models.pos import POS
 from app.models.reconduction import Reconduction
 from app.models.prime import Prime
-from app.models.client import Client
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
 from app.models.sim import SIM
 from app.models.requete import Requete
 from app.models.audit import AuditLog
-from app.models.enums import (
-    RoleUser,
-    TypePartenaire,
-    StatutPartenaire,
-    StatutDSM,
-    StatutPOS,
-    TypePOS,
-    StatutPrime,
-    StatutClient,
-    StatutBTS,
-    Operateur,
-    StatutSIM,
-    TypeRequete,
-    StatutRequete,
-    PrioriteRequete,
-)
+from app.models.user import RoleUser
+from app.models.partner import TypePartenaire, StatutPartenaire
+from app.models.dsm import StatutDSM
+from app.models.pos import TypePos, StatutPos
+from app.models.prime import StatutPrime
+from app.models.bts import StatutBTS, Operateur
+from app.models.sim import StatutSim
+from app.models.requete import TypeRequete, PrioriteRequete
 from app.security.password import hash_password
 
 
@@ -54,16 +45,16 @@ FRONTEND_USERS = [
     ("admin@postrack.local", "admin123", "Admin Demo (Accès Global)", RoleUser.ADMIN),
     ("manager@postrack.local", "manager123", "Manager Camtel Express (Partenaire)", RoleUser.MANAGER),
     ("manager.mc@postrack.local", "manager123", "Manager Master Color (Partenaire)", RoleUser.MANAGER),
-    ("dsm@postrack.local", "dsm123", "DSM Jean Marc (Douala Akwa)", RoleUser.DSM),
-    ("dsm.mc@postrack.local", "dsm123", "DSM Master Color", RoleUser.DSM),
-    ("viewer@postrack.local", "viewer123", "Viewer Kiosque Akwa Liberté (POS)", RoleUser.VIEWER),
-    ("viewer.mc@postrack.local", "viewer123", "Viewer ALI - NEWBELL (POS)", RoleUser.VIEWER),
+    ("dsm@postrack.local", "dsm123", "Chef Opérationnel Jean Marc (Douala Akwa)", RoleUser.CHEF_OPERATIONNEL),
+    ("dsm.mc@postrack.local", "dsm123", "Chef Opérationnel Master Color", RoleUser.CHEF_OPERATIONNEL),
+    ("oper@postrack.local", "oper123", "Opérationnel Kiosque Akwa Liberté", RoleUser.OPERATIONNEL),
+    ("oper.mc@postrack.local", "oper123", "Opérationnel ALI - NEWBELL", RoleUser.OPERATIONNEL),
 ]
 
 # Comptes database/seed.sql (référence équipe DB)
 DB_TEAM_USERS = [
     ("admin@postrack.cm", "admin123", "Toi (Admin)", RoleUser.ADMIN),
-    ("dsm.douala@postrack.cm", "dsm123", "Jean Marc (DSM Douala)", RoleUser.DSM),
+    ("dsm.douala@postrack.cm", "dsm123", "Jean Marc (Chef Opérationnel Douala)", RoleUser.CHEF_OPERATIONNEL),
 ]
 
 
@@ -87,7 +78,6 @@ def clear_all(db):
         "bts_releves",
         "primes",
         "reconductions",
-        "clients",
         "pos",
         "bts",
         "dsm",
@@ -100,7 +90,6 @@ def clear_all(db):
 
 
 def import_data(force: bool = False) -> dict:
-    from app.database import Base
     if force:
         with engine.connect() as conn:
             conn.execute(text("PRAGMA foreign_keys=OFF;"))
@@ -111,7 +100,6 @@ def import_data(force: bool = False) -> dict:
                 "bts_releves",
                 "primes",
                 "reconductions",
-                "clients",
                 "pos",
                 "bts",
                 "dsm",
@@ -195,13 +183,13 @@ def import_data(force: bool = False) -> dict:
         for p in demo_pos:
             obj = POS(
                 code_pos=p["code"],
-                nom=p["nom"],
-                ville="Douala",
-                type_pos=TypePOS.NOUVEAU,
-                statut=StatutPOS.ACTIF,
-                partenaire_id=partenaires[p["part"]].id,
+                name=p["nom"],
+                partner_id=partenaires[p["part"]].id,
                 dsm_id=dsms[p["dsm"]].id,
+                type_pos=TypePos.NOUVEAU,
+                status=StatutPos.ACTIF,
                 date_creation=date.today(),
+                date_expiration=date(2026, 12, 31),
                 notes=_pos_notes(categorie=p["cat"]),
             )
             db.add(obj)
@@ -222,14 +210,12 @@ def import_data(force: bool = False) -> dict:
             adresse = f"{p['quartier']} — {p['lieu']}"
             extra = f"Numéro POS: {p['numero']}" if p.get("numero") else None
             obj = POS(
-                code_pos=p["code"],
-                nom=p["nom"],
-                adresse=adresse,
-                telephone=p["tel"],
-                type_pos=TypePOS.NOUVEAU,
-                statut=StatutPOS.ACTIF,
-                partenaire_id=partenaires[p["part"]].id,
+                name=p["nom"],
+                address=adresse,
+                status=StatutPos.ACTIF,
+                partner_id=partenaires[p["part"]].id,
                 dsm_id=dsms[p["dsm"]].id,
+                date_expiration=date(2026, 12, 31),
                 date_creation=p["dt"],
                 notes=_pos_notes(montant=p["montant"], extra=p["notes"] + (f" | {extra}" if extra else "")),
             )
@@ -256,7 +242,7 @@ def import_data(force: bool = False) -> dict:
             motif="Renouvellement annuel effectue avec succes",
         )
         db.add(recon)
-        pos_list[102].type_pos = TypePOS.RECONDUIT
+        pos_list[102].type_pos = TypePos.RECONDUIT
         pos_list[102].date_derniere_reconduction = date(2026, 1, 1)
         pos_list[102].date_expiration = date(2026, 12, 31)
         stats["reconductions"] = 1
@@ -273,32 +259,20 @@ def import_data(force: bool = False) -> dict:
                     pos_id=pos_list[p["pos"]].id,
                     montant=25000.00,
                     date_attribution=date.today(),
-                    statut=p["statut"],
+                    status=p["statut"],
                 )
             )
         stats["primes"] = len(primes_data)
 
-        # --- 7. CLIENTS ---
-        client = Client(
-            code_client="CLI-0001",
-            nom_complet="Paul Etoundi",
-            telephone="677123456",
-            pos_id=pos_list[101].id,
-            date_enregistrement=date.today(),
-            statut=StatutClient.ACTIF,
-        )
-        db.add(client)
-        db.flush()
-        stats["clients"] = 1
-
-        # --- 8. BTS + RELEVES ---
+        # --- 7. BTS + RELEVES ---
         bts = BTS(
             code_bts="BTS-DLA-01",
-            nom="Antenne Akwa",
             partenaire_id=partenaires[1].id,
             operateur=Operateur.CAMTEL,
+            technologie="4G",
             capacite_max=1000,
-            statut=StatutBTS.ACTIF,
+            latitude=4.0511,
+            longitude=9.7679,
         )
         db.add(bts)
         db.flush()
@@ -324,20 +298,20 @@ def import_data(force: bool = False) -> dict:
         stats["bts"] = 1
         stats["bts_releves"] = len(releves_data)
 
-        # --- 9. SIMS ---
+        # --- 8. SIMS ---
         sims_data = [
             ("89237010000000000001", StatutSIM.EN_STOCK, 101),
-            ("89237010000000000002", StatutSIM.VENDUE, 101),
-            ("89237010000000000003", StatutSIM.ACTIVEE, 101),
-            ("89237010000000000004", StatutSIM.DEFECTUEUSE, 102),
-            ("89237010000000000005", StatutSIM.RETOURNEE, 102),
+            ("89237010000000000002", StatutSim.ACTIVE, 101),
+            ("89237010000000000003", StatutSim.ASSIGNEE, 101),
+            ("89237010000000000004", StatutSim.PERDUE, 102),
+            ("89237010000000000005", StatutSim.RETOURNEE, 102),
         ]
         for iccid, statut, pos_id in sims_data:
             db.add(
                 SIM(
                     iccid=iccid,
                     operateur=Operateur.CAMTEL,
-                    statut=statut,
+                    status=statut,
                     pos_id=pos_list[pos_id].id,
                 )
             )
@@ -352,7 +326,6 @@ def import_data(force: bool = False) -> dict:
                 description="Le POS Akwa Liberte n a plus de SIM CAMTEL en stock.",
                 partenaire_id=partenaires[1].id,
                 pos_id=pos_list[101].id,
-                statut=StatutRequete.OUVERTE,
                 priorite=PrioriteRequete.NORMALE,
                 demandeur_id=dsm_user.id,
             )

@@ -66,6 +66,18 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
     return Object.keys(newErrors).length === 0
   }
 
+  const renderError = (value) => {
+    if (typeof value === 'string') return value
+    if (Array.isArray(value)) return value.map(renderError).filter(Boolean).join(' · ')
+    if (value && typeof value === 'object') {
+      if (typeof value.msg === 'string') return value.msg
+      if (typeof value.detail === 'string') return value.detail
+      if (Array.isArray(value.detail)) return renderError(value.detail)
+      return Object.values(value).map(renderError).filter(Boolean).join(' · ')
+    }
+    return ''
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (validate()) {
@@ -89,7 +101,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.code_bts ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
             placeholder="Ex: BTS-001"
           />
-          {errors.code_bts && <p className="mt-1 text-xs text-red-600">{errors.code_bts}</p>}
+          {errors.code_bts && <p className="mt-1 text-xs text-red-600">{renderError(errors.code_bts)}</p>}
         </div>
 
         <div>
@@ -105,7 +117,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.nom ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
             placeholder="Ex: BTS Centrale Douala"
           />
-          {errors.nom && <p className="mt-1 text-xs text-red-600">{errors.nom}</p>}
+          {errors.nom && <p className="mt-1 text-xs text-red-600">{renderError(errors.nom)}</p>}
         </div>
 
         <div>
@@ -126,7 +138,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
               </option>
             ))}
           </select>
-          {errors.partenaire_id && <p className="mt-1 text-xs text-red-600">{errors.partenaire_id}</p>}
+          {errors.partenaire_id && <p className="mt-1 text-xs text-red-600">{renderError(errors.partenaire_id)}</p>}
         </div>
 
         <div>
@@ -142,7 +154,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.operateur ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
             placeholder="Ex: Orange, MTN"
           />
-          {errors.operateur && <p className="mt-1 text-xs text-red-600">{errors.operateur}</p>}
+          {errors.operateur && <p className="mt-1 text-xs text-red-600">{renderError(errors.operateur)}</p>}
         </div>
 
         <div>
@@ -158,7 +170,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.technologie ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
             placeholder="Ex: 4G, 5G"
           />
-          {errors.technologie && <p className="mt-1 text-xs text-red-600">{errors.technologie}</p>}
+          {errors.technologie && <p className="mt-1 text-xs text-red-600">{renderError(errors.technologie)}</p>}
         </div>
 
         <div>
@@ -174,7 +186,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.capacite_max ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
             placeholder="Ex: 1000"
           />
-          {errors.capacite_max && <p className="mt-1 text-xs text-red-600">{errors.capacite_max}</p>}
+          {errors.capacite_max && <p className="mt-1 text-xs text-red-600">{renderError(errors.capacite_max)}</p>}
         </div>
 
         <div>
@@ -189,7 +201,7 @@ export default function BTSForm({ initialData, onSubmit, onCancel, partenaires =
             onChange={handleChange}
             className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 ${errors.date_mise_service ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
           />
-          {errors.date_mise_service && <p className="mt-1 text-xs text-red-600">{errors.date_mise_service}</p>}
+          {errors.date_mise_service && <p className="mt-1 text-xs text-red-600">{renderError(errors.date_mise_service)}</p>}
         </div>
 
         <div>

@@ -4,12 +4,13 @@ import useAuth from '../../hooks/useAuth';
 import usePartner from '../../hooks/usePartner';
 import Button from '../../components/Common/Button/Button';
 import Alert from '../../components/Common/Alert/Alert';
+import { clearAuthSession } from '../../services/api';
 
 const mockAccounts = [
   { label: 'Admin', username: 'admin', password: 'admin123' },
   { label: 'Manager', username: 'manager', password: 'manager123' },
-  { label: 'DSM', username: 'dsm', password: 'dsm123' },
-  { label: 'Viewer', username: 'viewer', password: 'viewer123' },
+  { label: 'Chef opérationnel', username: 'chef', password: 'chef123' },
+  { label: 'Opérationnel', username: 'oper', password: 'oper123' },
 ];
 
 const LoginPage = () => {
@@ -19,7 +20,12 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [selectedMock, setSelectedMock] = useState(null);
   const { login, isAuthenticated, loading: authLoading } = useAuth();
-  const { hasPartner } = usePartner();
+  let hasPartner = false;
+  try {
+    ({ hasPartner } = usePartner());
+  } catch {
+    hasPartner = false;
+  }
   const navigate = useNavigate();
 
   if (!authLoading && isAuthenticated) {
@@ -36,12 +42,19 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
+      clearAuthSession();
       await login({ username, password });
       goAfterLogin();
     } catch (err) {
-      setError(
-        err.response?.data?.detail || 'Échec de la connexion. Veuillez vérifier vos identifiants.'
-      );
+      if (err.isAuthExpired) {
+        setError(
+          'Votre session locale est obsolète ou le jeton a expiré. Veuillez vider la session et vous reconnecter.'
+        );
+      } else {
+        setError(
+          err.response?.data?.detail || 'Échec de la connexion. Veuillez vérifier vos identifiants.'
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -59,12 +72,19 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
     try {
+      clearAuthSession();
       await login({ username: selectedMock.username, password: selectedMock.password });
       goAfterLogin();
     } catch (err) {
-      setError(
-        err.response?.data?.detail || 'Échec de la connexion. Veuillez vérifier vos identifiants.'
-      );
+      if (err.isAuthExpired) {
+        setError(
+          'Votre session locale est obsolète ou le jeton a expiré. Veuillez vider la session et vous reconnecter.'
+        );
+      } else {
+        setError(
+          err.response?.data?.detail || 'Échec de la connexion. Veuillez vérifier vos identifiants.'
+        );
+      }
     } finally {
       setLoading(false);
     }

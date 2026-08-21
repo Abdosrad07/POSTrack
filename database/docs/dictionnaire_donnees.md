@@ -12,7 +12,7 @@ Livrable Jour 3 — équipe Base de Données. Généré à partir de `schema.sql
 | email | VARCHAR(100) | non, UNIQUE | identifiant de connexion |
 | password_hash | VARCHAR(255) | non | mot de passe haché (bcrypt côté Backend) |
 | nom_complet | VARCHAR(100) | non | nom affiché |
-| role | VARCHAR(20) | non | ADMIN / MANAGER / DSM / VIEWER — contrôle les permissions |
+| role | VARCHAR(20) | non | ADMIN / MANAGER / CHEF_OPERATIONNEL / OPERATIONNEL — contrôle les permissions |
 | actif | INTEGER (0/1) | non | permet de désactiver un compte sans le supprimer |
 | created_at / updated_at | DATETIME | non | horodatage automatique |
 

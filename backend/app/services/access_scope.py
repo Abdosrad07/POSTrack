@@ -1,9 +1,9 @@
-"""Service de portee d'acces (Access Scope) pour les 4 roles applicatifs.
+"""Service de portée d'accès pour les 4 rôles applicatifs.
 
-- ADMIN            -> tous les partenaires + DSM, BTS, POS
-- MANAGER          -> consultation de tous les partenaires
-- CHEF_OPERATIONNEL-> tous les partenaires (entree de donnees + validation)
-- OPERATIONNEL     -> un seul partenaire (user.partner_id)
+- ADMIN -> accès global + actions correctives
+- MANAGER -> consultation globale uniquement
+- CHEF_OPERATIONNEL -> consultation + saisie globale + validation des primes
+- OPERATIONNEL -> un seul partenaire assigné (user.partner_id)
 """
 from sqlalchemy.orm import Session
 
@@ -15,15 +15,10 @@ from app.security.permissions import Role
 
 
 class AccessScope:
-    """Portee d'acces d'un utilisateur : listes d'IDs autorises (None = illimite)."""
+    """Portée d'accès d'un utilisateur : listes d'IDs autorisés (None = illimité)."""
 
-    def __init__(
-        self,
-        partenaire_ids: list[int] | None = None,
-        dsm_ids: list[int] | None = None,
-        pos_ids: list[int] | None = None,
-        bts_ids: list[int] | None = None,
-    ):
+    def __init__(self, partenaire_ids: list[int] | None = None, dsm_ids: list[int] | None = None,
+                 pos_ids: list[int] | None = None, bts_ids: list[int] | None = None):
         self.partenaire_ids = partenaire_ids
         self.dsm_ids = dsm_ids
         self.pos_ids = pos_ids
@@ -60,26 +55,16 @@ def _scope_for_partners(db: Session, partner_ids: list[int]) -> AccessScope:
     pos_ids = [p.id for p in pos_list]
     dsm_ids = list({p.dsm_id for p in pos_list if p.dsm_id})
     bts_ids = [b.id for b in db.query(BTS).filter(BTS.partner_id.in_(partner_ids)).all()]
-    return AccessScope(
-        partenaire_ids=partner_ids,
-        dsm_ids=dsm_ids,
-        pos_ids=pos_ids,
-        bts_ids=bts_ids,
-    )
+    return AccessScope(partenaire_ids=partner_ids, dsm_ids=dsm_ids, pos_ids=pos_ids, bts_ids=bts_ids)
 
 
 def get_access_scope(db: Session, user: User) -> AccessScope:
     role = user.role
 
     if role == Role.ADMIN:
-        # Tous les champs a None -> illimite
         return AccessScope()
 
-    if role == Role.MANAGER:
-        ids = [p[0] for p in db.query(DSM.partner_id).distinct().all()]
-        return _scope_for_partners(db, ids)
-
-    if role == Role.CHEF_OPERATIONNEL:
+    if role in (Role.MANAGER, Role.CHEF_OPERATIONNEL):
         ids = [p[0] for p in db.query(DSM.partner_id).distinct().all()]
         return _scope_for_partners(db, ids)
 
@@ -105,4 +90,3 @@ def get_visible_pos_ids(db: Session, user: User) -> list[int] | None:
 
 def get_visible_bts_ids(db: Session, user: User) -> list[int] | None:
     return get_access_scope(db, user).bts_ids
-

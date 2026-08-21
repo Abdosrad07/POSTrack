@@ -4,21 +4,21 @@ import { filterNavByRole, getRoleLabel, hasRole, normalizeRole } from './roles'
 import { NAV_ITEMS } from './constants'
 
 describe('roles — matrice A2', () => {
-  it('normalise les alias backend vers les rôles R7', () => {
-    expect(normalizeRole('MANAGER')).toBe(ROLES.REPRESENTANT_PARTENAIRE)
-    expect(normalizeRole('DSM')).toBe(ROLES.REPRESENTANT_DSM)
-    expect(normalizeRole('VIEWER')).toBe(ROLES.DETENTEUR_POS)
+  it('normalise les alias backend vers les rôles cibles', () => {
+    expect(normalizeRole('PARTENAIRE')).toBe(ROLES.MANAGER)
+    expect(normalizeRole('DSM')).toBe(ROLES.CHEF_OPERATIONNEL)
+    expect(normalizeRole('POS_HOLDER')).toBe(ROLES.OPERATIONNEL)
     expect(normalizeRole('ADMIN')).toBe(ROLES.ADMIN)
   })
 
-  it('hasRole accepte les alias et les rôles R7', () => {
-    expect(hasRole({ role: 'MANAGER' }, [ROLES.REPRESENTANT_PARTENAIRE])).toBe(true)
-    expect(hasRole({ role: 'VIEWER' }, [ROLES.ADMIN])).toBe(false)
+  it('hasRole accepte les rôles cibles et les alias', () => {
+    expect(hasRole({ role: 'MANAGER' }, [ROLES.MANAGER])).toBe(true)
+    expect(hasRole({ role: 'OPERATIONNEL' }, [ROLES.ADMIN])).toBe(false)
     expect(hasRole({ role: 'ADMIN' }, ROLES.ADMIN ? [ROLES.ADMIN] : [])).toBe(true)
   })
 
   it('fournit un libellé métier', () => {
-    expect(getRoleLabel('DSM')).toBe('Représentant DSM')
+    expect(getRoleLabel('DSM')).toBe('Chef opérationnel')
     expect(getRoleLabel('ADMIN')).toBe('Administrateur')
   })
 
@@ -30,8 +30,8 @@ describe('roles — matrice A2', () => {
     expect(ids).toContain('import-export')
   })
 
-  it('filtre la navigation : Détenteur POS n’a pas DSM / Primes / Import', () => {
-    const items = filterNavByRole(NAV_ITEMS, { role: 'VIEWER' })
+  it('filtre la navigation : OPERATIONNEL n’a pas Partenaires / Audit', () => {
+    const items = filterNavByRole(NAV_ITEMS, { role: 'OPERATIONNEL' })
     const ids = items.map((i) => i.id)
     expect(ids).toContain('dashboard')
     expect(ids).toContain('pos')

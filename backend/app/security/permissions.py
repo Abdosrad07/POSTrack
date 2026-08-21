@@ -1,9 +1,9 @@
-"""Matrice de roles applicatifs et helpers de controle d'acces.
+"""Matrice de rôles applicatifs et helpers de contrôle d'accès.
 
-Les quatre roles cibles sont : ADMIN, MANAGER, CHEF_OPERATIONNEL et
-OPERATIONNEL. La hierarchie est basee sur un poids de responsabilite afin
-d'eviter les listes dupliquees : CHEF_OPERATIONNEL herite des capacites de
-OPERATIONNEL, et ADMIN reste reserve aux actions techniques et correctives.
+Les rôles cibles sont : ADMIN, MANAGER, CHEF_OPERATIONNEL et OPERATIONNEL.
+La hiérarchie est basée sur un poids de responsabilité afin d'éviter la
+duplication de permissions : CHEF_OPERATIONNEL hérite des capacités de
+l'OPERATIONNEL, et ADMIN reste réservé aux actions techniques et correctives.
 """
 from enum import Enum
 
@@ -27,14 +27,14 @@ def role_gte(role: Role, minimum: Role) -> bool:
     return ROLE_WEIGHT[role] >= ROLE_WEIGHT[minimum]
 
 
-# Roles autorises a valider une prime
+# Rôles autorisés à valider une prime.
 PRIME_VALIDATION_ROLES = {Role.CHEF_OPERATIONNEL}
 
-# Roles autorises a confirmer une reconduction
+# Rôles autorisés à confirmer une reconduction.
 RECONDUCTION_ROLES = {Role.ADMIN, Role.CHEF_OPERATIONNEL, Role.OPERATIONNEL}
 
-# Roles autorises a lancer un import Excel
+# Rôles autorisés à lancer un import Excel.
 IMPORT_ROLES = {Role.ADMIN, Role.CHEF_OPERATIONNEL, Role.OPERATIONNEL}
 
-# Roles ayant acces aux ecrans d'administration (utilisateurs, audit)
+# Rôles ayant accès aux écrans d'administration (utilisateurs, audit).
 ADMIN_SCREEN_ROLES = {Role.ADMIN}

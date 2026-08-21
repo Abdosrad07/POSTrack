@@ -11,21 +11,24 @@ const normalizeList = (data) => {
 
 /**
  * Partenaires autorisés pour l'utilisateur connecté.
- * Contrat cible R7 : GET /partenaires/available (fallback GET /partenaires).
+ * Contrat cible R7 : GET /auth/partenaires/available (fallback GET /partenaires).
  */
 export const partnerContextService = {
   async getAvailable(user) {
     try {
       btsDebug.log('Chargement du contexte partenaire', { role: user?.role, user: user?.email || user?.nom_complet })
       try {
-        const response = await api.get('/partenaires/available', {
+        const response = await api.get('/auth/partenaires/available', {
           skipPartnerPrefix: true,
+          headers: {
+            'X-Skip-Partner-Context': 'true',
+          },
         });
-        btsDebug.snapshot('Réponse partenaires/available', response.data)
+        btsDebug.snapshot('Réponse auth/partenaires/available', response.data)
         return normalizeList(response.data);
       } catch (error) {
         if (error.response?.status === 404) {
-          btsDebug.warn('Route /partenaires/available introuvable, fallback sur /partenaires')
+          btsDebug.warn('Route /auth/partenaires/available introuvable, fallback sur /partenaires')
           const response = await api.get('/partenaires', {
             params: { limit: 100, statut: 'ACTIF' },
             skipPartnerPrefix: true,

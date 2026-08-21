@@ -1,8 +1,7 @@
-"""
-Dependances FastAPI transverses : identification JWT, resolution du
-role, et surtout get_partner_context / require_partner_access qui
-centralisent le controle du PartnerContext (F-02, F-03). Les routes ne
-doivent jamais reconstruire ces verifications individuellement.
+"""Dépendances FastAPI transverses : identification JWT, résolution du
+rôle, et surtout get_partner_context / require_partner_access qui
+centralisent le contrôle du contexte Partenaire. Les routes ne doivent
+jamaais reconstruire ces vérifications individuellement.
 """
 from fastapi import Depends, Header
 from sqlalchemy.orm import Session

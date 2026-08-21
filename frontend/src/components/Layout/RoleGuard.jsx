@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { hasRole } from '../../utils/roles';
 import EmptyState from '../Common/EmptyState/EmptyState';
+import LoadingSpinner from '../Common/LoadingSpinner/LoadingSpinner';
 
 /**
  * Garde d'affichage / de route selon la matrice des 4 rôles cibles.
@@ -23,7 +24,7 @@ const RoleGuard = ({
 }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) return <LoadingSpinner fullScreen label="Chargement..." />;
 
   if (hasRole(user, roles)) {
     return children;

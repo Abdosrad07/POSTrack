@@ -79,7 +79,7 @@ export default function BTSDetailPage() {
           setSelectedBts(fallbackDetail)
           setError(null)
         } else {
-          setError('Impossible de charger les détails de la BTS.')
+          setError(err?.apiMessage || 'Impossible de charger les détails de la BTS.')
         }
       } finally {
         setLoading(false)

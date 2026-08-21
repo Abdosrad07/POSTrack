@@ -7,7 +7,7 @@ vi.mock('./api', () => ({
     get: vi.fn(),
   },
   applyPartnerPrefix: (url, partnerId) =>
-    partnerId ? `/partners/${partnerId}${url.startsWith('/') ? url : `/${url}`}` : url,
+    partnerId ? `/api/partners/${partnerId}${url.startsWith('/') ? url : `/${url}`}` : url,
 }));
 
 import api from './api';
@@ -74,7 +74,7 @@ describe('importService — Module A3', () => {
   it('construit l URL du gabarit préfixée par le partenaire courant', () => {
     localStorage.setItem('partner_context_id', '3');
     const url = importService.getTemplateUrl('POS');
-    expect(url).toContain('/partners/3/imports/templates/POS');
+    expect(url).toContain('/api/partners/3/imports/templates/POS');
   });
 
   it('normalise une réponse Backend minimale vers la forme attendue par l UI', async () => {

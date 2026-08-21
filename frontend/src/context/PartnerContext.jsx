@@ -60,6 +60,12 @@ export const PartnerProvider = ({ children }) => {
     }
   }, [authLoading, isAuthenticated, clearPartner]);
 
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && !partnerContextId && partner) {
+      clearPartner();
+    }
+  }, [authLoading, isAuthenticated, partnerContextId, partner, clearPartner]);
+
   const value = useMemo(
     () => ({
       partnerContextId,

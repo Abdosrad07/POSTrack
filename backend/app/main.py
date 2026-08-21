@@ -52,16 +52,18 @@ app = FastAPI(
     ),
 )
 
-# CORS : origines pilotees par ALLOWED_ORIGINS (.env). "*" reste la
-# valeur par defaut en developpement, mais allow_credentials n'est
-# alors jamais active (un wildcard combine aux credentials est de
-# toute facon rejete par les navigateurs, et c'est une mauvaise
-# pratique de securite meme cote serveur).
-_cors_origins = settings.cors_origins
+# CORS : origines pilotees par ALLOWED_ORIGINS (.env). En developpement,
+# on tolere "*". Si la configuration est vide ou invalide, on retombe sur
+# localhost pour eviter une API inaccessible au navigateur.
+_cors_origins = settings.cors_origins or ["http://localhost:5173", "http://127.0.0.1:5173"]
+if _cors_origins == ["*"]:
+    _allow_credentials = False
+else:
+    _allow_credentials = True
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    allow_credentials=_cors_origins != ["*"],
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
