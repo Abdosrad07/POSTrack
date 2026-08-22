@@ -14,7 +14,8 @@ import { buildMockImportBatch } from '../mocks/importMocks';
  * Axios (services/api.js) à partir du partner_context_id.
  *
  * Tant que le Backend n'est pas disponible, un fallback en mode démo renvoie
- * des données mockées (même logique que partnerContextService).
+ * des données mockées. Les réponses vides du backend ne sont pas remplacées
+ * automatiquement afin de privilégier la source de vérité serveur.
  */
 
 const isNetworkUnavailable = (error) => Boolean(error && (error.code === 'ERR_NETWORK' || !error.response));
@@ -38,9 +39,7 @@ export const importService = {
       });
       return normalizeBatch(unwrap(response), entityType, file?.name);
     } catch (error) {
-      if (isNetworkUnavailable(error)) {
-        return buildMockImportBatch(entityType, file?.name);
-      }
+      if (isNetworkUnavailable(error)) return buildMockImportBatch(entityType, file?.name);
       throw error;
     }
   },
@@ -56,9 +55,7 @@ export const importService = {
       if (result && typeof result === 'object') return result;
       return { id: batchId, status: 'APPLIED' };
     } catch (error) {
-      if (isNetworkUnavailable(error)) {
-        return { id: batchId, status: 'APPLIED' };
-      }
+      if (isNetworkUnavailable(error)) return { id: batchId, status: 'APPLIED' };
       throw error;
     }
   },
@@ -69,9 +66,7 @@ export const importService = {
       const response = await api.get(`/imports/${batchId}`);
       return normalizeBatch(unwrap(response));
     } catch (error) {
-      if (isNetworkUnavailable(error)) {
-        return buildMockImportBatch('POS', batchId);
-      }
+      if (isNetworkUnavailable(error)) return null;
       throw error;
     }
   },

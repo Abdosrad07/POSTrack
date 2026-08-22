@@ -6,6 +6,7 @@ import { partnerContextService } from '../../services/partnerContextService';
 import { ROLE_LABELS } from '../../utils/constants';
 import Button from '../../components/Common/Button/Button';
 import Alert from '../../components/Common/Alert/Alert';
+import DemoDataBanner from '../../components/Common/DemoDataBanner/DemoDataBanner';
 
 const SelectPartnerPage = () => {
   const { user, logout, loading: authLoading } = useAuth();
@@ -116,6 +117,10 @@ const SelectPartnerPage = () => {
         )}
 
         {error && <Alert type="error" message={error} />}
+
+        {(partners.some((p) => p.__mock) || partner?.__mock) && (
+          <DemoDataBanner message="Le backend est indisponible : les partenaires affichés sont des données de démonstration." />
+        )}
 
         {loading ? (
           <div className="py-12 text-center text-slate-500">Chargement des partenaires...</div>

@@ -18,7 +18,6 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedMock, setSelectedMock] = useState(null);
   const { login } = useAuth();
   let hasPartner = false;
   try {
@@ -60,30 +59,6 @@ const LoginPage = () => {
     setUsername(account.username);
     setPassword(account.password);
     setError('');
-    setSelectedMock(account);
-  };
-
-  const handleValidate = async () => {
-    if (!selectedMock) return;
-    setError('');
-    setLoading(true);
-    try {
-      clearAuthSession();
-      await login({ username: selectedMock.username, password: selectedMock.password });
-      goAfterLogin();
-    } catch (err) {
-      if (err.isAuthExpired) {
-        setError(
-          'Votre session locale est obsolète ou le jeton a expiré. Veuillez vider la session et vous reconnecter.'
-        );
-      } else {
-        setError(
-          err.response?.data?.detail || 'Échec de la connexion. Veuillez vérifier vos identifiants.'
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -94,8 +69,8 @@ const LoginPage = () => {
           <p className="mt-2 text-center text-sm text-slate-600">Connectez-vous à votre compte</p>
         </div>
         {error && <Alert type="error" message={error} />}
-        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm font-medium text-slate-800">Comptes de test rapides</p>
+        <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 p-4">
+          <p className="text-sm font-medium text-sky-900">Aide de démo</p>
           <div className="mt-3 flex flex-wrap gap-3">
             {mockAccounts.map((account) => (
               <Button
@@ -109,19 +84,9 @@ const LoginPage = () => {
             ))}
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Cliquez pour préremplir un compte mock et tester la connexion.
+            Ces boutons préremplissent le formulaire. Le login se fait ensuite via le bouton "Se connecter".
           </p>
         </div>
-        {selectedMock && (
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-slate-600">
-              Compte sélectionné: <span className="font-medium">{selectedMock.label}</span>
-            </div>
-            <Button type="button" variant="green" onClick={handleValidate}>
-              Valider
-            </Button>
-          </div>
-        )}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4 rounded-md shadow-sm">
             <div>

@@ -41,7 +41,8 @@ export const partnerContextService = {
     } catch (error) {
       if (error.code === 'ERR_NETWORK' || !error.response) {
         btsDebug.warn('Réseau indisponible pour les partenaires, fallback mock')
-        return getMockPartnersForRole(user?.role) || mockPartners;
+        const fallback = getMockPartnersForRole(user?.role) || mockPartners;
+        return fallback.map((partner) => ({ ...partner, __mock: true }));
       }
       btsDebug.error('Erreur partenaires', error?.response?.status, error?.response?.data || error.message)
       throw error;

@@ -4,6 +4,7 @@ import RoleGuard from './components/Layout/RoleGuard'
 import Dashboard from './pages/Dashboard'
 import POSListPage from './pages/pos/POSListPage'
 import POSDetailPage from './pages/pos/POSDetailPage'
+import POSEditPage from './pages/pos/POSEditPage'
 import PartnersList from './pages/PartnersList'
 import PrimesListPage from './pages/PrimesListPage'
 import BTSListPage from './pages/bts/BTSListPage'
@@ -48,6 +49,7 @@ function App() {
             <Route path="pos" element={<POSListPage />} />
             <Route path="pos/new" element={<POSCreatePage />} />
             <Route path="pos/nouveau" element={<POSCreatePage />} />
+            <Route path="pos/:id/edit" element={<POSEditPage />} />
             <Route path="pos/:id" element={<POSDetailPage />} />
 
             <Route

@@ -49,4 +49,54 @@ describe('PartnerSelectorBar', () => {
     )
     expect(container).toBeEmptyDOMElement()
   })
+
+  it("affiche le bandeau « Données de démo » quand le partenaire porte __mock", () => {
+    render(
+      <PartnerContext.Provider
+        value={{
+          partnerContextId: 1,
+          partner: {
+            id: 1,
+            nom: 'Mock Co',
+            code_partenaire: 'PART-DEMO',
+            __mock: true,
+          },
+          hasPartner: true,
+          setPartner: vi.fn(),
+          clearPartner: vi.fn(),
+        }}
+      >
+        <MemoryRouter>
+          <PartnerSelectorBar />
+        </MemoryRouter>
+      </PartnerContext.Provider>
+    )
+
+    expect(screen.getByText('Mock Co')).toBeInTheDocument()
+    expect(screen.getByText('Données de démo')).toBeInTheDocument()
+  })
+
+  it("n'affiche pas le bandeau pour un partenaire réel (sans __mock)", () => {
+    render(
+      <PartnerContext.Provider
+        value={{
+          partnerContextId: 1,
+          partner: {
+            id: 1,
+            nom: 'Master Color',
+            code_partenaire: 'PART-MC',
+          },
+          hasPartner: true,
+          setPartner: vi.fn(),
+          clearPartner: vi.fn(),
+        }}
+      >
+        <MemoryRouter>
+          <PartnerSelectorBar />
+        </MemoryRouter>
+      </PartnerContext.Provider>
+    )
+
+    expect(screen.queryByText('Données de démo')).not.toBeInTheDocument()
+  })
 })
