@@ -7,7 +7,7 @@ vi.mock('./api', () => ({
     get: vi.fn(),
   },
   applyPartnerPrefix: (url, partnerId) =>
-    partnerId ? `/api/partners/${partnerId}${url.startsWith('/') ? url : `/${url}`}` : url,
+    partnerId ? `/partners/${partnerId}${url.startsWith('/') ? url : `/${url}`}` : url,
 }));
 
 import api from './api';

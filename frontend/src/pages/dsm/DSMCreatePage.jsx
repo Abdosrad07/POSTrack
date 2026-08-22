@@ -27,7 +27,13 @@ export default function DSMCreatePage() {
         setLoading(false)
         return
       }
-      await api.post('/dsm', { nom, email, region, statut })
+      // Schéma v4 : DSMCreate attend matricule / full_name / zone.
+      // (email & statut sont des champs legacy sans équivalent backend.)
+      await api.post('/dsm', {
+        matricule: `DSM-${nom.trim().toUpperCase().replace(/\s+/g, '-')}`,
+        full_name: nom.trim(),
+        zone: region,
+      })
       setSuccess('DSM créé avec succès')
       setTimeout(() => navigate('/dsm'), 700)
     } catch (err) {

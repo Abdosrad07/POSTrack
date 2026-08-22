@@ -58,7 +58,7 @@ export default function BTSDetailPage() {
         btsDebug.log('BTSDetailPage fetch', { id, partnerId, userRole: user?.role })
         const [detailRes, listRes] = await Promise.all([
           api.get(`/bts/${id}`),
-          partnerId ? api.get(`/api/partners/${partnerId}/bts`, { skipPartnerPrefix: true }) : api.get('/bts'),
+          api.get('/bts'),
         ])
         const detail = detailRes.data.data || detailRes.data
         const list = listRes.data.data || listRes.data || []

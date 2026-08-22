@@ -14,5 +14,7 @@ class DSM(Base):
     full_name = Column(String(150), nullable=False)
     zone = Column(String(150), nullable=True)
     partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
     partner = relationship("Partner")
     users = relationship("User", back_populates="dsm")

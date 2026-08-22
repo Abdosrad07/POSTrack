@@ -22,8 +22,8 @@ function PrimesListPage() {
       try {
         setLoading(true)
         const response = await api.get('/primes')
-        const data = response.data?.data ?? response.data ?? []
-        if (!ignore) setPrimes(data)
+                        const data = response.data?.items ?? response.data?.data ?? response.data ?? []
+        if (!ignore) setPrimes(Array.isArray(data) ? data : [])
       } catch {
         if (!ignore) setPrimes([])
       } finally {

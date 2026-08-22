@@ -14,7 +14,7 @@ function renderSidebar(role) {
         isAuthenticated: true,
         token: 'tok',
         login: vi.fn(),
-        logout: vi.fn(),
+        logout: vi.fn(async () => {}),
       }}
     >
       <PartnerContext.Provider
@@ -39,6 +39,7 @@ describe('Sidebar', () => {
     renderSidebar('ADMIN')
     expect(screen.getByRole('link', { name: 'Partenaires' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Audit' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Accès refusé' })).not.toBeInTheDocument()
   })
 
   it('cache DSM et Import pour OPERATIONNEL', () => {
@@ -48,5 +49,10 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'DSM' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Stock SIM' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Partenaires' })).not.toBeInTheDocument()
+  })
+
+  it('affiche un bouton de déconnexion dans le menu mobile', () => {
+    renderSidebar('ADMIN')
+    expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeInTheDocument()
   })
 })

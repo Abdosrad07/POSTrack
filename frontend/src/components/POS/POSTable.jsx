@@ -3,6 +3,7 @@ import StatusBadge from '../Common/StatusBadge';
 
 export default function POSTable({ rows = [], loading = false, sort, onSort }) {
   const navigate = useNavigate();
+  const safeRows = Array.isArray(rows) ? rows : [];
 
   const toggle = (field) => onSort?.(field);
 
@@ -24,10 +25,10 @@ export default function POSTable({ rows = [], loading = false, sort, onSort }) {
         <tbody className="divide-y divide-gray-100">
           {loading ? (
             <tr><td colSpan={8} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
-          ) : rows.length === 0 ? (
+          ) : safeRows.length === 0 ? (
             <tr><td colSpan={8} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
           ) : (
-            rows.map((pos) => (
+            safeRows.map((pos) => (
               <tr
                 key={pos.id}
                 className="cursor-pointer hover:bg-gray-50"

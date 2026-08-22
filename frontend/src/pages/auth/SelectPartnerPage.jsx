@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import usePartner from '../../hooks/usePartner';
 import { partnerContextService } from '../../services/partnerContextService';
@@ -9,7 +9,7 @@ import Alert from '../../components/Common/Alert/Alert';
 import DemoDataBanner from '../../components/Common/DemoDataBanner/DemoDataBanner';
 
 const SelectPartnerPage = () => {
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, logout, loading: authLoading, isAuthenticated } = useAuth();
   const { setPartner, hasPartner, partner } = usePartner();
   const navigate = useNavigate();
 
@@ -20,6 +20,7 @@ const SelectPartnerPage = () => {
   const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
+    if (!user || !isAuthenticated) return;
     let cancelled = false;
 
     const loadPartners = async () => {
@@ -30,9 +31,11 @@ const SelectPartnerPage = () => {
         if (cancelled) return;
         setPartners(list);
 
-        // Auto-sélection si un seul partenaire est autorisé
-        if (list.length === 1) {
+        // Auto-sélection si un seul partenaire est autorisé ou si aucun contexte
+        // n'a encore été stocké et qu'un partenaire valide existe.
+        if ((list.length === 1 || (!hasPartner && list.length > 0)) && list[0]) {
           setPartner(list[0]);
+          setSelectedId(list[0].id);
         }
       } catch (err) {
         if (!cancelled) {
@@ -53,7 +56,7 @@ const SelectPartnerPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [user, setPartner]);
+  }, [user, isAuthenticated, setPartner, hasPartner]);
 
   if (authLoading) {
     return (
@@ -61,6 +64,12 @@ const SelectPartnerPage = () => {
         <p className="text-slate-600">Chargement...</p>
       </div>
     );
+  }
+
+  // Site protégé : sans session valide, ne pas interroger les APIs protégées
+  // (le backend répondrait « Jeton d'authentification manquant. »).
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
   }
 
   const handleSelect = (item) => {
@@ -124,14 +133,20 @@ const SelectPartnerPage = () => {
 
         {loading ? (
           <div className="py-12 text-center text-slate-500">Chargement des partenaires...</div>
-        ) : partners.length === 0 ? (
+        ) : partners.filter((item) => item?.id && (item?.nom || item?.name || item?.code_partenaire || item?.code)).length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-300 py-12 text-center text-slate-500">
             Aucun partenaire autorisé pour ce compte.
           </div>
         ) : (
           <div className="space-y-4">
             <ul className="space-y-3">
-              {partners.map((item) => (
+              {partners
+                .filter((item) => item?.id && (item?.nom || item?.name || item?.code_partenaire || item?.code))
+                .map((item) => {
+                  const partnerName = item.nom || item.name || item.raison_sociale || `Partenaire #${item.id}`;
+                  const partnerCode = item.code_partenaire || item.code || '';
+
+                  return (
                 <li key={item.id}>
                   <button
                     type="button"
@@ -140,9 +155,9 @@ const SelectPartnerPage = () => {
                     className={`flex w-full items-center justify-between rounded-xl border px-4 py-4 text-left transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${selectedId === item.id ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white hover:border-sky-400 hover:bg-sky-50'}`}
                   >
                     <div>
-                      <p className="font-semibold text-slate-900">{item.nom}</p>
+                      <p className="font-semibold text-slate-900">{partnerName}</p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {item.code_partenaire}
+                        {partnerCode}
                         {item.ville ? ` · ${item.ville}` : ''}
                         {item.region ? ` · ${item.region}` : ''}
                       </p>
@@ -152,7 +167,8 @@ const SelectPartnerPage = () => {
                     </span>
                   </button>
                 </li>
-              ))}
+                  );
+                })}
             </ul>
 
             <div className="flex justify-end">

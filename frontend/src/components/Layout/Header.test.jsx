@@ -84,7 +84,7 @@ describe('Header — Module A2', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Déconnexion' }))
     expect(logout).toHaveBeenCalledTimes(1)
-    expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeInTheDocument()
+    expect(screen.getByText('Page de connexion')).toBeInTheDocument()
   })
 
   it('affiche un libellé de rôle inconnu si le rôle est absent', () => {

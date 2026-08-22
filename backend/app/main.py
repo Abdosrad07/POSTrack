@@ -22,8 +22,10 @@ from app.core.errors import AppError, app_error_handler
 from app import models as _all_models  # noqa: F401  (charge tous les modeles avant create_all)
 
 from app.api import auth as auth_router
-from app.api import partner_pos, partner_bts, partner_sim
+from app.api import partner_pos, partner_bts, partner_sim, partner_dsm
 from app.api import partner_primes, partner_requests, imports, analytics, admin
+from app.api import hierarchy as hierarchy_router
+from app.api import partenaires as partenaires_router
 
 class _RequestIdFilter(logging.Filter):
     """Garantit que chaque enregistrement de log possede un request_id
@@ -39,6 +41,12 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s [%(request_id)s] %(message)s",
 )
+# Le filtre doit être posé sur les handlers (pas seulement sur le logger
+# racine) : les records émis par d'autres loggers (ex. httpx/uvicorn)
+# atteignent les handlers du root sans passer par la chaîne de filtres
+# du logger, ce qui provoquerait "Formatting field not found: request_id".
+for _handler in logging.getLogger().handlers:
+    _handler.addFilter(_RequestIdFilter())
 logging.getLogger().addFilter(_RequestIdFilter())
 logger = logging.getLogger("postrack")
 
@@ -122,6 +130,7 @@ Base.metadata.create_all(bind=engine)
 app.include_router(auth_router.router)
 app.include_router(partner_pos.router)
 app.include_router(partner_bts.router)
+app.include_router(partner_dsm.router)
 app.include_router(partner_sim.router)
 app.include_router(partner_primes.router)
 app.include_router(partner_primes.periods_router)
@@ -129,6 +138,8 @@ app.include_router(partner_requests.router)
 app.include_router(imports.router)
 app.include_router(analytics.router)
 app.include_router(admin.router)
+app.include_router(hierarchy_router.router)
+app.include_router(partenaires_router.router)
 
 
 @app.get("/", tags=["Sante"])

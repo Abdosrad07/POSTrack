@@ -1,5 +1,5 @@
-"""Mesure horodatee de la charge, de la saturation et du rendement d'une BTS."""
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Text
+"""Mesure horodoree de la charge, de la saturation et du rendement d'une BTS."""
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Text, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -16,6 +16,10 @@ class BTSReleve(Base):
     charge = Column(Float, nullable=True)
     taux_saturation = Column(Float, nullable=True)
     rendement = Column(Float, nullable=True)
+    debit = Column(Float, nullable=True)
+    connexions = Column(Integer, nullable=True)
+    latence = Column(Float, nullable=True)
+    statut = Column(String(20), nullable=False, server_default="actif")
     commentaire = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

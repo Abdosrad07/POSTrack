@@ -1,0 +1,3 @@
+LIVE /api/partenaires no-auth -> 401
+LIVE /api/hierarchy no-auth -> 401
+LISTEN pid=984 name=python start=08/22/2026 14:10:26

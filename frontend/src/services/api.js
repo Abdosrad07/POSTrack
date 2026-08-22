@@ -30,12 +30,19 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const redirectToLogin = () => {
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.location.replace('/login');
+  }
+};
+
 const clearSessionAndRedirect = () => {
   localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
   localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
   localStorage.removeItem(STORAGE_KEYS.USER);
   localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
   localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT);
+  redirectToLogin();
 };
 
 export const clearAuthSession = () => {
@@ -45,6 +52,10 @@ export const clearAuthSession = () => {
   localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
   localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT);
 };
+
+/** Ramène "/api/xxx" à "/xxx" (la baseURL contient déjà /api). */
+const stripApiRoot = (url) =>
+  url && !url.startsWith('http') && url.startsWith('/api/') ? url.slice(4) : url;
 
 const shouldSkipPartnerPrefix = (config) => {
   if (config.skipPartnerPrefix) return true;
@@ -85,20 +96,28 @@ const normalizeApiError = (error) => {
 };
 
 /**
- * Réécrit les URLs métier en /api/partners/{partner_id}/...
- * Ex. /pos → /api/partners/3/pos
+ * Réécrit les URLs métier en /partners/{partner_id}/...
+ * Le résultat est RELATIF à la racine de l'API : la baseURL axios contient
+ * déjà le préfixe /api (ex. http://localhost:8000/api), donc renvoyer
+ * /api/partners/... produirait /api/api/partners/... côté serveur.
+ * Ex. /pos → /partners/3/pos → GET http://localhost:8000/api/partners/3/pos
  */
 export const applyPartnerPrefix = (url, partnerId) => {
   if (!url || !partnerId) return url;
   if (url.startsWith('http')) return url;
-  const normalized = url.startsWith('/') ? url : `/${url}`;
-  if (normalized.startsWith('/api/')) return normalized;
+  const withoutApiRoot = url.startsWith('/api/') ? url.slice(4) : url;
+  const normalized = withoutApiRoot.startsWith('/') ? withoutApiRoot : `/${withoutApiRoot}`;
   if (normalized.startsWith('/partners/')) return normalized;
-  return `/api/partners/${partnerId}${normalized}`;
+  return `/partners/${partnerId}${normalized}`;
 };
 
 api.interceptors.request.use(
   (config) => {
+    // Les chemins écrits en absolu ("/api/auth/...") sont ramenés à la
+    // racine de l'API : la baseURL contient déjà /api, sinon axios
+    // concatènerait et produirait "/api/api/..." (404 côté backend).
+    config.url = stripApiRoot(config.url);
+
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import api from '../../services/api'
 import Logo from '../../assets/logos/LOGO.jpeg'
+import dsmService from '../../services/dsmService'
 export default function DSMListPage() {
   const [dsms, setDsms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -14,13 +14,20 @@ export default function DSMListPage() {
     let mounted = true
     const fetchDsms = async () => {
       try {
-        const response = await api.get('/dsm')
-        const raw = response.data.data || response.data || []
+        const response = await dsmService.getAll({ limit: 100 })
+        const payload = response.data ?? {}
+        const raw = Array.isArray(payload.items)
+          ? payload.items
+          : Array.isArray(payload.data)
+            ? payload.data
+            : Array.isArray(payload)
+              ? payload
+              : []
         const data = raw.map((d) => ({
           ...d,
-          nom: d.nom || d.nom_complet,
-          region: d.region || d.zone_couverture,
-          statut: (d.statut || 'ACTIF').toLowerCase(),
+          nom: d.nom || d.full_name || d.name,
+          region: d.region || d.zone,
+          statut: (d.statut || (d.is_active === false ? 'INACTIF' : 'ACTIF')).toLowerCase(),
         }))
         if (mounted) {
           setDsms(data)
@@ -40,10 +47,11 @@ export default function DSMListPage() {
   const selectedDSM = dsms.find((d) => d.id === Number(selectedId))
 
   const filteredDsms = dsms.filter((d) => {
+    const term = searchTerm.toLowerCase()
     const matchesSearch =
-      d.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.region?.toLowerCase().includes(searchTerm.toLowerCase())
+      (d.nom || '').toLowerCase().includes(term) ||
+      (d.email || '').toLowerCase().includes(term) ||
+      (d.region || '').toLowerCase().includes(term)
     const matchesStatus = statusFilter ? d.statut === statusFilter : true
     return matchesSearch && matchesStatus
   })

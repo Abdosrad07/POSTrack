@@ -11,8 +11,15 @@ import { filterNavByRole } from '../../utils/roles';
 const Sidebar = ({ open = false, onClose }) => {
   const { user } = useAuth();
   const { partner, clearPartner } = usePartner();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const items = useMemo(() => filterNavByRole(NAV_ITEMS, user), [user]);
+
+  const handleLogout = async () => {
+    await logout();
+    onClose?.();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <>
@@ -69,7 +76,16 @@ const Sidebar = ({ open = false, onClose }) => {
         </nav>
 
         <div className="border-t border-slate-100 px-4 py-3 text-xs text-slate-400">
-          POSTrack · v3.1-R7
+          <div className="space-y-3">
+            <div>POSTrack · v3.1-R7</div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex w-full items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+            >
+              Déconnexion
+            </button>
+          </div>
         </div>
       </aside>
     </>

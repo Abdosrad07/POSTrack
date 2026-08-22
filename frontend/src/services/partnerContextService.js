@@ -9,6 +9,16 @@ const normalizeList = (data) => {
   return [];
 };
 
+const normalizePartner = (partner) => ({
+  ...partner,
+  id: partner?.id,
+  name: partner?.name ?? partner?.nom ?? partner?.raison_sociale ?? '',
+  code: partner?.code ?? partner?.code_partenaire ?? '',
+  address: partner?.address ?? partner?.adresse ?? null,
+  ville: partner?.ville ?? null,
+  region: partner?.region ?? null,
+});
+
 /**
  * Partenaires autorisés pour l'utilisateur connecté.
  * Contrat cible R7 : GET /auth/partenaires/available (fallback GET /partenaires).
@@ -25,7 +35,7 @@ export const partnerContextService = {
           },
         });
         btsDebug.snapshot('Réponse auth/partenaires/available', response.data)
-        return normalizeList(response.data);
+        return normalizeList(response.data).map(normalizePartner);
       } catch (error) {
         if (error.response?.status === 404) {
           btsDebug.warn('Route /auth/partenaires/available introuvable, fallback sur /partenaires')
@@ -34,7 +44,7 @@ export const partnerContextService = {
             skipPartnerPrefix: true,
           });
           btsDebug.snapshot('Réponse partenaires fallback', response.data)
-          return normalizeList(response.data);
+          return normalizeList(response.data).map(normalizePartner);
         }
         throw error;
       }
@@ -42,7 +52,7 @@ export const partnerContextService = {
       if (error.code === 'ERR_NETWORK' || !error.response) {
         btsDebug.warn('Réseau indisponible pour les partenaires, fallback mock')
         const fallback = getMockPartnersForRole(user?.role) || mockPartners;
-        return fallback.map((partner) => ({ ...partner, __mock: true }));
+        return fallback.map((partner) => normalizePartner({ ...partner, __mock: true }));
       }
       btsDebug.error('Erreur partenaires', error?.response?.status, error?.response?.data || error.message)
       throw error;

@@ -5,8 +5,10 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.api.deps import get_current_user, get_partner_context
 from app.crud.bts_crud import bts_crud, bts_releve_crud
+from app.models.bts import BTS
+from app.models.bts_releve import BTSReleve
 from app.models.user import User
-from app.schemas.bts import BTSCreate, BTSOut, BTSReleveCreate, BTSReleveOut
+from app.schemas.bts import BTSCreate, BTSOut, BTSReleveCreate, BTSReleveListOut, BTSReleveOut
 from app.schemas.pagination import Page
 from app.services.bts_service import create_bts as create_bts_service, get_bts_in_partner, add_releve
 from app.services import audit_service
@@ -25,6 +27,33 @@ def list_bts(partner_id: int = Depends(get_partner_context), skip: int = 0,
 def create_bts(payload: BTSCreate, partner_id: int = Depends(get_partner_context),
                db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return create_bts_service(db, partner_id=partner_id, user_id=user.id, data=payload.model_dump())
+
+
+@router.get("/releves", response_model=list[BTSReleveListOut])
+def list_partner_releves(partner_id: int = Depends(get_partner_context),
+                         db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    """Tous les relevés des BTS du Partenaire courant, denormalisés
+    (bts_nom, code, charge, debit, connexions, latence, statut, date_releve, rendement)."""
+    rows = (
+        db.query(
+            BTSReleve.id.label("id"),
+            BTSReleve.bts_id.label("bts_id"),
+            BTS.code_bts.label("bts_nom"),
+            BTS.code_bts.label("code"),
+            BTSReleve.charge.label("charge"),
+            BTSReleve.debit.label("debit"),
+            BTSReleve.connexions.label("connexions"),
+            BTSReleve.latence.label("latence"),
+            BTSReleve.statut.label("statut"),
+            BTSReleve.date_releve.label("date_releve"),
+            BTSReleve.rendement.label("rendement"),
+        )
+        .join(BTS, BTSReleve.bts_id == BTS.id)
+        .filter(BTS.partner_id == partner_id)
+        .order_by(BTSReleve.date_releve.desc())
+        .all()
+    )
+    return [dict(r._mapping) for r in rows]
 
 
 @router.get("/{bts_id}", response_model=BTSOut)

@@ -19,7 +19,7 @@ const Header = ({ onToggleSidebar }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/', { replace: true });
+    navigate('/login', { replace: true });
   };
 
   return (

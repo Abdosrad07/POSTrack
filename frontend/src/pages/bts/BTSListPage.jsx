@@ -61,20 +61,14 @@ export default function BTSListPage() {
       setError(null)
       const partnerId = localStorage.getItem(STORAGE_KEYS.PARTNER_CONTEXT_ID)
       btsDebug.log('BTSListPage fetch', { partnerId, userRole: user?.role })
-      let response
-      try {
-        const url = partnerId ? `/api/partners/${partnerId}/bts` : '/bts'
-        btsDebug.log('BTSListPage request URL', url)
-        response = await api.get(url, { skipPartnerPrefix: true })
-      } catch (nestedError) {
-        if (nestedError.response?.status === 404 || nestedError.response?.status === 422) {
-          btsDebug.warn('BTSListPage fallback /bts', nestedError.response?.status)
-          response = await api.get('/bts', { skipPartnerPrefix: true })
-        } else {
-          throw nestedError
-        }
-      }
-      const raw = response.data.data || response.data || []
+      // Route backend unique : /api/partners/{id}/bts. L'intercepteur de
+      // api.js ajoute automatiquement le préfixe partenaire depuis le
+      // contexte local (pas d'URL absolue ni de fallback ici : un appel
+      // sans contexte partenaire est rejeté avant la requête).
+      const response = await api.get('/bts')
+      // Backend v4 : enveloppe Page { items, total, ... }.
+      const payload = response.data ?? {}
+      const raw = Array.isArray(payload) ? payload : payload.items ?? payload.data ?? []
       btsDebug.snapshot('BTSListPage response shape', { isArray: Array.isArray(raw), length: raw.length, first: raw[0] })
       const normalized = raw.map(normalizeBts)
       setBtsList(normalized)

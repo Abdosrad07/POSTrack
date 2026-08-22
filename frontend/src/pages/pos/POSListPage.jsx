@@ -23,23 +23,33 @@ export default function POSListPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    partenaireService.getAll({ limit: 100 }).then((r) => setPartenaires(r.data?.data ?? r.data ?? []));
-    dsmService.getAll({ limit: 100 }).then((r) => setDsms(r.data?.data ?? r.data ?? []));
+    partenaireService.getAll({ limit: 100 }).then((r) => {
+      const data = r.data?.items ?? r.data?.data ?? r.data ?? [];
+      setPartenaires(Array.isArray(data) ? data : []);
+    });
+    dsmService.getAll({ limit: 100 }).then((r) => {
+      const data = r.data?.items ?? r.data?.data ?? r.data ?? [];
+      setDsms(Array.isArray(data) ? data : []);
+    });
   }, []);
 
   const fetchPOS = useCallback((page = 1) => {
     setStatus('loading');
     const params = Object.fromEntries(
-      Object.entries({ page, limit: PAGE_SIZE, ...filters, ...sort }).filter(([, v]) => v !== '' && v != null)
+      Object.entries({
+        skip: (page - 1) * PAGE_SIZE,
+        limit: PAGE_SIZE,
+        ...filters,
+        ...sort,
+      }).filter(([, v]) => v !== '' && v != null)
     );
     posService
       .getAll(params)
       .then((res) => {
-        const data = res.data?.data ?? res.data ?? [];
-        const pag = res.data?.pagination ?? { page: 1, pages: 1, total: data.length };
-        setRows(data);
-        setPagination(pag);
-        setStatus(data.length === 0 ? 'empty' : 'success');
+        const data = res.data?.items ?? res.data?.data ?? res.data ?? [];
+        const items = Array.isArray(data) ? data : [];
+        setRows(items);
+        setStatus(items.length === 0 ? 'empty' : 'success');
       })
       .catch(() => {
         setError("Impossible de charger la liste des POS.");

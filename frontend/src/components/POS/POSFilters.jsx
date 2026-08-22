@@ -4,6 +4,8 @@ const STATUTS = ['ACTIF', 'SUSPENDU', 'RENOUVELLEMENT', 'CLOTURE'];
 const TYPES = ['NOUVEAU', 'RECONDUIT'];
 
 export default function POSFilters({ partenaires = [], dsms = [], onFilter }) {
+  const safePartenaires = Array.isArray(partenaires) ? partenaires : [];
+  const safeDsms = Array.isArray(dsms) ? dsms : [];
   const [filters, setFilters] = useState({
     search: '',
     statut: '',
@@ -68,7 +70,10 @@ export default function POSFilters({ partenaires = [], dsms = [], onFilter }) {
           className="w-44 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
         >
           <option value="">Tous</option>
-          {partenaires.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
+          {safePartenaires.map((p) => {
+            const label = p?.nom || p?.name || p?.code_partenaire || p?.code || `Partenaire #${p?.id ?? ''}`;
+            return <option key={p.id} value={p.id}>{label}</option>;
+          })}
         </select>
       </div>
 
@@ -80,7 +85,10 @@ export default function POSFilters({ partenaires = [], dsms = [], onFilter }) {
           className="w-44 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
         >
           <option value="">Tous</option>
-          {dsms.map((d) => <option key={d.id} value={d.id}>{d.nom_complet}</option>)}
+          {safeDsms.map((d) => {
+            const label = d?.nom_complet || d?.full_name || d?.nom || d?.name || `DSM #${d?.id ?? ''}`;
+            return <option key={d.id} value={d.id}>{label}</option>;
+          })}
         </select>
       </div>
 

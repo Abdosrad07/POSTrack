@@ -22,6 +22,29 @@ type PosRow = {
   partenaire?: { nom: string }
 }
 
+const normalizePosRows = (payload: any): PosRow[] => {
+  const rows = Array.isArray(payload?.items)
+    ? payload.items
+    : Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload?.results)
+        ? payload.results
+        : Array.isArray(payload)
+          ? payload
+          : []
+
+  return rows.map((row: any) => ({
+    id: row?.id,
+    code_pos: row?.code_pos || row?.code || '',
+    nom: row?.nom || row?.name || '',
+    statut: row?.statut || row?.status || '',
+    type_pos: row?.type_pos || row?.type || '',
+    partenaire: row?.partenaire
+      ? { nom: row.partenaire?.nom || row.partenaire?.name || row.partenaire?.code_partenaire || '' }
+      : undefined,
+  }))
+}
+
 function Dashboard() {
   const { partnerContextId, partner, user } = usePartner() as any
   const [stats, setStats] = useState<Stats | null>(null)
@@ -31,6 +54,14 @@ function Dashboard() {
   useEffect(() => {
     let ignore = false
     const load = async () => {
+      if (!partnerContextId) {
+        if (!ignore) {
+          setStats(null)
+          setRecentPos([])
+          setLoading(false)
+        }
+        return
+      }
       try {
         const [statsRes, posRes] = await Promise.all([
           analyticsService.getDashboard(partnerContextId),
@@ -38,7 +69,7 @@ function Dashboard() {
         ])
         if (!ignore) {
           setStats(statsRes.data)
-          setRecentPos(posRes.data?.data ?? [])
+          setRecentPos(normalizePosRows(posRes.data))
         }
       } catch {
         if (!ignore) {
@@ -67,6 +98,12 @@ function Dashboard() {
           </span>
         </div>
       </div>
+
+      {!loading && !partnerContextId ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Sélectionnez un partenaire pour afficher les statistiques du dashboard.
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total POS" value={stats?.total_pos} loading={loading} />

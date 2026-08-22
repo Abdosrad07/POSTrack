@@ -26,13 +26,17 @@ export default function PartenairesListPage() {
         setLoading(true)
         const response = await api.get('/partenaires')
         const raw = response.data.data || response.data || []
-        const data = raw.map((p: Partenaire) => ({
-          ...p,
-          email: p.email || '',
-          telephone: p.telephone || '',
-          pos_count: p.pos_count ?? 0,
-          statut: (p.statut || 'ACTIF').toLowerCase(),
-        }))
+        const list = Array.isArray(raw) ? raw : []
+        const data = list
+          .filter((p): p is Partenaire & Record<string, any> => !!p && typeof p.id === 'number')
+          .map((p: Partial<Partenaire> & Record<string, any>) => ({
+            id: p.id,
+            nom: p.nom || p.name || p.raison_sociale || `Partenaire #${p.id}`,
+            email: p.email || '',
+            telephone: p.telephone || '',
+            pos_count: p.pos_count ?? 0,
+            statut: ((p.statut || 'ACTIF') as string).toLowerCase(),
+          }) as Partenaire)
         if (!ignore) {
           setPartenaires(data)
         }
@@ -57,8 +61,13 @@ export default function PartenairesListPage() {
     }
   }, [])
 
+  const toSafeLower = (value: unknown) => (typeof value === 'string' ? value.toLowerCase() : String(value ?? '').toLowerCase())
+
   const filteredPartenaires = partenaires.filter((p: Partenaire) => {
-    const matchesSearch = p.nom.toLowerCase().includes(searchTerm.toLowerCase()) || p.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const nom = toSafeLower(p.nom)
+    const email = toSafeLower(p.email)
+    const needle = toSafeLower(searchTerm)
+    const matchesSearch = nom.includes(needle) || email.includes(needle)
     const matchesStatus = statusFilter ? p.statut === statusFilter : true
     return matchesSearch && matchesStatus
   })

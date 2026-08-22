@@ -92,13 +92,6 @@ export const NAV_ITEMS = [
     roles: ROLE_GROUPS.PARTNER_PORTFOLIO,
   },
   {
-    id: 'unauthorized',
-    to: '/unauthorized',
-    label: 'Accès refusé',
-    end: true,
-    roles: ROLE_GROUPS.ALL,
-  },
-  {
     id: 'partenaires',
     to: '/partenaires',
     label: 'Partenaires',

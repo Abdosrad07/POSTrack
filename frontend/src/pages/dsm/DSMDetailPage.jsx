@@ -1,23 +1,33 @@
-import { useParams, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import api from '../../services/api'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import dsmService from '../../services/dsmService'
 
 export default function DSMDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [dsm, setDsm] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     let active = true
     const fetchDsm = async () => {
       try {
-        const response = await api.get(`/dsm/${id}`)
+        setLoading(true)
+        setError('')
+        const response = await dsmService.getById(id)
         if (active) {
-          setDsm(response.data || null)
+          const data = response?.data || null
+          setDsm(data ? {
+            ...data,
+            nom: data.nom || data.full_name || data.name,
+            region: data.region || data.zone,
+            statut: data.statut || (data.is_active === false ? 'INACTIF' : 'ACTIF'),
+          } : null)
         }
       } catch (error) {
         if (active) {
+          setError(error?.apiMessage || error?.message || 'Impossible de charger le détail du DSM.')
           setDsm(null)
         }
       } finally {
@@ -38,7 +48,7 @@ export default function DSMDetailPage() {
   if (!dsm) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800">
-        <p>DSM introuvable.</p>
+        <p>{error || 'DSM introuvable.'}</p>
         <button
           type="button"
           onClick={() => navigate('/dsm')}
@@ -70,19 +80,19 @@ export default function DSMDetailPage() {
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <h2 className="text-sm font-semibold text-gray-600">Nom</h2>
-            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.nom}</p>
+            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.nom || dsm.full_name || dsm.name || '—'}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <h2 className="text-sm font-semibold text-gray-600">Email</h2>
-            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.email}</p>
+            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.email || '—'}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <h2 className="text-sm font-semibold text-gray-600">Région</h2>
-            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.region}</p>
+            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.region || dsm.zone || '—'}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <h2 className="text-sm font-semibold text-gray-600">Statut</h2>
-            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.statut}</p>
+            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.statut || '—'}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:col-span-2">
             <h2 className="text-sm font-semibold text-gray-600">Téléphone</h2>
