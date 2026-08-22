@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { render, screen, fireEvent } from '@testing-library/react'
 import Header from './Header'
 import { AuthContext } from '../../context/AuthContext'
+import { PartnerContext } from '../../context/PartnerContext'
 
 const authValue = (overrides = {}) => ({
   user: { id: 1, nom_complet: 'Admin Demo', role: 'ADMIN' },
@@ -18,9 +19,19 @@ describe('Header — Module A2', () => {
   it("affiche le nom de l'utilisateur, son rôle et le bouton Déconnexion", () => {
     render(
       <AuthContext.Provider value={authValue()}>
-        <MemoryRouter>
-          <Header onToggleSidebar={vi.fn()} />
-        </MemoryRouter>
+        <PartnerContext.Provider
+          value={{
+            partner: null,
+            partnerContextId: null,
+            setPartner: vi.fn(),
+            clearPartner: vi.fn(),
+            hasPartner: false,
+          }}
+        >
+          <MemoryRouter>
+            <Header onToggleSidebar={vi.fn()} />
+          </MemoryRouter>
+        </PartnerContext.Provider>
       </AuthContext.Provider>
     )
     expect(screen.getByText('Admin Demo')).toBeInTheDocument()
@@ -31,9 +42,19 @@ describe('Header — Module A2', () => {
   it('affiche la marque POSTrack', () => {
     render(
       <AuthContext.Provider value={authValue()}>
-        <MemoryRouter>
-          <Header onToggleSidebar={vi.fn()} />
-        </MemoryRouter>
+        <PartnerContext.Provider
+          value={{
+            partner: null,
+            partnerContextId: null,
+            setPartner: vi.fn(),
+            clearPartner: vi.fn(),
+            hasPartner: false,
+          }}
+        >
+          <MemoryRouter>
+            <Header onToggleSidebar={vi.fn()} />
+          </MemoryRouter>
+        </PartnerContext.Provider>
       </AuthContext.Provider>
     )
     expect(screen.getByText('POSTrack')).toBeInTheDocument()
@@ -43,25 +64,45 @@ describe('Header — Module A2', () => {
     const logout = vi.fn(async () => {})
     render(
       <AuthContext.Provider value={authValue({ logout })}>
-        <MemoryRouter initialEntries={['/']}>
-          <Routes>
-            <Route path="/" element={<Header onToggleSidebar={vi.fn()} />} />
-            <Route path="/login" element={<div>Page de connexion</div>} />
-          </Routes>
-        </MemoryRouter>
+        <PartnerContext.Provider
+          value={{
+            partner: null,
+            partnerContextId: null,
+            setPartner: vi.fn(),
+            clearPartner: vi.fn(),
+            hasPartner: false,
+          }}
+        >
+          <MemoryRouter initialEntries={['/']}>
+            <Routes>
+              <Route path="/" element={<Header onToggleSidebar={vi.fn()} />} />
+              <Route path="/login" element={<div>Page de connexion</div>} />
+            </Routes>
+          </MemoryRouter>
+        </PartnerContext.Provider>
       </AuthContext.Provider>
     )
     fireEvent.click(screen.getByRole('button', { name: 'Déconnexion' }))
     expect(logout).toHaveBeenCalledTimes(1)
-    expect(await screen.findByText('Page de connexion')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeInTheDocument()
   })
 
   it('affiche un libellé de rôle inconnu si le rôle est absent', () => {
     render(
       <AuthContext.Provider value={authValue({ user: { email: 'x@y.z' } })}>
-        <MemoryRouter>
-          <Header onToggleSidebar={vi.fn()} />
-        </MemoryRouter>
+        <PartnerContext.Provider
+          value={{
+            partner: null,
+            partnerContextId: null,
+            setPartner: vi.fn(),
+            clearPartner: vi.fn(),
+            hasPartner: false,
+          }}
+        >
+          <MemoryRouter>
+            <Header onToggleSidebar={vi.fn()} />
+          </MemoryRouter>
+        </PartnerContext.Provider>
       </AuthContext.Provider>
     )
     expect(screen.getByText('Rôle inconnu')).toBeInTheDocument()

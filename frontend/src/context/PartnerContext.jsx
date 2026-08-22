@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { queryClient } from '../lib/queryClient';
 import { STORAGE_KEYS } from '../utils/constants';
-import useAuth from '../hooks/useAuth';
 
 export const PartnerContext = createContext(null);
 
@@ -26,7 +25,6 @@ const readStoredPartner = () => {
 };
 
 export const PartnerProvider = ({ children }) => {
-  const { isAuthenticated, loading: authLoading } = useAuth();
   const initial = readStoredPartner();
   const [partnerContextId, setPartnerContextId] = useState(initial.partnerContextId);
   const [partner, setPartnerState] = useState(initial.partner);
@@ -53,18 +51,6 @@ export const PartnerProvider = ({ children }) => {
     // Invalide caches React Query pour éviter le mélange de données entre partenaires
     queryClient.clear();
   }, [clearPartner]);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      clearPartner();
-    }
-  }, [authLoading, isAuthenticated, clearPartner]);
-
-  useEffect(() => {
-    if (!authLoading && isAuthenticated && !partnerContextId && partner) {
-      clearPartner();
-    }
-  }, [authLoading, isAuthenticated, partnerContextId, partner, clearPartner]);
 
   const value = useMemo(
     () => ({

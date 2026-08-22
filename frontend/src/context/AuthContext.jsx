@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
       if (!storedToken) {
-        clearAuthSession();
         setLoading(false);
         return;
       }

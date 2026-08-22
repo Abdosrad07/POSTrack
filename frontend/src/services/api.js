@@ -36,9 +36,6 @@ const clearSessionAndRedirect = () => {
   localStorage.removeItem(STORAGE_KEYS.USER);
   localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
   localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT);
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login';
-  }
 };
 
 export const clearAuthSession = () => {
@@ -134,7 +131,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.code === 'NO_PARTNER_CONTEXT') {
-      if (window.location.pathname !== '/select-partner' && window.location.pathname !== '/login') {
+      if (window.location.pathname !== '/select-partner') {
         window.location.href = '/select-partner';
       }
       return Promise.reject(error);

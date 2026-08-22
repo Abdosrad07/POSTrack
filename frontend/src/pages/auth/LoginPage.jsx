@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import usePartner from '../../hooks/usePartner';
 import Button from '../../components/Common/Button/Button';
@@ -19,7 +19,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedMock, setSelectedMock] = useState(null);
-  const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const { login } = useAuth();
   let hasPartner = false;
   try {
     ({ hasPartner } = usePartner());
@@ -27,10 +27,6 @@ const LoginPage = () => {
     hasPartner = false;
   }
   const navigate = useNavigate();
-
-  if (!authLoading && isAuthenticated) {
-    return <Navigate to={hasPartner ? '/' : '/select-partner'} replace />;
-  }
 
   const goAfterLogin = () => {
     navigate('/select-partner', { replace: true });

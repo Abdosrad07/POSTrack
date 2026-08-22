@@ -20,7 +20,6 @@ import SimsStockPage from './pages/sims/SimsStockPage'
 import RequetesListPage from './pages/requetes/RequetesListPage'
 import ImportExportPage from './pages/import-export/ImportExportPage'
 import AuditLogsPage from './pages/audit/AuditLogsPage'
-import ProtectedRoute from './routes/ProtectedRoute'
 import PartnerRoute from './routes/PartnerRoute'
 import { AuthProvider } from './context/AuthContext'
 import { PartnerProvider } from './context/PartnerContext'
@@ -35,14 +34,7 @@ function App() {
       <PartnerProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/select-partner"
-            element={
-              <ProtectedRoute>
-                <SelectPartnerPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/select-partner" element={<SelectPartnerPage />} />
           <Route
             element={
               <PartnerRoute>

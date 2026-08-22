@@ -151,7 +151,7 @@ describe('App — Module A1', () => {
     vi.clearAllMocks()
   })
 
-  it('affiche le Dashboard lorsque JWT + PartnerContext sont présents', async () => {
+  it('affiche le Dashboard lorsque le PartnerContext est présent', async () => {
     renderApp(['/'])
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()

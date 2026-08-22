@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import usePartner from '../../hooks/usePartner';
 import { partnerContextService } from '../../services/partnerContextService';
@@ -8,7 +8,7 @@ import Button from '../../components/Common/Button/Button';
 import Alert from '../../components/Common/Alert/Alert';
 
 const SelectPartnerPage = () => {
-  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const { setPartner, hasPartner, partner } = usePartner();
   const navigate = useNavigate();
 
@@ -47,14 +47,12 @@ const SelectPartnerPage = () => {
       }
     };
 
-    if (isAuthenticated && user) {
-      loadPartners();
-    }
+    loadPartners();
 
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, user, setPartner, navigate]);
+  }, [user, setPartner]);
 
   if (authLoading) {
     return (
@@ -64,14 +62,11 @@ const SelectPartnerPage = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
   const handleSelect = (item) => {
     setSelectingId(item.id);
     setPartner(item);
     setSelectedId(item.id);
+    setSelectingId(null);
   };
 
   const handleConfirmSelection = () => {
