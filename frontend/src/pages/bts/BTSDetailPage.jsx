@@ -4,7 +4,6 @@ import api from '../../services/api'
 import SaturationGauge from '../../components/BTS/SaturationGauge'
 import CarteBTS from '../../components/BTS/CarteBTS'
 import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
-import { getMockBtsForRole } from '../../mocks/bts'
 import { STORAGE_KEYS } from '../../utils/constants'
 import btsDebug from '../../utils/btsDebug'
 
@@ -70,28 +69,16 @@ export default function BTSDetailPage() {
         setSelectedBts(detail ? normalizeBts(detail) : null)
       } catch (err) {
         btsDebug.error('BTSDetailPage error', err?.response?.status, err?.response?.data || err.message)
-        const fallbackList = getMockBtsForRole(user?.role)
-        const fallbackDetail = fallbackList.find((item) => String(item.id) === String(id)) || fallbackList[0]
-        if (fallbackDetail) {
-          btsDebug.warn('BTSDetailPage fallback mock used', fallbackDetail)
-          setBts(fallbackDetail)
-          setBtsList(fallbackList)
-          setSelectedBts(fallbackDetail)
-          setError(null)
-        } else {
-          setError(err?.apiMessage || 'Impossible de charger les détails de la BTS.')
-        }
+        setBts(null)
+        setBtsList([])
+        setSelectedBts(null)
+        setError(err?.apiMessage || 'Impossible de charger les détails de la BTS.')
       } finally {
         setLoading(false)
       }
     }
     fetchData()
   }, [id])
-
-  const mapList = useMemo(
-    () => (selectedBts ? [selectedBts, ...btsList.filter((b) => b.id !== selectedBts.id)] : btsList),
-    [selectedBts, btsList]
-  )
 
   if (loading) {
     return (
@@ -123,6 +110,10 @@ export default function BTSDetailPage() {
   }
 
   const current = selectedBts || normalizeBts(bts)
+  const mapList = useMemo(
+    () => (current ? [current, ...btsList.filter((item) => item.id !== current.id)] : btsList),
+    [current, btsList]
+  )
 
   return (
     <div className="space-y-8">

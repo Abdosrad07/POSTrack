@@ -32,8 +32,7 @@ export default function DSMCreatePage() {
       setTimeout(() => navigate('/dsm'), 700)
     } catch (err) {
       console.error(err)
-      setError('Erreur lors de la création. Mode mock utilisé.')
-      setTimeout(() => navigate('/dsm'), 700)
+      setError('Erreur lors de la création. Vérifiez le backend et réessayez.')
     } finally {
       setLoading(false)
     }

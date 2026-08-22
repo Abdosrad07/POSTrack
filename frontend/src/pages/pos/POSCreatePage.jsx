@@ -7,7 +7,7 @@ export default function POSCreatePage() {
   const navigate = useNavigate()
   const [serial, setSerial] = useState('')
   const [modele, setModele] = useState('')
-  const [partenaire, setPartenaire] = useState('')
+  const [partenaireId, setPartenaireId] = useState('')
   const [partenaires, setPartenaires] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -36,13 +36,16 @@ export default function POSCreatePage() {
         setLoading(false)
         return
       }
-      await api.post('/pos', { serial, modele, partenaire })
+      await api.post('/pos', {
+        serial,
+        modele,
+        partenaire_id: partenaireId ? Number(partenaireId) : null,
+      })
       setSuccess('POS créé avec succès')
       setTimeout(() => navigate('/pos'), 700)
     } catch (err) {
       console.error(err)
-      setError('Erreur lors de la création. Mode mock utilisé.')
-      setTimeout(() => navigate('/pos'), 700)
+      setError('Erreur lors de la création. Vérifiez le backend et réessayez.')
     } finally {
       setLoading(false)
     }
@@ -68,10 +71,10 @@ export default function POSCreatePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Partenaire</label>
-            <select value={partenaire} onChange={(e)=>setPartenaire(e.target.value)} className="mt-1 block w-full rounded-md border px-3 py-2">
+            <select value={partenaireId} onChange={(e)=>setPartenaireId(e.target.value)} className="mt-1 block w-full rounded-md border px-3 py-2">
               <option value="">-- Aucun --</option>
               {partenaires.map(p => (
-                <option key={p.id} value={p.nom}>{p.nom}</option>
+                <option key={p.id} value={p.id}>{p.nom}</option>
               ))}
             </select>
           </div>

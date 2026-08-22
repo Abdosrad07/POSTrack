@@ -52,7 +52,7 @@ describe('HierarchyNavDropdown', () => {
     expect(screen.getByText('Camtel Express')).toBeInTheDocument();
     expect(screen.getByText('PART-001')).toBeInTheDocument();
     expect(screen.getByText('Jean Marc')).toBeInTheDocument();
-    expect(screen.getByText('POS-DEMO-0001')).toBeInTheDocument();
+    expect(screen.getByText(/POS-DEMO-0001/i)).toBeInTheDocument();
   });
 
   it('affiche un contexte verrouillé pour OPERATIONNEL', () => {

@@ -6,7 +6,7 @@ import Alert from '../../components/Common/Alert/Alert'
 export default function PrimeCreatePage() {
 	const navigate = useNavigate()
 	const [pos, setPos] = useState('')
-	const [partenaire, setPartenaire] = useState('')
+	const [partenaireId, setPartenaireId] = useState('')
 	const [partenaires, setPartenaires] = useState([])
 	const [montant, setMontant] = useState('')
 	const [date, setDate] = useState('')
@@ -37,13 +37,12 @@ export default function PrimeCreatePage() {
 				setLoading(false)
 				return
 			}
-			await api.post('/primes', { pos, partenaire, montant, date })
+			await api.post('/primes', { pos, partenaire_id: partenaireId || null, montant, date })
 			setSuccess('Prime créée avec succès')
 			setTimeout(() => navigate('/primes'), 700)
 		} catch (err) {
 			console.error(err)
-			setError('Erreur lors de la création. Mode mock utilisé.')
-			setTimeout(() => navigate('/primes'), 700)
+			setError('Erreur lors de la création. Vérifiez le backend et réessayez.')
 		} finally {
 			setLoading(false)
 		}
@@ -65,10 +64,10 @@ export default function PrimeCreatePage() {
 					</div>
 					<div>
 						<label className="block text-sm font-medium text-gray-700">Partenaire</label>
-						<select value={partenaire} onChange={(e)=>setPartenaire(e.target.value)} className="mt-1 block w-full rounded-md border px-3 py-2">
+						<select value={partenaireId} onChange={(e)=>setPartenaireId(e.target.value)} className="mt-1 block w-full rounded-md border px-3 py-2">
 							<option value="">-- Aucun --</option>
 							{partenaires.map(p => (
-								<option key={p.id} value={p.nom}>{p.nom}</option>
+								<option key={p.id} value={p.id}>{p.nom}</option>
 							))}
 						</select>
 					</div>

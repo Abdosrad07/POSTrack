@@ -2,7 +2,6 @@ import React from 'react';
 import PageHeader from '../../components/Common/PageHeader/PageHeader';
 import EmptyState from '../../components/Common/EmptyState/EmptyState';
 
-/** Stub administration — journaux d'audit (ADMIN). */
 const AuditLogsPage = () => (
   <div>
     <PageHeader
@@ -11,8 +10,9 @@ const AuditLogsPage = () => (
       breadcrumbs={['Administration', 'Audit']}
     />
     <EmptyState
-      title="Journaux d'audit"
-      message="L'écran d'audit détaillé sera branché sur l'API audit existante."
+      title="Journal d'audit"
+      message="Le backend expose des traces d'audit, mais aucun endpoint frontend dédié n'est encore branché ici."
+      icon="📝"
     />
   </div>
 );

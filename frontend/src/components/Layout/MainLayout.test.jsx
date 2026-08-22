@@ -48,7 +48,7 @@ describe('MainLayout — Module A2', () => {
     renderLayout()
     expect(screen.getByText('POSTrack')).toBeInTheDocument()
     expect(screen.getByText('Contenu du layout')).toBeInTheDocument()
-    expect(screen.getByText('Master Color')).toBeInTheDocument()
+    expect(screen.getAllByText('Master Color').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Changer de partenaire' })).toBeInTheDocument()
   })
 

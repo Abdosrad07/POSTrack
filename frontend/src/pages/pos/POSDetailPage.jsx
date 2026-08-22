@@ -3,12 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import posService from '../../services/posService';
 import StatusBadge from '../../components/Common/StatusBadge';
 
-// Onglets qui pointent vers des modules hors de ton lot de travail (Reconductions,
-// Primes, SIM / Requêtes) — simples liens d'intégration, pas de logique ici.
+// Onglets qui pointent vers des modules intégrés à l'application.
 const LIENS_EXTERNES = [
-  { label: 'Reconductions', href: (id) => `/pos/${id}/reconductions` },
-  { label: 'Primes', href: (id) => `/pos/${id}/primes` },
-  { label: 'SIM', href: (id) => `/pos/${id}/sims` },
+  { label: 'Primes', href: () => '/primes' },
+  { label: 'SIM', href: () => '/sims' },
 ];
 
 export default function POSDetailPage() {
@@ -50,14 +48,14 @@ export default function POSDetailPage() {
           <h1 className="text-2xl font-semibold text-gray-900">{pos.code_pos} — {pos.nom}</h1>
           <div className="mt-2 flex items-center gap-2">
             <StatusBadge statut={pos.statut} />
-            <span className={`text-xs font-medium ${pos.type === 'RECONDUIT' ? 'text-gray-500' : 'text-emerald-700'}`}>
-              {pos.type}
+            <span className={`text-xs font-medium ${(pos.type_pos ?? pos.type) === 'RECONDUIT' ? 'text-gray-500' : 'text-emerald-700'}`}>
+              {pos.type_pos ?? pos.type}
             </span>
           </div>
         </div>
 
         <div className="flex gap-2">
-          <button onClick={() => navigate(`/pos/${id}/edit`)} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <button onClick={() => navigate(`/pos/${id}/modifier`)} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             Modifier
           </button>
           {pos.statut === 'ACTIF' && (

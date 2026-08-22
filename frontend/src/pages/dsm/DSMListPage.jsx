@@ -2,11 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import Logo from '../../assets/logos/LOGO.jpeg'
-const fallbackDsms = [
-  { id: 1, nom: 'DSM A', email: 'dsm.a@postrack.local', region: 'Nord', statut: 'actif' },
-  { id: 2, nom: 'DSM B', email: 'dsm.b@postrack.local', region: 'Sud', statut: 'actif' },
-  { id: 3, nom: 'DSM C', email: 'dsm.c@postrack.local', region: 'Est', statut: 'inactif' },
-]
 export default function DSMListPage() {
   const [dsms, setDsms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -32,7 +27,8 @@ export default function DSMListPage() {
         }
       } catch (err) {
         if (mounted) {
-          setDsms(fallbackDsms)
+          setError('Erreur lors de la récupération des DSMs.')
+          setDsms([])
         }
       } finally {
         if (mounted) setLoading(false)
@@ -176,10 +172,10 @@ export default function DSMListPage() {
         </div>
         {selectedId ? (
           <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
-            <h2 className="text-lg font-semibold text-indigo-900">{fallbackDsms.find((d) => d.id === Number(selectedId))?.nom || 'DSM'}</h2>
-            <p className="text-sm text-gray-700">Email: {fallbackDsms.find((d) => d.id === Number(selectedId))?.email || 'N/A'}</p>
-            <p className="mt-1 text-sm text-gray-700">Région: {fallbackDsms.find((d) => d.id === Number(selectedId))?.region || 'N/A'}</p>
-            <p className="mt-1 text-sm text-gray-700">Statut: {fallbackDsms.find((d) => d.id === Number(selectedId))?.statut || 'N/A'}</p>
+            <h2 className="text-lg font-semibold text-indigo-900">{selectedDSM?.nom || 'DSM'}</h2>
+            <p className="text-sm text-gray-700">Email: {selectedDSM?.email || 'N/A'}</p>
+            <p className="mt-1 text-sm text-gray-700">Région: {selectedDSM?.region || 'N/A'}</p>
+            <p className="mt-1 text-sm text-gray-700">Statut: {selectedDSM?.statut || 'N/A'}</p>
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">

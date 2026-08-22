@@ -2,12 +2,6 @@ import { useParams, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 
-const fallbackDsms = [
-  { id: 1, nom: 'DSM A', email: 'dsm.a@postrack.local', region: 'Nord', statut: 'actif', telephone: '+33 1 23 45 67 89' },
-  { id: 2, nom: 'DSM B', email: 'dsm.b@postrack.local', region: 'Sud', statut: 'actif', telephone: '+33 1 98 76 54 32' },
-  { id: 3, nom: 'DSM C', email: 'dsm.c@postrack.local', region: 'Est', statut: 'inactif', telephone: '+33 1 11 22 33 44' },
-]
-
 export default function DSMDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -24,7 +18,7 @@ export default function DSMDetailPage() {
         }
       } catch (error) {
         if (active) {
-          setDsm(fallbackDsms.find((item) => String(item.id) === String(id)) || null)
+          setDsm(null)
         }
       } finally {
         if (active) setLoading(false)

@@ -4,7 +4,6 @@ import api from '../../services/api'
 import CarteBTS from '../../components/BTS/CarteBTS'
 import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
 import Logo from '../../assets/logos/LOGO.jpeg'
-import { getMockBtsForRole, mockBts } from '../../mocks/bts'
 import { STORAGE_KEYS } from '../../utils/constants'
 import btsDebug from '../../utils/btsDebug'
 
@@ -79,14 +78,10 @@ export default function BTSListPage() {
       btsDebug.snapshot('BTSListPage response shape', { isArray: Array.isArray(raw), length: raw.length, first: raw[0] })
       const normalized = raw.map(normalizeBts)
       setBtsList(normalized)
-      if (!raw.length) {
-        btsDebug.warn('BTSListPage backend returned empty list, fallback mock')
-        setBtsList((getMockBtsForRole(user?.role) || mockBts).map(normalizeBts))
-      }
     } catch (err) {
       setError(err?.apiMessage || 'Erreur lors de la récupération des BTS.')
       btsDebug.error('BTSListPage error', err?.response?.status, err?.response?.data || err.message)
-      setBtsList((getMockBtsForRole(user?.role) || mockBts).map(normalizeBts))
+      setBtsList([])
     } finally {
       setLoading(false)
     }

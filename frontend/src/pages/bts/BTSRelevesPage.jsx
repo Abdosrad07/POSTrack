@@ -21,11 +21,7 @@ export default function BTSRelevesPage() {
         }
       } catch {
         if (!ignore) {
-          setReleves([
-            { id: 1, bts_id: 1, bts_nom: 'BTS Centrale Douala', code: 'BTS-001', charge: 85, debit: 120, connexions: 340, latence: 15, statut: 'actif', date_releve: '2026-08-12 08:00:00' },
-            { id: 2, bts_id: 1, bts_nom: 'BTS Centrale Douala', code: 'BTS-001', charge: 78, debit: 105, connexions: 310, latence: 18, statut: 'actif', date_releve: '2026-08-12 09:00:00' },
-            { id: 3, bts_id: 2, bts_nom: 'BTS Nord Yaoundé', code: 'BTS-002', charge: 42, debit: 55, connexions: 180, latence: 25, statut: 'maintenance', date_releve: '2026-08-12 08:00:00' },
-          ])
+          setReleves([])
         }
       } finally {
         if (!ignore) {

@@ -9,6 +9,8 @@ export default function PartenaireCreatePage() {
   const [email, setEmail] = useState('')
   const [telephone, setTelephone] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -32,7 +34,7 @@ export default function PartenaireCreatePage() {
       setTimeout(() => navigate('/partenaires'), 700)
     } catch (err) {
       console.error(err)
-      setError('Erreur lors de la création. Mode mock utilisé.')
+      setError('Erreur lors de la création. Veuillez réessayer.')
       setTimeout(() => navigate('/partenaires'), 700)
     } finally {
       setLoading(false)
