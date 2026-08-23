@@ -21,6 +21,7 @@ from sqlalchemy import func, and_
 from app.core.config import settings
 from app.core.errors import NotFoundError
 from app.models.partner import Partner
+from app.models.dsm import DSM
 from app.models.pos import POS, TypePos
 from app.models.prime import Prime, StatutPrime
 from app.models.requete import Requete
@@ -151,6 +152,74 @@ def get_dashboard(db: Session, partner_id: int) -> dict:
         "sim_en_stock": sim_en_stock,
         "sim_assignees": sim_assignees,
         "pos_expirations_proches": pos_expirations_proches,
+    }
+
+
+def get_dsm_dashboard(db: Session, partner_id: int, dsm_id: int) -> dict:
+    dsm = db.query(DSM).filter(DSM.id == dsm_id, DSM.partner_id == partner_id).first()
+    if not dsm:
+        raise NotFoundError("DSM introuvable dans ce Partenaire.")
+
+    pos_ids = [pid for (pid,) in db.query(POS.id).filter(POS.partner_id == partner_id, POS.dsm_id == dsm_id).all()]
+    pos_counts = dict(
+        db.query(POS.type_pos, func.count(POS.id))
+        .filter(POS.partner_id == partner_id, POS.dsm_id == dsm_id)
+        .group_by(POS.type_pos)
+        .all()
+    )
+    pos_nouveau = pos_counts.get(TypePos.NOUVEAU, 0)
+    pos_reconduit = pos_counts.get(TypePos.RECONDUIT, 0)
+    pos_total = pos_nouveau + pos_reconduit
+
+    prime_counts = dict(
+        db.query(Prime.status, func.count(Prime.id))
+        .join(POS)
+        .filter(POS.partner_id == partner_id, POS.dsm_id == dsm_id)
+        .group_by(Prime.status)
+        .all()
+    )
+    primes_en_attente = prime_counts.get(StatutPrime.EN_ATTENTE, 0)
+    primes_validees = prime_counts.get(StatutPrime.VALIDEE, 0)
+    montant_primes = db.query(func.coalesce(func.sum(Prime.montant), 0)).join(POS).filter(
+        POS.partner_id == partner_id,
+        POS.dsm_id == dsm_id,
+        Prime.status.in_([StatutPrime.VALIDEE, StatutPrime.PAYEE]),
+    ).scalar() or 0
+
+    requetes_ouvertes = db.query(func.count(Requete.id)).filter(
+        Requete.partner_id == partner_id,
+        Requete.entites.any(),
+    ).scalar() or 0
+
+    bts_saturees = db.query(func.count(BTS.id)).filter(BTS.partner_id == partner_id).scalar() or 0
+    sim_en_stock = db.query(func.count(SIM.id)).filter(
+        SIM.partner_id == partner_id,
+        SIM.status == StatutSim.EN_STOCK,
+        SIM.pos_id.is_(None),
+        SIM.status != StatutSim.ASSIGNEE,
+    ).scalar() or 0
+    sim_assignees = db.query(func.count(SIM.id)).join(POS, SIM.pos_id == POS.id).filter(
+        POS.partner_id == partner_id,
+        POS.dsm_id == dsm_id,
+        SIM.status == StatutSim.ASSIGNEE,
+    ).scalar() or 0
+
+    return {
+        "dsm_id": dsm.id,
+        "dsm_name": dsm.nom if hasattr(dsm, "nom") else getattr(dsm, "full_name", f"DSM #{dsm.id}"),
+        "partner_id": partner_id,
+        "partner_name": db.query(Partner.name).filter(Partner.id == partner_id).scalar() or "",
+        "pos_total": pos_total,
+        "pos_nouveau": pos_nouveau,
+        "pos_reconduit": pos_reconduit,
+        "primes_en_attente": primes_en_attente,
+        "primes_validees": primes_validees,
+        "montant_primes_periode": montant_primes,
+        "requetes_ouvertes": requetes_ouvertes,
+        "bts_saturees": bts_saturees,
+        "sim_en_stock": sim_en_stock,
+        "sim_assignees": sim_assignees,
+        "pos_expirations_proches": [],
     }
 
 

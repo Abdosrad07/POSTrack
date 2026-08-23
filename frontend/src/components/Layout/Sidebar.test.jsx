@@ -44,10 +44,11 @@ describe('Sidebar', () => {
 
   it('cache DSM et Import pour OPERATIONNEL', () => {
     renderSidebar('OPERATIONNEL')
-    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'POS' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'DSM' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Stock SIM' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Stock de SIM' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Requêtes' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Partenaires' })).not.toBeInTheDocument()
   })
 

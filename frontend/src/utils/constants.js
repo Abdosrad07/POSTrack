@@ -36,26 +36,6 @@ export const ROLE_GROUPS = {
  */
 export const NAV_ITEMS = [
   {
-    id: 'dashboard',
-    to: '/',
-    label: 'Dashboard',
-    end: true,
-    roles: ROLE_GROUPS.ALL,
-  },
-  {
-    id: 'pos',
-    to: '/pos',
-    label: 'POS',
-    roles: ROLE_GROUPS.ALL,
-  },
-  {
-    id: 'select-partner',
-    to: '/select-partner',
-    label: 'Sélection du partenaire',
-    end: true,
-    roles: ROLE_GROUPS.ALL,
-  },
-  {
     id: 'dsm',
     to: '/dsm',
     label: 'DSM',
@@ -70,14 +50,8 @@ export const NAV_ITEMS = [
   {
     id: 'sims',
     to: '/sims',
-    label: 'Stock SIM',
+    label: 'Stock de SIM',
     roles: ROLE_GROUPS.ALL,
-  },
-  {
-    id: 'primes',
-    to: '/primes',
-    label: 'Primes',
-    roles: ROLE_GROUPS.PARTNER_PORTFOLIO,
   },
   {
     id: 'requetes',
@@ -86,10 +60,23 @@ export const NAV_ITEMS = [
     roles: ROLE_GROUPS.ALL,
   },
   {
+    id: 'pos',
+    to: '/pos',
+    label: 'POS',
+    roles: ROLE_GROUPS.ALL,
+  },
+  /* Admin-only items */ 
+  {
+    id: 'primes',
+    to: '/primes',
+    label: 'Primes',
+    roles: ROLE_GROUPS.ADMIN_ONLY,
+  },
+  {
     id: 'import-export',
     to: '/import-export',
     label: 'Import Excel',
-    roles: ROLE_GROUPS.PARTNER_PORTFOLIO,
+    roles: ROLE_GROUPS.ADMIN_ONLY,
   },
   {
     id: 'partenaires',
@@ -141,3 +128,19 @@ export const IMPORT_STEPS = {
   SUCCESS: 'SUCCESS',
   ERROR: 'ERROR',
 };
+
+/**
+ * Entités / agences en charge du traitement des requêtes (v3.4 §2.4).
+ * Menu déroulant du tableau de suivi et du formulaire de création —
+ * la liste est extensible côté ADMIN.
+ */
+export const ENTITES_EN_CHARGE = [
+  'AC Bépanda',
+  'AC Akwa',
+  'AC Bonabéri',
+  'AC Bonamoussadi',
+  'AC Deïdo',
+  'AC Ndogbong',
+  'AC Bonanjo',
+  'DSM Direct',
+];

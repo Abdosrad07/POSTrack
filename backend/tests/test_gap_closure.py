@@ -263,7 +263,7 @@ def test_import_unsupported_entity_type_is_rejected(client, rep1_token, seed):
     assert resp.status_code == 422
 
 
-def test_import_dsm_updates_existing_dsm_on_reimport(client, rep1_token, seed):
+def test_import_dsm_updates_existing_dsm_on_reimport(client, rep1_token, admin_token, seed):
     rows = [{"matricule": "T-DSM-UPD", "full_name": "Nom Initial", "zone": "Zone A"}]
     _validate_and_apply(client, rep1_token, seed["p1"], "DSM", rows)
 
@@ -272,7 +272,6 @@ def test_import_dsm_updates_existing_dsm_on_reimport(client, rep1_token, seed):
     assert v2.json()["batch"]["status"] == "VALIDATED"
     assert a2.status_code == 200
 
-    from tests.conftest import admin_token
     listed = client.get("/api/admin/dsm", params={"partner_id": seed["p1"]}, headers=auth_headers(admin_token))
     names = [d["full_name"] for d in listed.json()]
     assert "Nom Mis A Jour" in names

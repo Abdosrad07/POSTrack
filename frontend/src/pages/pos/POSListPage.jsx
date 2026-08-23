@@ -1,12 +1,21 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import posService from '../../services/posService';
 import partenaireService from '../../services/partenaireService';
 import dsmService from '../../services/dsmService';
 import POSFilters from '../../components/POS/POSFilters';
 import POSTable from '../../components/POS/POSTable';
+import POSMap from '../../components/POS/POSMap';
 
 const PAGE_SIZE = 20;
+
+/** Catégories de POS (spécification v3.4) : Tous | Créés | Reconduits | Liés */
+const POS_CATEGORIES = [
+  { id: 'all', label: 'Tous', type: null },
+  { id: 'nouveau', label: 'Créés', type: 'NOUVEAU' },
+  { id: 'reconduit', label: 'Reconduits', type: 'RECONDUIT' },
+  { id: 'lie', label: 'Liés', type: 'LIÉ' },
+];
 
 export default function POSListPage() {
   const navigate = useNavigate();
@@ -17,6 +26,8 @@ export default function POSListPage() {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState({ sort_by: 'date_creation', order: 'desc' });
+  const [selectedPOS, setSelectedPOS] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('all');
 
   // États d'interface exigés par le document de référence : loading/success/empty/error
   const [status, setStatus] = useState('loading');
@@ -41,6 +52,9 @@ export default function POSListPage() {
         limit: PAGE_SIZE,
         ...filters,
         ...sort,
+        ...(activeCategory !== 'all'
+          ? { type_pos: POS_CATEGORIES.find((c) => c.id === activeCategory)?.type }
+          : {}),
       }).filter(([, v]) => v !== '' && v != null)
     );
     posService
@@ -55,7 +69,7 @@ export default function POSListPage() {
         setError("Impossible de charger la liste des POS.");
         setStatus('error');
       });
-  }, [filters, sort]);
+  }, [filters, sort, activeCategory]);
 
   useEffect(() => { fetchPOS(1); }, [fetchPOS]);
 
@@ -65,6 +79,20 @@ export default function POSListPage() {
       order: s.sort_by === field && s.order === 'asc' ? 'desc' : 'asc',
     }));
   };
+
+  /** Compteurs par catégorie pour les onglets (calculés sur la page courante). */
+  const categoryCounts = useMemo(
+    () =>
+      POS_CATEGORIES.map((cat) => ({
+        ...cat,
+        count: cat.type === null
+          ? rows.length
+          : rows.filter((r) => (r.type_pos || r.type) === cat.type).length,
+      })),
+    [rows]
+  );
+
+  const handlePOSSelect = useCallback((pos) => setSelectedPOS(pos), []);
 
   return (
     <div className="space-y-6">
@@ -78,6 +106,34 @@ export default function POSListPage() {
         </button>
       </div>
 
+      {/* Onglets de catégories v3.4 : Tous | Créés | Reconduits | Liés */}
+      <div className="flex flex-wrap gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+        {categoryCounts.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => {
+              setActiveCategory(cat.id);
+              setSelectedPOS(null);
+            }}
+            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+              activeCategory === cat.id
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`}
+          >
+            {cat.label}
+            <span
+              className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
+                activeCategory === cat.id ? 'bg-white/20' : 'bg-gray-200'
+              }`}
+            >
+              {cat.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <POSFilters partenaires={partenaires} dsms={dsms} onFilter={setFilters} />
 
       {status === 'error' && (
@@ -89,13 +145,29 @@ export default function POSListPage() {
         </div>
       )}
 
-      {status === 'empty' ? (
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
-          Aucun POS ne correspond à ces critères.
+      {/* Layout responsive : carte + tableau côte à côte (desktop), empilés (mobile) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="h-[420px] lg:h-[520px]">
+          <POSMap pos={rows} selectedId={selectedPOS?.id} onSelect={handlePOSSelect} />
         </div>
-      ) : (
-        <POSTable rows={rows} loading={status === 'loading'} sort={sort} onSort={toggleSort} />
-      )}
+
+        <div>
+          {status === 'empty' ? (
+            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+              Aucun POS ne correspond à ces critères.
+            </div>
+          ) : (
+            <POSTable
+              rows={rows}
+              loading={status === 'loading'}
+              sort={sort}
+              onSort={toggleSort}
+              onSelect={handlePOSSelect}
+              selectedId={selectedPOS?.id}
+            />
+          )}
+        </div>
+      </div>
 
       <Pagination pagination={pagination} onPageChange={fetchPOS} />
     </div>

@@ -35,6 +35,9 @@ class Requete(Base):
     # du cahier des charges : "Identifiant externe").
     external_id = Column(String(100), nullable=True, index=True)
 
+    # Entite/agence en charge du traitement (ex. "AC Bepanda") — v3.4 §2.4.
+    entite_en_charge = Column(String(120), nullable=True)
+
     type_requete = Column(SAEnum(TypeRequete), nullable=False)
     titre = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)

@@ -121,6 +121,12 @@ def rep1_token(client, seed):
     return _login(client, "t_rep1")
 
 
+@pytest.fixture(scope="session")
+def dsm1_token(client, seed):
+    """Jeton du compte OPERATIONNEL rattache au Partenaire p1 (cote DSM)."""
+    return _login(client, "t_dsm1")
+
+
 def auth_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 @pytest.fixture(scope="session")

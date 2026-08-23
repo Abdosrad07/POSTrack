@@ -7,9 +7,15 @@ from app.api.deps import get_current_user, get_partner_context
 from app.crud.pos_crud import pos_crud, reconduction_crud
 from app.models.user import User
 from app.models.pos import TypePos, StatutPos
-from app.schemas.pos import POSCreate, POSUpdate, POSOut, ReconductionCreate, ReconductionOut
+from app.schemas.pos import (
+    POSCreate, POSUpdate, POSOut, ReconductionCreate, ReconductionOut,
+    POSLinkCreate, POSUnlinkCreate, POSLinkOut,
+)
 from app.schemas.pagination import Page
-from app.services.pos_service import create_pos, get_pos_in_partner, reconduire_pos
+from app.services.pos_service import (
+    create_pos, get_pos_in_partner, reconduire_pos,
+    lier_detenteur, delier_detenteur, lister_liens,
+)
 
 router = APIRouter(prefix="/api/partners/{partner_id}/pos", tags=["POS"])
 
@@ -73,3 +79,30 @@ def list_reconductions(pos_id: int, partner_id: int = Depends(get_partner_contex
     """
     get_pos_in_partner(db, partner_id, pos_id)
     return reconduction_crud.list_paginated(db, skip=skip, limit=limit, pos_id=pos_id)
+
+
+@router.get("/{pos_id}/link", response_model=POSLinkOut)
+def get_pos_link(pos_id: int, partner_id: int = Depends(get_partner_context),
+                 db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    """Etat des liens Utilisateur <-> POS : detenteur courant + associations UserPOS."""
+    return lister_liens(db, partner_id=partner_id, pos_id=pos_id)
+
+
+@router.post("/{pos_id}/link", response_model=POSLinkOut, status_code=201)
+def link_pos_route(pos_id: int, payload: POSLinkCreate,
+                   partner_id: int = Depends(get_partner_context),
+                   db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Link : designe un utilisateur detenteur du POS (holder_user_id + UserPOS)."""
+    lier_detenteur(db, partner_id=partner_id, actor_id=user.id,
+                   pos_id=pos_id, target_user_id=payload.user_id)
+    return lister_liens(db, partner_id=partner_id, pos_id=pos_id)
+
+
+@router.post("/{pos_id}/unlink", response_model=POSLinkOut)
+def unlink_pos_route(pos_id: int, payload: POSUnlinkCreate,
+                     partner_id: int = Depends(get_partner_context),
+                     db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Unlink : retire le lien Utilisateur <-> POS (tout, ou l'utilisateur cible)."""
+    delier_detenteur(db, partner_id=partner_id, actor_id=user.id,
+                     pos_id=pos_id, target_user_id=payload.user_id)
+    return lister_liens(db, partner_id=partner_id, pos_id=pos_id)

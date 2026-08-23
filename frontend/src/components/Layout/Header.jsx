@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { getRoleLabel } from '../../utils/roles';
 import Button from '../Common/Button/Button';
-
+import PartnerSelectorBar from './PartnerSelectorBar';
 import HierarchyNavDropdown from './HierarchyNavDropdown';
 
 /**
- * En-tête applicatif : marque, navigation hiérarchique, utilisateur, rôle, déconnexion (Module A2).
+ * En-tête applicatif : marque, navigation hiérarchique, utilisateur,
+ * partenaire actif (sélecteur permanent v3.4) et déconnexion (Module A2).
  */
 const Header = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
@@ -44,13 +45,14 @@ const Header = ({ onToggleSidebar }) => {
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        <div className="sm:hidden">
-          {/* Version mobile compacte de la hiérarchie si besoin */}
-        </div>
+        {/* Sélecteur de partenaire — toujours accessible (v3.4 §1.3) */}
+        <PartnerSelectorBar />
+
         <div className="hidden text-right sm:block">
           <p className="text-sm font-semibold text-slate-900">{displayName}</p>
           <p className="text-xs text-slate-500">{roleLabel}</p>
         </div>
+
         <Button type="button" variant="gray" className="text-sm" onClick={handleLogout}>
           Déconnexion
         </Button>
@@ -60,4 +62,3 @@ const Header = ({ onToggleSidebar }) => {
 };
 
 export default Header;
-

@@ -110,3 +110,37 @@ def update_status(db: Session, *, partner_id: int, user_id: int, sim_id: int, st
         entity_type="SIM", entity_id=sim.id, details=f"Nouveau statut : {status}",
     )
     return sim
+
+
+def reconduire_sim(db: Session, *, partner_id: int, user_id: int, sim_id: int,
+                   new_pos_id: int, motif: str | None = None) -> SIM:
+    """
+    Reconduction SIM : reaffecte la carte a un nouveau POS du meme
+    Partenaire et trace un mouvement RECEPTION sur le POS destinataire.
+    """
+    sim = get_sim_in_partner(db, partner_id, sim_id)
+    if sim.pos_id == new_pos_id:
+        raise ValidationErrorApp("La SIM est deja rattachee a ce POS.", field="new_pos_id")
+
+    old_pos = sim.pos
+    new_pos = _get_pos(db, partner_id, new_pos_id)
+
+    sim.pos_id = new_pos.id
+    db.add(sim)
+    db.commit()
+    db.refresh(sim)
+
+    sim_movement_crud.create(db, {
+        "sim_id": sim.id,
+        "partner_id": partner_id,
+        "movement_type": TypeMouvementSim.RECEPTION.value,
+        "author_id": user_id,
+        "comment": motif or f"Reconduction SIM vers {new_pos.code_pos} (depuis {old_pos.code_pos})",
+    })
+
+    audit_service.log_action(
+        db, user_id=user_id, partner_id=partner_id, action="SIM_RECONDUCTION",
+        entity_type="SIM", entity_id=sim.id,
+        details=f"SIM {sim.iccid} reaffectee au POS {new_pos.code_pos}",
+    )
+    return sim

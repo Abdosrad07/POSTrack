@@ -27,8 +27,9 @@ def role_gte(role: Role, minimum: Role) -> bool:
     return ROLE_WEIGHT[role] >= ROLE_WEIGHT[minimum]
 
 
-# Rôles autorisés à valider une prime.
-PRIME_VALIDATION_ROLES = {Role.CHEF_OPERATIONNEL}
+# Rôles autorisés à valider une prime (validation finale réservée à l'ADMIN,
+# cf. test_prime_validation_requires_admin_role et note Jour 9).
+PRIME_VALIDATION_ROLES = {Role.ADMIN}
 
 # Rôles autorisés à confirmer une reconduction.
 RECONDUCTION_ROLES = {Role.ADMIN, Role.CHEF_OPERATIONNEL, Role.OPERATIONNEL}

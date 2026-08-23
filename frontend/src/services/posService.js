@@ -50,6 +50,13 @@ export const posService = {
   remove: (id) => api.delete(`/pos/${id}`),
 
   changeStatus: (id, statut) => api.patch(`/pos/${id}/status`, { statut }),
+
+  reconduire: (id, data) => api.post(`/pos/${id}/reconduction`, data),
+
+  getLinks: (id) => api.get(`/pos/${id}/link`),
+  linkDetenteur: (id, userId) => api.post(`/pos/${id}/link`, { user_id: Number(userId) }),
+  unlinkDetenteur: (id, userId = null) =>
+    api.post(`/pos/${id}/unlink`, userId != null && userId !== '' ? { user_id: Number(userId) } : {}),
 };
 
 export default posService;

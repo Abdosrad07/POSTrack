@@ -430,6 +430,9 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
             existing.titre = str(row["titre"])
             if not _is_blank(row.get("description")):
                 existing.description = _clean_optional(row.get("description"))
+            # Entite en charge (v3.4) : mise a jour si la colonne est fournie.
+            if "entite_en_charge" in row:
+                existing.entite_en_charge = _clean_optional(row.get("entite_en_charge"))
             db.add(existing)
         else:
             db.add(Requete(
@@ -440,6 +443,7 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
                 description=_clean_optional(row.get("description")),
                 priorite=_clean_str(row.get("priorite"), "NORMALE").upper(),
                 nombre_demande=1, nombre_effectue=0, nombre_rejete=0,
+                entite_en_charge=_clean_optional(row.get("entite_en_charge")),
                 date_creation=datetime.now(timezone.utc),
                 demandeur_id=user_id,
             ))

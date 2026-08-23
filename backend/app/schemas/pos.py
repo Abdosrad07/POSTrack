@@ -63,3 +63,17 @@ class ReconductionOut(BaseModel):
     motif: str | None
     author_id: int
     created_at: datetime
+
+
+class POSLinkCreate(BaseModel):
+    user_id: int
+
+
+class POSUnlinkCreate(BaseModel):
+    user_id: int | None = None
+
+
+class POSLinkOut(BaseModel):
+    pos_id: int
+    holder_user_id: int | None
+    linked_users: list[int]

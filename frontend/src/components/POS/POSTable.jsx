@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '../Common/StatusBadge';
 
-export default function POSTable({ rows = [], loading = false, sort, onSort }) {
+export default function POSTable({ rows = [], loading = false, sort, onSort, onSelect, selectedId = null }) {
   const navigate = useNavigate();
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -31,8 +31,13 @@ export default function POSTable({ rows = [], loading = false, sort, onSort }) {
             safeRows.map((pos) => (
               <tr
                 key={pos.id}
-                className="cursor-pointer hover:bg-gray-50"
-                onClick={() => navigate(`/pos/${pos.id}`)}
+                className={`cursor-pointer transition-colors ${
+                  pos.id === selectedId ? 'bg-sky-50 ring-1 ring-inset ring-sky-300' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  onSelect?.(pos);
+                  navigate(`/pos/${pos.id}`);
+                }}
               >
                 <td className="px-4 py-3 font-medium text-blue-600">{pos.code_pos}</td>
                 <td className="px-4 py-3">{pos.nom}</td>

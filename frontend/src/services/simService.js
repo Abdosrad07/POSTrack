@@ -27,6 +27,10 @@ export const simService = {
     const list = normalizeList(response.data).map(normalizeSim);
     return { ...response, data: { ...(response.data || {}), items: list } };
   },
+  create: (data) => api.post('/sim', data),
+  reconduire: (simId, data) => api.post(`/sim/${simId}/reconduction`, data),
+  updateStatus: (simId, status) => api.patch(`/sim/${simId}/status`, { status }),
+  getMovements: (simId, params) => api.get(`/sim/${simId}/movements`, { params }),
 };
 
 export default simService;

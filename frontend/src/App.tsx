@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import MainLayout from './components/Layout/MainLayout'
 import RoleGuard from './components/Layout/RoleGuard'
 import Dashboard from './pages/Dashboard'
+import PartnerHomePage from './pages/PartnerHomePage'
 import POSListPage from './pages/pos/POSListPage'
 import POSDetailPage from './pages/pos/POSDetailPage'
 import POSEditPage from './pages/pos/POSEditPage'
@@ -14,7 +15,9 @@ import BTSRelevesPage from './pages/bts/BTSRelevesPage'
 import DSMListPage from './pages/dsm/DSMListPage'
 import DSMCreatePage from './pages/dsm/DSMCreatePage'
 import DSMDetailPage from './pages/dsm/DSMDetailPage'
+import DSMHomePage from './pages/dsm/DSMHomePage'
 import LoginPage from './pages/auth/LoginPage'
+import RequeteCreatePage from './pages/requetes/RequeteCreatePage'
 import SelectPartnerPage from './pages/auth/SelectPartnerPage'
 import UnauthorizedPage from './pages/auth/UnauthorizedPage'
 import SimsStockPage from './pages/sims/SimsStockPage'
@@ -43,7 +46,8 @@ function App() {
               </PartnerRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+            <Route index element={<PartnerHomePage />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="unauthorized" element={<UnauthorizedPage />} />
 
             <Route path="pos" element={<POSListPage />} />
@@ -88,6 +92,14 @@ function App() {
 
             <Route
               path="dsm"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
+                  <DSMHomePage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="dsm/list"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <DSMListPage />
@@ -154,6 +166,7 @@ function App() {
 
             <Route path="sims" element={<SimsStockPage />} />
             <Route path="requetes" element={<RequetesListPage />} />
+            <Route path="requetes/new" element={<RequeteCreatePage />} />
 
             <Route
               path="import-export"

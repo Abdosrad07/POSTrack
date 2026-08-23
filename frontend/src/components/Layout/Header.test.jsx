@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import Header from './Header'
 import { AuthContext } from '../../context/AuthContext'
 import { PartnerContext } from '../../context/PartnerContext'
@@ -83,8 +83,11 @@ describe('Header — Module A2', () => {
       </AuthContext.Provider>
     )
     fireEvent.click(screen.getByRole('button', { name: 'Déconnexion' }))
+    // La déconnexion est asynchrone : on attend la navigation vers /login
+    await waitFor(() => {
+      expect(screen.getByText('Page de connexion')).toBeInTheDocument()
+    })
     expect(logout).toHaveBeenCalledTimes(1)
-    expect(screen.getByText('Page de connexion')).toBeInTheDocument()
   })
 
   it('affiche un libellé de rôle inconnu si le rôle est absent', () => {

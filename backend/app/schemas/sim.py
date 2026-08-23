@@ -29,6 +29,12 @@ class SIMMovementCreate(BaseModel):
     comment: str | None = None
 
 
+class SIMReconductionCreate(BaseModel):
+    """Reconduction SIM : reaffectation de la carte a un nouveau POS."""
+    new_pos_id: int
+    motif: str | None = None
+
+
 class SIMMovementOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

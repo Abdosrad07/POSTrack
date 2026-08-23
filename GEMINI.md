@@ -137,7 +137,7 @@ utilisateur ne peut accéder qu'aux Partenaires de son périmètre (403 sinon).
 | POST | `/api/partners/{id}/pos/{pos_id}/reconduction` | Tous rôles authentifiés du Partenaire |
 | GET | `/api/partners/{id}/pos/{pos_id}/reconductions` | Tous rôles authentifiés du Partenaire |
 | POST | `/api/partners/{id}/primes/calculate` | ADMIN, CHEF_OPERATIONNEL (rejet si POS ≠ NOUVEAU ou période non OPEN) |
-| PATCH | `/api/partners/{id}/primes/{prime_id}/status` | CHEF_OPERATIONNEL (validation finale) |
+| PATCH | `/api/partners/{id}/primes/{prime_id}/status` | ADMIN (validation finale) |
 | POST | `/api/partners/{id}/bts/{bts_id}/releves` | Tous rôles authentifiés du Partenaire |
 | POST | `/api/partners/{id}/sim/{sim_id}/movements` | Tous rôles authentifiés du Partenaire (vente = `movement_type: VENTE`) |
 | POST | `/api/partners/{id}/requests` | Tous rôles authentifiés |

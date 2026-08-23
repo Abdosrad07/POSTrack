@@ -18,6 +18,7 @@ class RequeteCreate(BaseModel):
     nombre_demande: int = 1
     nombre_effectue: int = 0
     nombre_rejete: int = 0
+    entite_en_charge: str | None = None
     entites: list[RequeteEntiteIn] = []
 
 
@@ -62,7 +63,24 @@ class RequeteOut(BaseModel):
     nombre_rejete: int
     delai: int | None
     date_finalisation: datetime | None
+    entite_en_charge: str | None = None
     demandeur_id: int
     responsable_id: int | None
     created_at: datetime
     entites: list[RequeteEntiteOut] = []
+
+
+class RequeteSummaryOut(BaseModel):
+    date_creation: str
+    type_requete: str
+    nombre_demande: int
+    nombre_rejete: int
+    nombre_effectue: int
+    date_fin: str | None
+
+
+class RequeteSummaryPageOut(BaseModel):
+    items: list[RequeteSummaryOut]
+    total: int
+    skip: int
+    limit: int

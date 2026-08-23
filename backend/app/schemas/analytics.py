@@ -24,3 +24,8 @@ class DashboardOut(BaseModel):
     sim_en_stock: int
     sim_assignees: int
     pos_expirations_proches: list[POSExpirationAlert] = []
+
+
+class DSMDashboardOut(DashboardOut):
+    dsm_id: int
+    dsm_name: str

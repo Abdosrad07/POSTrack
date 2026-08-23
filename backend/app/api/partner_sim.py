@@ -6,9 +6,14 @@ from app.core.database import get_db
 from app.api.deps import get_current_user, get_partner_context
 from app.crud.sim_crud import sim_crud, sim_movement_crud
 from app.models.user import User
-from app.schemas.sim import SIMCreate, SIMStatusUpdate, SIMOut, SIMMovementCreate, SIMMovementOut
+from app.schemas.sim import (
+    SIMCreate, SIMStatusUpdate, SIMOut, SIMMovementCreate, SIMMovementOut,
+    SIMReconductionCreate,
+)
 from app.schemas.pagination import Page
-from app.services.sim_service import create_sim, update_status, record_movement, get_sim_in_partner
+from app.services.sim_service import (
+    create_sim, update_status, record_movement, get_sim_in_partner, reconduire_sim,
+)
 
 router = APIRouter(prefix="/api/partners/{partner_id}/sim", tags=["SIM"])
 
@@ -38,6 +43,15 @@ def create_sim_movement(sim_id: int, payload: SIMMovementCreate, partner_id: int
     """Enregistre un mouvement de stock (reception, vente, activation, retour, perte)."""
     return record_movement(db, partner_id=partner_id, user_id=user.id, sim_id=sim_id,
                             movement_type=payload.movement_type.value, comment=payload.comment)
+
+
+@router.post("/{sim_id}/reconduction", response_model=SIMOut)
+def reconduire_sim_route(sim_id: int, payload: SIMReconductionCreate,
+                          partner_id: int = Depends(get_partner_context),
+                          db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Reconduction SIM : reaffecte la carte a un nouveau POS du meme Partenaire."""
+    return reconduire_sim(db, partner_id=partner_id, user_id=user.id, sim_id=sim_id,
+                           new_pos_id=payload.new_pos_id, motif=payload.motif)
 
 
 @router.get("/{sim_id}/movements", response_model=Page[SIMMovementOut])

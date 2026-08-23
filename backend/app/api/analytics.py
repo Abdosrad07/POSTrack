@@ -8,18 +8,20 @@ from app.crud.pos_crud import pos_performance_crud
 from app.crud.prime_crud import dsm_commission_crud
 from app.models.user import User
 from app.security.permissions import Role
-from app.schemas.analytics import DashboardOut
+from app.schemas.analytics import DashboardOut, DSMDashboardOut
 from app.schemas.pos_performance import POSPerformanceOut, POSPerformanceCalculateRequest
 from app.schemas.prime import DSMCommissionOut
 from app.schemas.pagination import Page
-from app.services.analytics_service import get_dashboard, calculate_pos_performance
+from app.services.analytics_service import get_dashboard, get_dsm_dashboard, calculate_pos_performance
 
 router = APIRouter(prefix="/api/partners/{partner_id}/analytics", tags=["Analytics"])
 
 
 @router.get("/dashboard", response_model=DashboardOut)
 def dashboard(partner_id: int = Depends(get_partner_context), db: Session = Depends(get_db),
-              _user: User = Depends(get_current_user)):
+              dsm_id: int | None = None, _user: User = Depends(get_current_user)):
+    if dsm_id:
+        return get_dsm_dashboard(db, partner_id, dsm_id)
     return get_dashboard(db, partner_id)
 
 
