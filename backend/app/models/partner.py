@@ -13,4 +13,9 @@ class Partner(Base):
     name = Column(String(150), nullable=False)
     address = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+
+    # Référence vers un fichier interne sécurisé d'import BTS.
+    # Le contenu brut ne doit pas être exposé ni journalisé.
+    bts_import_file_path = Column(String(500), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())

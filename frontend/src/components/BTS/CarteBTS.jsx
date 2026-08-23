@@ -102,6 +102,14 @@ export default function CarteBTS({ btsList = [], selectedId = null, onSelect = (
                       <div className="text-sm text-gray-600 mt-1">Région : {bts.region || 'N/A'} | Ville : {bts.ville || 'N/A'}</div>
                       <div className="text-sm text-gray-600 mt-1">Capacité : {bts.capacite_max || 'N/A'}</div>
                       <div className="text-sm mt-1">Statut : <span style={{ color: style.color }}>{style.label}</span></div>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${bts.lat},${bts.lng}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 inline-block text-xs font-medium text-emerald-700 hover:underline"
+                      >
+                        📍 Ouvrir dans le planificateur cartographique
+                      </a>
                     </div>
                   </Popup>
                 )}

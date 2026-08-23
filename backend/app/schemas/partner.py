@@ -15,6 +15,7 @@ class PartnerCreate(PartnerBase):
 class PartnerOut(PartnerBase):
     id: int
     is_active: bool
+    bts_import_file_path: str | None = None
     created_at: datetime
 
     class Config:

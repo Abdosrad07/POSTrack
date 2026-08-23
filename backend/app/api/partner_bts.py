@@ -1,9 +1,14 @@
 """Ressources BTS et releves sous /api/partners/{partner_id}/bts."""
-from fastapi import APIRouter, Depends, Query
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
+from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.api.deps import get_current_user, get_partner_context
+from app.api.deps import get_current_user, get_partner_context, require_roles
+from app.core.errors import ValidationErrorApp
 from app.crud.bts_crud import bts_crud, bts_releve_crud
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
@@ -12,6 +17,8 @@ from app.schemas.bts import BTSCreate, BTSOut, BTSReleveCreate, BTSReleveListOut
 from app.schemas.pagination import Page
 from app.services.bts_service import create_bts as create_bts_service, get_bts_in_partner, add_releve
 from app.services import audit_service
+from app.services import bts_maps_service
+from app.security.permissions import IMPORT_ROLES
 
 router = APIRouter(prefix="/api/partners/{partner_id}/bts", tags=["BTS"])
 
@@ -54,6 +61,46 @@ def list_partner_releves(partner_id: int = Depends(get_partner_context),
         .all()
     )
     return [dict(r._mapping) for r in rows]
+
+
+class _MapsImportPayload(BaseModel):
+    filename: str
+
+
+def _secure_import_path(partner_id: int, original_name: str) -> Path:
+    uploads_dir = Path(__file__).resolve().parents[2] / "storage" / "bts_imports" / f"partner_{partner_id}"
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    safe_name = Path(original_name).name
+    return uploads_dir / f"{uuid4().hex}_{safe_name}"
+
+
+@router.post("/import-maps")
+async def store_bts_import_file(
+    file: UploadFile = File(...),
+    partner_id: int = Depends(get_partner_context),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*IMPORT_ROLES)),
+):
+    """Stocke un fichier interne sécurisé pour un import BTS futur.
+
+    Le backend conserve uniquement le chemin serveur du fichier déposé.
+    Aucun lien externe n'est accepté ici.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Nom de fichier manquant.")
+    destination = _secure_import_path(partner_id, file.filename)
+    content = await file.read()
+    destination.write_bytes(content)
+    try:
+        partner = bts_maps_service.store_partner_import_file(
+            db,
+            partner_id=partner_id,
+            file_path=str(destination),
+            file_name=file.filename,
+        )
+    except ValidationErrorApp as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"partner_id": partner.id, "bts_import_file_path": partner.bts_import_file_path, "file_name": file.filename}
 
 
 @router.get("/{bts_id}", response_model=BTSOut)

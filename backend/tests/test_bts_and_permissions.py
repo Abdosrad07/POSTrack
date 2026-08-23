@@ -64,3 +64,16 @@ def test_duplicate_code_bts_is_rejected(client, rep1_token, seed):
 
     duplicate = client.post(f"/api/partners/{seed['p1']}/bts", json=payload, headers=auth_headers(rep1_token))
     assert duplicate.status_code == 409
+
+
+def test_bts_import_route_accepts_secure_file_upload(client, rep1_token, seed):
+    resp = client.post(
+        f"/api/partners/{seed['p1']}/bts/import-maps",
+        files={"file": ("import.kml", b"<kml></kml>", "application/xml")},
+        headers=auth_headers(rep1_token),
+    )
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["partner_id"] == seed["p1"]
+    assert payload["file_name"] == "import.kml"
+    assert payload["bts_import_file_path"]
