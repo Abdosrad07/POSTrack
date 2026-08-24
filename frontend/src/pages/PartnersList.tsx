@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../services/api'
+import partenaireService from '../services/partenaireService'
 
 type Partenaire = {
   id: number
   nom: string
+  code_partenaire?: string
+  type_partenaire?: string
+  raison_sociale?: string
+  ville?: string
+  region?: string
+  adresse?: string
   email: string
   telephone: string
+  responsable?: string
   pos_count: number
   statut: 'actif' | 'inactif' | string
 }
@@ -24,16 +31,23 @@ export default function PartenairesListPage() {
     const fetchPartenaires = async () => {
       try {
         setLoading(true)
-        const response = await api.get('/partenaires')
-        const raw = response.data.data || response.data || []
+        const response = await partenaireService.getAll({ limit: 500 })
+        const raw = response.data?.items || response.data?.data || response.data || []
         const list = Array.isArray(raw) ? raw : []
         const data = list
           .filter((p): p is Partenaire & Record<string, any> => !!p && typeof p.id === 'number')
           .map((p: Partial<Partenaire> & Record<string, any>) => ({
             id: p.id,
             nom: p.nom || p.name || p.raison_sociale || `Partenaire #${p.id}`,
-            email: p.email || '',
-            telephone: p.telephone || '',
+            code_partenaire: p.code_partenaire || p.code,
+            type_partenaire: p.type_partenaire || p.type || p.partner_type,
+            raison_sociale: p.raison_sociale,
+            ville: p.ville,
+            region: p.region,
+            adresse: p.adresse,
+            email: p.email || p.email_contact || '',
+            telephone: p.telephone || p.contact || '',
+            responsable: p.responsable || p.contact_principal || p.full_name,
             pos_count: p.pos_count ?? 0,
             statut: ((p.statut || 'ACTIF') as string).toLowerCase(),
           }) as Partenaire)
@@ -43,8 +57,10 @@ export default function PartenairesListPage() {
       } catch {
         if (!ignore) {
           setPartenaires([
-            { id: 1, nom: 'Partenaire ABC', email: 'contact@abc.com', telephone: '+237600000001', pos_count: 5, statut: 'actif' },
-            { id: 2, nom: 'Partenaire XYZ', email: 'contact@xyz.com', telephone: '+237600000002', pos_count: 3, statut: 'inactif' },
+            { id: 1, nom: 'Partenaire ABC', code_partenaire: 'ABC-001', type_partenaire: 'DISTRIBUTEUR', ville: 'Douala', region: 'Littoral', adresse: 'Bonanjo', email: 'contact@abc.com', telephone: '+237600000001', pos_count: 5, statut: 'actif' },
+            { id: 2, nom: 'Partenaire XYZ', code_partenaire: 'XYZ-002', type_partenaire: 'MASTER_DEALER', ville: 'Yaoundé', region: 'Centre', adresse: 'Mvog-Mbi', email: 'contact@xyz.com', telephone: '+237600000002', pos_count: 3, statut: 'inactif' },
+            { id: 3, nom: 'Master Color', code_partenaire: 'PART-MC', type_partenaire: 'MASTER_DEALER', ville: 'Douala', region: 'Littoral', adresse: 'Akwa', email: 'contact@mastercolor.com', telephone: '+237699000003', pos_count: 12, statut: 'actif' },
+            { id: 4, nom: 'Glothelo', code_partenaire: 'PART-GL', type_partenaire: 'REVENDEUR', ville: 'Yaoundé', region: 'Centre', adresse: 'Mvan', email: 'contact@glothelo.com', telephone: '+237699000004', pos_count: 8, statut: 'actif' },
           ])
         }
       } finally {
@@ -115,8 +131,14 @@ export default function PartenairesListPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nom</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Code</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Ville</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Région</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Téléphone</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Adresse</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Contact</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nombre de POS</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
@@ -125,13 +147,13 @@ export default function PartenairesListPage() {
             <tbody className="divide-y divide-gray-200 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={11} className="px-6 py-8 text-center text-sm text-gray-500">
                     Chargement...
                   </td>
                 </tr>
               ) : filteredPartenaires.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={11} className="px-6 py-8 text-center text-sm text-gray-500">
                     Aucun partenaire enregistré pour le moment
                   </td>
                 </tr>
@@ -139,8 +161,14 @@ export default function PartenairesListPage() {
                 filteredPartenaires.map((p) => (
                   <tr key={p.id}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{p.nom}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.code_partenaire || '—'}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.type_partenaire || '—'}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.ville || '—'}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.region || '—'}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.email}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.telephone}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.adresse || '—'}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.responsable || '—'}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.pos_count || 0}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${p.statut === 'actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

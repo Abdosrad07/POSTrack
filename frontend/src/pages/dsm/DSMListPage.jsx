@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Logo from '../../assets/logos/LOGO.jpeg'
 import dsmService from '../../services/dsmService'
 export default function DSMListPage() {
   const [dsms, setDsms] = useState([])
@@ -34,7 +33,7 @@ export default function DSMListPage() {
         }
       } catch (err) {
         if (mounted) {
-          setError('Erreur lors de la récupération des DSMs.')
+          setError('Impossible de charger la liste des DSM.')
           setDsms([])
         }
       } finally {
@@ -175,7 +174,6 @@ export default function DSMListPage() {
 
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <img src={Logo} alt="POSTrack logo" className="h-10 w-auto" />
           <h2 className="text-lg font-semibold text-gray-900">Informations DSM sélectionné</h2>
         </div>
         {selectedId ? (

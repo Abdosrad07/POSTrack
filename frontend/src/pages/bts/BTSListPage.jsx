@@ -4,6 +4,8 @@ import CarteBTS from '../../components/BTS/CarteBTS'
 import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
 import Logo from '../../assets/logos/LOGO.jpeg'
 import btsDebug from '../../utils/btsDebug'
+import { STORAGE_KEYS } from '../../utils/constants'
+import api from '../../services/api'
 
 const BTS_IMPORT_STORAGE_KEY = 'bts_internal_import_ref'
 
@@ -49,12 +51,12 @@ const STATUS_LABEL = {
 const normalizeBts = (b) => ({
   ...b,
   code: b.code || b.code_bts,
-  localisation: b.localisation || b.ville,
-  saturation: b.saturation ?? b.dernier_taux_saturation ?? 0,
+  localisation: b.localisation || b.ville || b.zone,
+  saturation: b.saturation ?? b.dernier_taux_saturation ?? b.derniere_saturation ?? 0,
   statut: (b.statut || 'ACTIF').toUpperCase(),
   latitude: b.latitude ?? b.lat,
   longitude: b.longitude ?? b.lng,
-  lieux_couverts: b.lieux_couverts || (b.ville ? [b.ville] : []),
+  lieux_couverts: b.lieux_couverts || [b.ville || b.zone].filter(Boolean),
 })
 
 export default function BTSListPage() {
@@ -89,14 +91,23 @@ export default function BTSListPage() {
       setLoading(true)
       setError(null)
       const partnerId = localStorage.getItem(STORAGE_KEYS.PARTNER_CONTEXT_ID)
+      if (!partnerId) {
+        setError('Aucun partenaire sélectionné. Choisissez un contexte partenaire avant de charger les BTS.')
+        setBtsList([])
+        return
+      }
       btsDebug.log('BTSListPage fetch', { partnerId, userRole: user?.role })
       const response = await api.get('/bts')
       const payload = response.data ?? {}
       const raw = Array.isArray(payload) ? payload : payload.items ?? payload.data ?? []
       btsDebug.snapshot('BTSListPage response shape', { isArray: Array.isArray(raw), length: raw.length, first: raw[0] })
       setBtsList(raw.map(normalizeBts))
-    } catch (err) {
-      setError(err?.apiMessage || 'Erreur lors de la récupération des BTS.')
+      } catch (err) {
+      if (err?.code === 'NO_PARTNER_CONTEXT') {
+        setError('Aucun partenaire sélectionné. Choisissez un contexte partenaire avant de charger les BTS.')
+      } else {
+        setError(err?.apiMessage || err?.message || 'Erreur lors de la récupération des BTS.')
+      }
       btsDebug.error('BTSListPage error', err?.response?.status, err?.response?.data || err.message)
       setBtsList([])
     } finally {

@@ -27,7 +27,21 @@ router = APIRouter(prefix="/api/partners/{partner_id}/bts", tags=["BTS"])
 def list_bts(partner_id: int = Depends(get_partner_context), skip: int = 0,
              limit: int = Query(default=100, le=500),
              db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
-    return bts_crud.list_paginated(db, skip=skip, limit=limit, partner_id=partner_id)
+    result = bts_crud.list_paginated(db, skip=skip, limit=limit, partner_id=partner_id)
+
+    # Champs d'affichage pour les cartes/tableaux frontend :
+    # - ville : alias metier de zone ;
+    # - derniere_saturation : taux du releve le plus recent de la BTS.
+    for bts in result.get("items", []):
+        bts.ville = bts.zone
+        last = (
+            db.query(BTSReleve)
+            .filter(BTSReleve.bts_id == bts.id)
+            .order_by(BTSReleve.date_releve.desc())
+            .first()
+        )
+        bts.derniere_saturation = last.taux_saturation if last else None
+    return result
 
 
 @router.post("", response_model=BTSOut, status_code=201)

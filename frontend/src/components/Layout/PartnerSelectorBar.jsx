@@ -39,7 +39,7 @@ const PartnerSelectorBar = () => {
           Changer de partenaire
         </Button>
       </div>
-      {partner?.__mock ? (
+      {partner?.__mock && !import.meta.env.VITE_DISABLE_DEMO_BANNER ? (
         <DemoDataBanner
           compact
           message="Le backend est indisponible : le contexte partenaire actif utilise des données de démonstration."

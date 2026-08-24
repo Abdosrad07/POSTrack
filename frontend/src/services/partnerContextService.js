@@ -37,6 +37,11 @@ export const partnerContextService = {
         btsDebug.snapshot('Réponse auth/partenaires/available', response.data)
         return normalizeList(response.data).map(normalizePartner);
       } catch (error) {
+        btsDebug.warn('Échec de /auth/partenaires/available', {
+          status: error?.response?.status,
+          message: error?.message,
+          data: error?.response?.data,
+        })
         if (error.response?.status === 404) {
           btsDebug.warn('Route /auth/partenaires/available introuvable, fallback sur /partenaires')
           const response = await api.get('/partenaires', {
@@ -50,7 +55,10 @@ export const partnerContextService = {
       }
     } catch (error) {
       if (error.code === 'ERR_NETWORK' || !error.response) {
-        btsDebug.warn('Réseau indisponible pour les partenaires, fallback mock')
+        btsDebug.warn('Réseau indisponible pour les partenaires, fallback mock', {
+          message: error?.message,
+          code: error?.code,
+        })
         const fallback = getMockPartnersForRole(user?.role) || mockPartners;
         return fallback.map((partner) => normalizePartner({ ...partner, __mock: true }));
       }

@@ -4,11 +4,21 @@ import api from '../services/api'
 
 type Prime = {
   id: number
-  montant: number
-  date_attribution: string
-  statut: string
+  montant: number | string
+  // Backend : champ "status" (+ anciennement "statut" selon les versions)
+  status?: string
+  statut?: string
+  // Backend : "created_at" ; "date_attribution" conservé par compatibilité
+  created_at?: string
+  date_attribution?: string
+  pos_id?: number
   pos?: { code_pos?: string; nom?: string; partenaire?: { nom?: string } }
   partenaire?: { nom?: string }
+  // Champs d'affichage enrichis côté backend (prime_service.list_primes)
+  pos_code?: string
+  pos_nom?: string
+  partner_name?: string
+  period_code?: string
 }
 
 function PrimesListPage() {
@@ -34,7 +44,7 @@ function PrimesListPage() {
     return () => { ignore = true }
   }, [])
 
-  const statutLabel = (s: string) => s.toLowerCase().replace('_', ' ')
+  const statutLabel = (s?: string) => (s ?? '').toLowerCase().replace('_', ' ') || '—'
 
   return (
     <div className="space-y-6">
@@ -81,21 +91,26 @@ function PrimesListPage() {
                 primes.map((p) => (
                   <tr key={p.id}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                      {p.pos?.nom ?? `POS #${p.id}`}
-                      {p.pos?.code_pos && (
-                        <div className="text-xs text-gray-500">{p.pos.code_pos}</div>
+                      {p.pos_nom ?? p.pos?.nom ?? (p.pos_id ? `POS #${p.pos_id}` : `POS #${p.id}`)}
+                      {(p.pos_code ?? p.pos?.code_pos) && (
+                        <div className="text-xs text-gray-500">{p.pos_code ?? p.pos?.code_pos}</div>
                       )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {p.partenaire?.nom ?? p.pos?.partenaire?.nom ?? '—'}
+                      {p.partner_name ?? p.partenaire?.nom ?? p.pos?.partenaire?.nom ?? '—'}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {Number(p.montant).toLocaleString('fr-FR')} FCFA
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.date_attribution}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      {(p.created_at ?? p.date_attribution ?? '').slice(0, 10) || '—'}
+                      {p.period_code && (
+                        <div className="text-xs text-gray-400">{p.period_code}</div>
+                      )}
+                    </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <span className="inline-flex rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-800">
-                        {statutLabel(p.statut)}
+                        {statutLabel(p.status ?? p.statut)}
                       </span>
                     </td>
                   </tr>

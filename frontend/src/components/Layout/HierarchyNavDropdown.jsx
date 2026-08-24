@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import usePartner from '../../hooks/usePartner';
@@ -15,6 +15,7 @@ const HierarchyNavDropdown = () => {
   const [loading, setLoading] = useState(false);
   const [hierarchy, setHierarchy] = useState([]);
   const [error, setError] = useState('');
+  const containerRef = useRef(null);
 
   const role = normalizeRole(user?.role);
   const isOperationnel = role === 'OPERATIONNEL';
@@ -44,6 +45,17 @@ const HierarchyNavDropdown = () => {
     };
   }, [open, hierarchy.length, isOperationnel]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleOutsideClick = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [open]);
+
   const activeLabel = useMemo(() => {
     if (!partner) return 'Tous les partenaires';
     return partner.nom || partner.code_partenaire || `Partenaire #${partnerContextId}`;
@@ -65,7 +77,7 @@ const HierarchyNavDropdown = () => {
   }
 
   return (
-    <div className="relative hidden sm:block">
+    <div ref={containerRef} className="relative hidden sm:block">
       <button
         type="button"
         className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left shadow-sm hover:bg-slate-50"
@@ -75,7 +87,7 @@ const HierarchyNavDropdown = () => {
         aria-label="Hiérarchie"
       >
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Hiérarchie</div>
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Navigation</div>
           <div className="text-sm font-semibold text-slate-900">{activeLabel}</div>
         </div>
         <span className="text-xs text-slate-500">Partenaire → DSM → POS</span>

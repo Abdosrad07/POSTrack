@@ -43,6 +43,11 @@ class PrimeOut(BaseModel):
     demandeur_id: int | None
     validated_by: int | None
     created_at: datetime
+    # Champs d'affichage calcules par la couche service (lecture seule) :
+    pos_code: str | None = None
+    pos_nom: str | None = None
+    partner_name: str | None = None
+    period_code: str | None = None
 
 
 class PrimeCalculateRequest(BaseModel):

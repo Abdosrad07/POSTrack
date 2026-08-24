@@ -64,6 +64,16 @@ POSTrack/
 - Swagger : http://localhost:8000/docs
 - Health : http://localhost:8000/health
 
+## Docker
+
+Stack complète (MySQL + API + frontend Nginx) en une commande :
+
+```powershell
+docker compose up --build
+```
+
+→ Frontend : http://localhost:8080 · Détails dans [DOCKER.md](DOCKER.md).
+
 ## Équipe
 
 9 étudiants — 3 par équipe (DB, Backend, Frontend).

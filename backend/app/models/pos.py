@@ -42,6 +42,8 @@ class POS(Base):
     name = Column(String(150), nullable=False)
     address = Column(String(255), nullable=True)
     zone = Column(String(150), nullable=True)
+    latitude = Column(Integer, nullable=True)
+    longitude = Column(Integer, nullable=True)
 
     partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False, index=True)
     dsm_id = Column(Integer, ForeignKey("dsm.id"), nullable=False, index=True)

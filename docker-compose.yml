@@ -1,0 +1,74 @@
+# POSTrack - orchestration complete (base de donnees + API + frontend)
+#
+# Usage :
+#   docker compose up --build
+#
+# Services demarres :
+#   db   -> MySQL 8.0        (interne, port 3306 publie pour debug)
+#   api  -> FastAPI/uvicorn  (http://localhost:8000, docs sur /docs)
+#   web  -> Nginx + bundle Vite (http://localhost:8080)
+#
+# Le conteneur "web" proxifie "/api" vers "api:8000" : ouvrez simplement
+# http://localhost:8080 et connectez-vous (aucune configuration CORS).
+#
+# Charger les jeux de donnees apres le premier demarrage :
+#   docker compose exec api python scripts/seed_v4.py          # jeu minimal (destructif)
+#   docker compose exec api python scripts/seed_rich_demo.py   # enrichissement additif
+#
+# Comptes de demonstration : admin/admin123, manager/manager123, chef/chef123
+
+name: postrack
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: postrack
+      MYSQL_USER: postrack_user
+      MYSQL_PASSWORD: postrack_password
+      MYSQL_ROOT_PASSWORD: postrack_root_password
+    # Publie pour inspection/debug depuis l'hote ; seul "api" l'utilise.
+    ports:
+      - "3306:3306"
+    volumes:
+      - postrack_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppostrack_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+pymysql://postrack_user:postrack_password@db:3306/postrack
+      SECRET_KEY: change-this-secret-key-in-production
+      ENVIRONMENT: production
+      # Le frontend passe par le proxy Nginx (same-origin) : "*" convient
+      # a la demonstration ; restreindre en production reelle.
+      ALLOWED_ORIGINS: "*"
+    ports:
+      - "8000:8000"
+    volumes:
+      # Rapports d'import Excel persistes hors des redemarrages
+      - postrack_imports:/app/import_reports
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  postrack_mysql_data:
+  postrack_imports:

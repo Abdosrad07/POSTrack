@@ -5,12 +5,17 @@ import api from '../services/api'
 import { getRoleLabel } from '../utils/roles'
 
 type Stats = {
-  total_pos: number
-  pos_actifs: number
-  total_partenaires: number
-  total_dsm: number
-  total_bts: number
-  total_primes: number
+  partner_name?: string
+  pos_total?: number
+  pos_nouveau?: number
+  pos_reconduit?: number
+  primes_en_attente?: number
+  primes_validees?: number
+  montant_primes_periode?: string | number
+  requetes_ouvertes?: number
+  bts_saturees?: number
+  sim_en_stock?: number
+  sim_assignees?: number
 }
 
 type PosRow = {
@@ -106,16 +111,38 @@ function Dashboard() {
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total POS" value={stats?.total_pos} loading={loading} />
-        <StatCard label="POS Actifs" value={stats?.pos_actifs} loading={loading} accent="green" />
-        <StatCard label="Partenaires" value={stats?.total_partenaires} loading={loading} />
-        <StatCard label="Primes" value={stats?.total_primes} loading={loading} accent="indigo" />
+        <StatCard label="Total POS" value={stats?.pos_total} loading={loading} />
+        <StatCard
+          label="POS Actifs"
+          value={(stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}
+          loading={loading}
+          accent="green"
+        />
+        <StatCard label="SIM en stock" value={stats?.sim_en_stock} loading={loading} />
+        <StatCard label="Requêtes ouvertes" value={stats?.requetes_ouvertes} loading={loading} accent="indigo" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <StatCard label="DSM" value={stats?.total_dsm} loading={loading} small />
-        <StatCard label="BTS" value={stats?.total_bts} loading={loading} small />
-        <StatCard label="Primes" value={stats?.total_primes} loading={loading} small />
+        <StatCard label="BTS saturées" value={stats?.bts_saturees} loading={loading} small />
+        <StatCard label="SIM assignées" value={stats?.sim_assignees} loading={loading} small />
+        <StatCard
+          label="Montant primes période"
+          value={stats?.montant_primes_periode ? `${Number(stats.montant_primes_periode).toLocaleString('fr-FR')} FCFA` : undefined}
+          loading={loading}
+          small
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <StatCard label="POS nouveaux" value={stats?.pos_nouveau} loading={loading} small />
+        <StatCard label="POS reconduits" value={stats?.pos_reconduit} loading={loading} small />
+        <StatCard
+          label="Primes validées"
+          value={stats?.primes_validees}
+          loading={loading}
+          small
+          accent="green"
+        />
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -169,7 +196,7 @@ function StatCard({
   small,
 }: {
   label: string
-  value?: number
+  value?: number | string
   loading: boolean
   accent?: 'green' | 'indigo'
   small?: boolean

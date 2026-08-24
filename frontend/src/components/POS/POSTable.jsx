@@ -17,6 +17,7 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
             <Th>Type</Th>
             <Th>Partenaire</Th>
             <Th>DSM</Th>
+            <Th>Coordonnées</Th>
             <Th onClick={() => toggle('statut')}>Statut</Th>
             <Th onClick={() => toggle('date_expiration')}>Expiration</Th>
             <Th>Actions</Th>
@@ -24,9 +25,9 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
         </thead>
         <tbody className="divide-y divide-gray-100">
           {loading ? (
-            <tr><td colSpan={8} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
+            <tr><td colSpan={9} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
           ) : safeRows.length === 0 ? (
-            <tr><td colSpan={8} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
+            <tr><td colSpan={9} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
           ) : (
             safeRows.map((pos) => (
               <tr
@@ -48,6 +49,13 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
                 </td>
                 <td className="px-4 py-3">{pos.partenaire?.nom ?? '—'}</td>
                 <td className="px-4 py-3">{pos.dsm?.nom_complet ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-600">
+                  {pos.latitude != null && pos.longitude != null
+                    ? `${pos.latitude}, ${pos.longitude}`
+                    : pos.coordonnees && pos.coordonnees.latitude != null && pos.coordonnees.longitude != null
+                      ? `${pos.coordonnees.latitude}, ${pos.coordonnees.longitude}`
+                      : 'Aucune'}
+                </td>
                 <td className="px-4 py-3"><StatusBadge statut={pos.statut} /></td>
                 <td className="px-4 py-3">{pos.date_expiration}</td>
                 <td className="px-4 py-3">

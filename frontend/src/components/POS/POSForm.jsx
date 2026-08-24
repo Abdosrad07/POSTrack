@@ -8,6 +8,8 @@ const EMPTY_POS = {
   adresse: '',
   ville: '',
   region: '',
+  latitude: '',
+  longitude: '',
   partenaire_id: '',
   dsm_id: '',
   type: 'NOUVEAU', // toujours NOUVEAU à la création — jamais un choix utilisateur
@@ -53,6 +55,8 @@ export default function POSForm({
     if (!form.dsm_id) next.dsm_id = 'Sélectionnez un DSM actif.';
     if (!form.adresse.trim()) next.adresse = "L'adresse est requise.";
     if (!form.ville.trim()) next.ville = 'La ville est requise.';
+    if (form.latitude !== '' && Number.isNaN(Number(form.latitude))) next.latitude = 'Latitude invalide.';
+    if (form.longitude !== '' && Number.isNaN(Number(form.longitude))) next.longitude = 'Longitude invalide.';
     if (!form.date_creation) next.date_creation = 'La date de création est requise.';
     if (!form.date_expiration) next.date_expiration = "La date d'expiration est requise.";
     setErrors(next);
@@ -64,7 +68,12 @@ export default function POSForm({
     if (!validate()) return;
     // Le type n'est jamais envoyé en édition — le backend le gère via /reconductions
     const { type, ...payload } = form;
-    onSubmit?.(isEdit ? payload : form);
+    const normalized = {
+      ...payload,
+      latitude: payload.latitude === '' ? null : Number(payload.latitude),
+      longitude: payload.longitude === '' ? null : Number(payload.longitude),
+    };
+    onSubmit?.(isEdit ? normalized : normalized);
   };
 
   return (
@@ -173,6 +182,26 @@ export default function POSForm({
             <input
               value={form.region}
               onChange={(e) => update('region', e.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </Field>
+          <Field label="Latitude" error={errors.latitude}>
+            <input
+              type="number"
+              step="any"
+              value={form.latitude}
+              onChange={(e) => update('latitude', e.target.value)}
+              placeholder="Ex: 4.0511"
+              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </Field>
+          <Field label="Longitude" error={errors.longitude}>
+            <input
+              type="number"
+              step="any"
+              value={form.longitude}
+              onChange={(e) => update('longitude', e.target.value)}
+              placeholder="Ex: 9.7679"
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </Field>

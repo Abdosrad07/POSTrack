@@ -34,18 +34,24 @@ export default function POSListPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    partenaireService.getAll({ limit: 100 }).then((r) => {
-      const data = r.data?.items ?? r.data?.data ?? r.data ?? [];
-      setPartenaires(Array.isArray(data) ? data : []);
-    });
-    dsmService.getAll({ limit: 100 }).then((r) => {
-      const data = r.data?.items ?? r.data?.data ?? r.data ?? [];
-      setDsms(Array.isArray(data) ? data : []);
-    });
+    partenaireService.getAll({ limit: 100 })
+      .then((r) => {
+        const data = r.data?.items ?? r.data?.data ?? r.data ?? [];
+        setPartenaires(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setPartenaires([]));
+
+    dsmService.getAll({ limit: 100 })
+      .then((r) => {
+        const data = r.data?.items ?? r.data?.data ?? r.data ?? [];
+        setDsms(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setDsms([]));
   }, []);
 
   const fetchPOS = useCallback((page = 1) => {
     setStatus('loading');
+    setError(null);
     const params = Object.fromEntries(
       Object.entries({
         skip: (page - 1) * PAGE_SIZE,
@@ -60,13 +66,18 @@ export default function POSListPage() {
     posService
       .getAll(params)
       .then((res) => {
-        const data = res.data?.items ?? res.data?.data ?? res.data ?? [];
+        const data = res.data?.items ?? res.data?.data ?? res.data?.results ?? res.data ?? [];
         const items = Array.isArray(data) ? data : [];
         setRows(items);
+        setPagination({
+          page: Number(res.data?.page) || page,
+          pages: Number(res.data?.pages) || 1,
+          total: Number(res.data?.total ?? items.length),
+        });
         setStatus(items.length === 0 ? 'empty' : 'success');
       })
-      .catch(() => {
-        setError("Impossible de charger la liste des POS.");
+      .catch((err) => {
+        setError(err?.apiMessage || err?.message || 'Impossible de charger la liste des POS.');
         setStatus('error');
       });
   }, [filters, sort, activeCategory]);
@@ -93,6 +104,16 @@ export default function POSListPage() {
   );
 
   const handlePOSSelect = useCallback((pos) => setSelectedPOS(pos), []);
+
+  const normalizedRows = useMemo(
+    () =>
+      rows.map((pos) => ({
+        ...pos,
+        latitude: pos.latitude ?? pos.lat ?? pos.coordonnees?.latitude ?? null,
+        longitude: pos.longitude ?? pos.lng ?? pos.coordonnees?.longitude ?? null,
+      })),
+    [rows]
+  );
 
   return (
     <div className="space-y-6">
@@ -145,28 +166,31 @@ export default function POSListPage() {
         </div>
       )}
 
-      {/* Layout responsive : carte + tableau côte à côte (desktop), empilés (mobile) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* Layout responsive : carte au-dessus, tableau en dessous */}
+      <div className="space-y-6">
         <div className="h-[420px] lg:h-[520px]">
-          <POSMap pos={rows} selectedId={selectedPOS?.id} onSelect={handlePOSSelect} />
+          <POSMap pos={normalizedRows} selectedId={selectedPOS?.id} onSelect={handlePOSSelect} />
         </div>
 
-        <div>
-          {status === 'empty' ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
-              Aucun POS ne correspond à ces critères.
-            </div>
-          ) : (
-            <POSTable
-              rows={rows}
-              loading={status === 'loading'}
-              sort={sort}
-              onSort={toggleSort}
-              onSelect={handlePOSSelect}
-              selectedId={selectedPOS?.id}
-            />
-          )}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">Liste des POS</h2>
+          <span className="text-sm text-gray-500">{rows.length} POS affiché(s)</span>
         </div>
+
+        {status === 'empty' ? (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
+            Aucun POS ne correspond à ces critères.
+          </div>
+        ) : (
+          <POSTable
+            rows={rows}
+            loading={status === 'loading'}
+            sort={sort}
+            onSort={toggleSort}
+            onSelect={handlePOSSelect}
+            selectedId={selectedPOS?.id}
+          />
+        )}
       </div>
 
       <Pagination pagination={pagination} onPageChange={fetchPOS} />

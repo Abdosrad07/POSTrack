@@ -127,8 +127,8 @@ const SelectPartnerPage = () => {
 
         {error && <Alert type="error" message={error} />}
 
-        {(partners.some((p) => p.__mock) || partner?.__mock) && (
-          <DemoDataBanner message="Le backend est indisponible : les partenaires affichés sont des données de démonstration." />
+        {(partners.some((p) => p.__mock) || partner?.__mock) && !import.meta.env.VITE_DISABLE_DEMO_BANNER && (
+          <DemoDataBanner message="Mode de démonstration activé : les partenaires affichés sont des exemples temporaires." />
         )}
 
         {loading ? (

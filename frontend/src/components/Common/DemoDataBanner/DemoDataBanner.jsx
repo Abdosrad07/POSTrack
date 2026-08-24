@@ -11,22 +11,22 @@ const DemoDataBanner = ({ message, compact = false, className = '' }) => {
   if (compact) {
     return (
       <div
-        className={`flex flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-amber-200 bg-amber-50 px-4 py-1.5 text-xs text-amber-900 ${className}`}
+        className={`flex flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-slate-200 bg-slate-50 px-4 py-1.5 text-xs text-slate-600 ${className}`}
       >
-        <span aria-hidden="true">⚠️</span>
-        <span className="font-semibold">Données de démo</span>
+        <span aria-hidden="true">ℹ️</span>
+        <span className="font-semibold text-slate-700">Données de démo</span>
         <span>{message || defaultMessage}</span>
       </div>
     );
   }
 
   return (
-    <div className={`rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 ${className}`}>
+    <div className={`rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 ${className}`}>
       <div className="flex items-start gap-3">
-        <span aria-hidden="true" className="text-lg">⚠️</span>
-        <div className="text-sm text-amber-900">
+        <span aria-hidden="true" className="text-lg text-slate-500">ℹ️</span>
+        <div className="text-sm text-slate-700">
           <p className="font-semibold">Données de démo</p>
-          <p className="mt-0.5 text-xs text-amber-800">{message || defaultMessage}</p>
+          <p className="mt-0.5 text-xs text-slate-500">{message || defaultMessage}</p>
         </div>
       </div>
     </div>

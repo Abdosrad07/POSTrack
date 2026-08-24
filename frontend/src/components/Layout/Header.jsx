@@ -3,12 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { getRoleLabel } from '../../utils/roles';
 import Button from '../Common/Button/Button';
-import PartnerSelectorBar from './PartnerSelectorBar';
 import HierarchyNavDropdown from './HierarchyNavDropdown';
+import Logo from '../../assets/logos/LOGO.jpeg';
 
 /**
- * En-tête applicatif : marque, navigation hiérarchique, utilisateur,
- * partenaire actif (sélecteur permanent v3.4) et déconnexion (Module A2).
+ * En-tête applicatif : marque, navigation hiérarchique, utilisateur et déconnexion.
  */
 const Header = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
@@ -35,9 +34,7 @@ const Header = ({ onToggleSidebar }) => {
           <span className="text-lg leading-none">☰</span>
         </button>
         <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-600 text-sm font-bold text-white">
-            P
-          </span>
+          <img src={Logo} alt="POSTrack" className="h-9 w-9 rounded-lg object-cover" />
           <span className="text-xl font-bold tracking-tight text-slate-900">POSTrack</span>
         </Link>
         <div className="hidden sm:block h-6 w-px bg-slate-200" />
@@ -45,12 +42,9 @@ const Header = ({ onToggleSidebar }) => {
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Sélecteur de partenaire — toujours accessible (v3.4 §1.3) */}
-        <PartnerSelectorBar />
-
-        <div className="hidden text-right sm:block">
-          <p className="text-sm font-semibold text-slate-900">{displayName}</p>
-          <p className="text-xs text-slate-500">{roleLabel}</p>
+        <div className="hidden max-w-[18rem] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right sm:block">
+          <p className="truncate text-sm font-semibold text-slate-900">{displayName}</p>
+          <p className="truncate text-xs text-slate-500">{roleLabel}</p>
         </div>
 
         <Button type="button" variant="gray" className="text-sm" onClick={handleLogout}>

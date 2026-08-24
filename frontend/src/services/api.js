@@ -88,11 +88,16 @@ const extractErrorMessage = (data) => {
 
 const normalizeApiError = (error) => {
   const raw = error?.response?.data;
-  const message = extractErrorMessage(raw) || error?.message || 'Erreur inattendue.';
+  const isNetworkError = !error?.response && (error?.code === 'ERR_NETWORK' || /network error/i.test(error?.message || ''));
+  const message =
+    extractErrorMessage(raw) ||
+    (isNetworkError
+      ? `Impossible de joindre le backend à l'adresse ${API_URL}. Vérifiez que l'API est démarrée et que VITE_API_URL pointe vers le bon serveur.`
+      : error?.message || 'Erreur inattendue.');
   const isAuthExpired =
     (error?.response?.status === 401 || error?.response?.status === 403) &&
     /(expire|expir|revoqu|deconnect|invalid)/i.test(message.toLowerCase());
-  return Object.assign(error, { message, apiMessage: message, isAuthExpired });
+  return Object.assign(error, { message, apiMessage: message, isAuthExpired, isNetworkError });
 };
 
 /**

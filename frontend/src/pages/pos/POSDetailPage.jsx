@@ -29,6 +29,7 @@ export default function POSDetailPage() {
   const [linkUserId, setLinkUserId] = useState('');
   const [posSims, setPosSims] = useState([]);
   const [targetSimId, setTargetSimId] = useState('');
+  const mapSectionId = 'pos-map-section';
 
   useEffect(() => {
     setStatus('loading');
@@ -171,6 +172,12 @@ export default function POSDetailPage() {
         </div>
 
         <div className="flex gap-2">
+          <button
+            onClick={() => document.getElementById(mapSectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="rounded-md border border-sky-300 px-4 py-2 text-sm font-medium text-sky-700 hover:bg-sky-50"
+          >
+            Ouvrir dans la carte
+          </button>
           <button onClick={() => navigate(`/pos/${id}/edit`)} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             Modifier
           </button>
@@ -196,6 +203,10 @@ export default function POSDetailPage() {
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <InfoCard label="Partenaire" value={pos.partenaire?.nom ?? '—'} />
         <InfoCard label="DSM" value={pos.dsm?.nom_complet ?? '—'} />
+        <InfoCard
+          label="Coordonnées"
+          value={<CoordinateBadge latitude={pos.latitude} longitude={pos.longitude} />}
+        />
         <InfoCard label="Date de création" value={pos.date_creation} />
         <InfoCard label="Date d'expiration" value={pos.date_expiration} />
       </section>
@@ -270,6 +281,21 @@ export default function POSDetailPage() {
         </div>
       </section>
 
+      <section id={mapSectionId} className="rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Localisation</h2>
+        <div className="mt-3 rounded-2xl border border-sky-100 bg-sky-50 p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-sky-700">Position GPS</p>
+          <div className="mt-2 text-lg font-semibold text-slate-900">
+            {pos.latitude != null && pos.longitude != null
+              ? <CoordinateBadge latitude={pos.latitude} longitude={pos.longitude} compact />
+              : 'Aucune coordonnée GPS disponible pour ce POS.'}
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            Ces coordonnées servent à l’affichage cartographique, au suivi et aux exports.
+          </p>
+        </div>
+      </section>
+
       {/* Points d'ancrage vers les modules d'autres devs — pas de logique métier ici */}
       <div className="flex gap-3 border-t border-gray-200 pt-4">
         {LIENS_EXTERNES.map((lien) => (
@@ -290,7 +316,19 @@ function InfoCard({ label, value }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-gray-900">{value}</p>
+      <div className="mt-1 text-sm font-semibold text-gray-900">{value}</div>
     </div>
   );
+}
+
+function CoordinateBadge({ latitude, longitude, compact = false }) {
+  if (latitude == null || longitude == null) {
+    return <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">Non renseignées</span>;
+  }
+
+  if (compact) {
+    return <span className="inline-flex rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">{latitude}, {longitude}</span>;
+  }
+
+  return <span className="inline-flex rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">{latitude}, {longitude}</span>;
 }

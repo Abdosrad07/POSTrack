@@ -5,27 +5,26 @@ import analyticsService from '../services/analyticsService'
 import api from '../services/api'
 
 type PartnerOverview = {
-  master_sim?: string
-  responsable_nom?: string
-  responsable_tel?: string
-  commercial_nom?: string
-  commercial_tel?: string
-  localisation?: string
-  nb_bts?: number
-  nb_pos_crees?: number
-  nb_pos_actifs?: number
-  nb_dsm?: number
-  nb_microzones?: number
-  quartiers?: string[]
+  code?: string
+  name?: string
+  address?: string | null
+  is_active?: boolean
+  bts_import_file_path?: string | null
+  created_at?: string
 }
 
 type Stats = {
-  total_pos: number
-  pos_actifs: number
-  total_partenaires: number
-  total_dsm: number
-  total_bts: number
-  total_primes: number
+  partner_name?: string
+  pos_total?: number
+  pos_nouveau?: number
+  pos_reconduit?: number
+  primes_en_attente?: number
+  primes_validees?: number
+  montant_primes_periode?: string | number
+  requetes_ouvertes?: number
+  bts_saturees?: number
+  sim_en_stock?: number
+  sim_assignees?: number
 }
 
 type PartnerContext = {
@@ -70,18 +69,12 @@ export default function PartnerHomePage() {
           setStats(statsRes.data)
           const p = detailsRes.data?.data ?? detailsRes.data ?? {}
           setOverview({
-            master_sim: p.master_sim || p.numero_master_sim || p.sim_master || '—',
-            responsable_nom: p.responsable_nom || p.nom_responsable || p.responsable || '—',
-            responsable_tel: p.responsable_tel || p.telephone_responsable || '—',
-            commercial_nom: p.commercial_nom || p.nom_commercial || '—',
-            commercial_tel: p.commercial_tel || p.telephone_commercial || '—',
-            localisation: p.localisation || p.adresse || [p.ville, p.region].filter(Boolean).join(' · ') || '—',
-            nb_bts: p.nb_bts ?? statsRes.data?.total_bts ?? 0,
-            nb_pos_crees: p.nb_pos_crees ?? statsRes.data?.total_pos ?? 0,
-            nb_pos_actifs: p.nb_pos_actifs ?? statsRes.data?.pos_actifs ?? 0,
-            nb_dsm: p.nb_dsm ?? statsRes.data?.total_dsm ?? 0,
-            nb_microzones: p.nb_microzones ?? 0,
-            quartiers: Array.isArray(p.quartiers) ? p.quartiers : Array.isArray(p.quartiers_couverts) ? p.quartiers_couverts : [],
+            code: p.code,
+            name: p.name,
+            address: p.address,
+            is_active: p.is_active,
+            bts_import_file_path: p.bts_import_file_path ?? null,
+            created_at: p.created_at,
           })
         }
       } catch {
@@ -100,17 +93,12 @@ export default function PartnerHomePage() {
   const partnerTitle = partner?.nom ?? partner?.code_partenaire ?? (partnerContextId ? `Partenaire #${partnerContextId}` : 'Partenaire')
 
   const infoCards = useMemo(() => [
-    ['Master SIM', overview?.master_sim],
-    ['Responsable', overview?.responsable_nom],
-    ['Téléphone responsable', overview?.responsable_tel],
-    ['Commercial', overview?.commercial_nom],
-    ['Téléphone commercial', overview?.commercial_tel],
-    ['Localisation', overview?.localisation],
-    ['Nombre de BTS', overview?.nb_bts],
-    ['POS créés', overview?.nb_pos_crees],
-    ['POS actifs', overview?.nb_pos_actifs],
-    ['Nombre de DSM', overview?.nb_dsm],
-    ['Microzones', overview?.nb_microzones],
+    ['Code partenaire', overview?.code],
+    ['Nom', overview?.name],
+    ['Adresse', overview?.address],
+    ['Statut', overview?.is_active === undefined ? undefined : (overview?.is_active ? 'ACTIF' : 'INACTIF')],
+    ['Créé le', overview?.created_at ? String(overview.created_at).slice(0, 10) : undefined],
+    ['Fichier import BTS', overview?.bts_import_file_path ? 'déposé' : undefined],
   ], [overview])
 
   return (
@@ -162,18 +150,25 @@ export default function PartnerHomePage() {
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Aperçu analytique</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg bg-sky-50 p-4"><div className="text-sm text-slate-500">POS</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.total_pos ?? 0}</div></div>
-            <div className="rounded-lg bg-emerald-50 p-4"><div className="text-sm text-slate-500">POS actifs</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.pos_actifs ?? 0}</div></div>
-            <div className="rounded-lg bg-violet-50 p-4"><div className="text-sm text-slate-500">DSM</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.total_dsm ?? 0}</div></div>
-            <div className="rounded-lg bg-amber-50 p-4"><div className="text-sm text-slate-500">BTS</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.total_bts ?? 0}</div></div>
+            <div className="rounded-lg bg-sky-50 p-4"><div className="text-sm text-slate-500">POS</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.pos_total ?? 0}</div></div>
+            <div className="rounded-lg bg-emerald-50 p-4"><div className="text-sm text-slate-500">POS actifs</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : (stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}</div></div>
+            <div className="rounded-lg bg-violet-50 p-4"><div className="text-sm text-slate-500">BTS saturées</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.bts_saturees ?? 0}</div></div>
+            <div className="rounded-lg bg-amber-50 p-4"><div className="text-sm text-slate-500">Requêtes ouvertes</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.requetes_ouvertes ?? 0}</div></div>
           </div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Quartiers couverts</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(overview?.quartiers || []).length ? (overview?.quartiers || []).map((q) => (
-              <span key={q} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">{q}</span>
-            )) : <span className="text-sm text-slate-500">—</span>}
+          <h2 className="text-lg font-semibold text-slate-900">Primes &amp; SIM</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg bg-indigo-50 p-4"><div className="text-sm text-slate-500">Primes en attente</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.primes_en_attente ?? 0}</div></div>
+            <div className="rounded-lg bg-indigo-50 p-4"><div className="text-sm text-slate-500">Primes validées</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.primes_validees ?? 0}</div></div>
+            <div className="rounded-lg bg-slate-50 p-4 sm:col-span-2">
+              <div className="text-sm text-slate-500">Montant primes période courante</div>
+              <div className="text-2xl font-bold text-slate-900">
+                {loading ? '…' : stats?.montant_primes_periode ? `${Number(stats.montant_primes_periode).toLocaleString('fr-FR')} FCFA` : '—'}
+              </div>
+            </div>
+            <div className="rounded-lg bg-slate-50 p-4"><div className="text-sm text-slate-500">SIM en stock</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.sim_en_stock ?? 0}</div></div>
+            <div className="rounded-lg bg-slate-50 p-4"><div className="text-sm text-slate-500">SIM assignées</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.sim_assignees ?? 0}</div></div>
           </div>
         </div>
       </div>

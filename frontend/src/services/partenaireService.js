@@ -4,6 +4,8 @@ import api from './api';
 export const partenaireService = {
   getAll: (params) =>
     api.get('/partenaires', { params, skipPartnerPrefix: true }),
+  getAvailable: (params) =>
+    api.get('/auth/partenaires/available', { params, skipPartnerPrefix: true }),
 };
 
 export default partenaireService;

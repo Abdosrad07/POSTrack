@@ -23,6 +23,9 @@ class BTSOut(BaseModel):
     longitude: float | None
     zone: str | None
     created_at: datetime
+    # Champs d'affichage calcules par la couche service :
+    ville: str | None = None                 # alias metier de zone
+    derniere_saturation: float | None = None  # taux de saturation du dernier releve
 
     class Config:
         from_attributes = True

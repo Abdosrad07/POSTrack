@@ -4,11 +4,29 @@ from pydantic import BaseModel, ConfigDict
 from app.models.pos import TypePos, StatutPos
 
 
+class POSPartnerNested(BaseModel):
+    """Partenaire minimal imbrique dans une ligne POS (nom affichable)."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+
+
+class POSDsmNested(BaseModel):
+    """DSM minimal imbrique dans une ligne POS."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+
+
 class POSCreate(BaseModel):
     code_pos: str
     name: str
     address: str | None = None
     zone: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
     dsm_id: int
     holder_user_id: int | None = None
     date_creation: date
@@ -21,6 +39,8 @@ class POSUpdate(BaseModel):
     name: str | None = None
     address: str | None = None
     zone: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
     holder_user_id: int | None = None
     status: StatutPos | None = None
     stock_actuel: int | None = None
@@ -34,6 +54,8 @@ class POSOut(BaseModel):
     name: str
     address: str | None
     zone: str | None
+    latitude: float | None
+    longitude: float | None
     partner_id: int
     dsm_id: int
     holder_user_id: int | None
@@ -46,6 +68,9 @@ class POSOut(BaseModel):
     date_expiration: date
     date_derniere_reconduction: date | None
     created_at: datetime
+    # Objets imbriques pour l'affichage (colonnes Partenaire / DSM des tableaux)
+    partner: POSPartnerNested | None = None
+    dsm: POSDsmNested | None = None
 
 
 class ReconductionCreate(BaseModel):
