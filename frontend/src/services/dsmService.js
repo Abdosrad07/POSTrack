@@ -16,6 +16,9 @@ const normalizeDsm = (dsm) => ({
   full_name: dsm?.full_name ?? dsm?.nom ?? dsm?.name ?? '',
   region: dsm?.region ?? dsm?.zone ?? '',
   zone: dsm?.zone ?? dsm?.region ?? '',
+  micro_zone: dsm?.micro_zone ?? dsm?.zone ?? '',
+  partner_name: dsm?.partner_name ?? dsm?.partner?.name ?? '',
+  nb_pos_crees: dsm?.nb_pos_crees ?? dsm?.pos_count ?? 0,
 });
 
 export const dsmService = {
@@ -26,6 +29,11 @@ export const dsmService = {
   },
   getById: async (id) => {
     const response = await api.get(`/dsm/${id}`);
+    const data = response.data ? normalizeDsm(response.data) : response.data;
+    return { ...response, data };
+  },
+  getIdentity: async (id) => {
+    const response = await api.get(`/dsm/identity/${id}`);
     const data = response.data ? normalizeDsm(response.data) : response.data;
     return { ...response, data };
   },

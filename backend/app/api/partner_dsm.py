@@ -8,6 +8,7 @@ from app.api.deps import get_current_user, get_partner_context
 from app.crud.partner_crud import dsm_crud
 from app.models.user import User
 from app.schemas.partner import DSMBase, DSMOut
+from app.services.dsm_identity_service import get_dsm_identity
 
 router = APIRouter(prefix="/api/partners/{partner_id}/dsm", tags=["DSM"])
 
@@ -17,6 +18,15 @@ def list_dsm(partner_id: int = Depends(get_partner_context),
              db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     """Liste des DSM du Partenaire courant (contexte verifie via X-Partner-Context-Id)."""
     return dsm_crud.list(db, partner_id=partner_id, limit=500)
+
+
+@router.get("/identity/{dsm_id}")
+def dsm_identity(dsm_id: int, partner_id: int = Depends(get_partner_context),
+                 db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    data = get_dsm_identity(db, partner_id=partner_id, dsm_id=dsm_id)
+    if not data:
+        raise NotFoundError("DSM introuvable dans ce Partenaire.")
+    return data
 
 
 @router.post("", response_model=DSMOut, status_code=201)

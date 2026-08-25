@@ -25,7 +25,9 @@ export default function DSMListPage() {
         const data = raw.map((d) => ({
           ...d,
           nom: d.nom || d.full_name || d.name,
-          region: d.region || d.zone,
+          micro_zone: d.micro_zone || d.zone || null,
+          partner_name: d.partner_name || d.partner?.name || d.partner || 'Non renseigné',
+          nb_pos_crees: d.nb_pos_crees ?? d.pos_count ?? 0,
           statut: (d.statut || (d.is_active === false ? 'INACTIF' : 'ACTIF')).toLowerCase(),
         }))
         if (mounted) {
@@ -50,7 +52,7 @@ export default function DSMListPage() {
     const matchesSearch =
       (d.nom || '').toLowerCase().includes(term) ||
       (d.email || '').toLowerCase().includes(term) ||
-      (d.region || '').toLowerCase().includes(term)
+      (d.micro_zone || '').toLowerCase().includes(term)
     const matchesStatus = statusFilter ? d.statut === statusFilter : true
     return matchesSearch && matchesStatus
   })
@@ -129,7 +131,7 @@ export default function DSMListPage() {
                         {dsm.nom}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {dsm.region}
+                        {dsm.micro_zone || 'Non renseigné'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         {dsm.email}
@@ -180,8 +182,8 @@ export default function DSMListPage() {
           <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
             <h2 className="text-lg font-semibold text-indigo-900">{selectedDSM?.nom || 'DSM'}</h2>
             <p className="text-sm text-gray-700">Email: {selectedDSM?.email || 'N/A'}</p>
-            <p className="mt-1 text-sm text-gray-700">Région: {selectedDSM?.region || 'N/A'}</p>
-            <p className="mt-1 text-sm text-gray-700">Statut: {selectedDSM?.statut || 'N/A'}</p>
+            <p className="mt-1 text-sm text-gray-700">Micro-zone: {selectedDSM?.micro_zone || 'Non renseigné'}</p>
+            <p className="mt-1 text-sm text-gray-700">POS créés: {selectedDSM?.nb_pos_crees ?? 0}</p>
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">

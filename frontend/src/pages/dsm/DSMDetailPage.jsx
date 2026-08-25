@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import dsmService from '../../services/dsmService'
+import DSMIdentityCard from '../../components/DSM/DSMIdentityCard'
 
 export default function DSMDetailPage() {
   const { id } = useParams()
@@ -16,13 +17,16 @@ export default function DSMDetailPage() {
         setLoading(true)
         setError('')
         const response = await dsmService.getById(id)
+        const identityResponse = await dsmService.getIdentity(id)
         if (active) {
           const data = response?.data || null
           setDsm(data ? {
             ...data,
             nom: data.nom || data.full_name || data.name,
             region: data.region || data.zone,
+            micro_zone: data.micro_zone || data.zone,
             statut: data.statut || (data.is_active === false ? 'INACTIF' : 'ACTIF'),
+            nb_pos_crees: identityResponse?.data?.nb_pos_crees ?? data.nb_pos_crees ?? 0,
           } : null)
         }
       } catch (error) {
@@ -87,12 +91,12 @@ export default function DSMDetailPage() {
             <p className="mt-2 text-lg font-medium text-gray-900">{dsm.email || '—'}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <h2 className="text-sm font-semibold text-gray-600">Région</h2>
-            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.region || dsm.zone || '—'}</p>
+            <h2 className="text-sm font-semibold text-gray-600">Micro-zone</h2>
+            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.micro_zone || dsm.zone || 'Non renseigné'}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <h2 className="text-sm font-semibold text-gray-600">Statut</h2>
-            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.statut || '—'}</p>
+            <h2 className="text-sm font-semibold text-gray-600">POS créés</h2>
+            <p className="mt-2 text-lg font-medium text-gray-900">{dsm.nb_pos_crees ?? 0}</p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:col-span-2">
             <h2 className="text-sm font-semibold text-gray-600">Téléphone</h2>
@@ -100,6 +104,8 @@ export default function DSMDetailPage() {
           </div>
         </div>
       </div>
+
+      <DSMIdentityCard dsm={dsm} />
     </div>
   )
 }
