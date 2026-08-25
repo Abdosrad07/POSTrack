@@ -59,8 +59,10 @@ def list_batches(partner_id: int = Depends(get_partner_context),
     return import_batch_crud.list_paginated(db, skip=skip, limit=limit, partner_id=partner_id)
 
 
+# Exemple-type des gabarits Excel téléchargeables.
+# Reflet du référentiel réel (Master Color = PART-MC), Camtel Express (PART-001) ayant été retiré.
 SAMPLE_ROWS = {
-    "PARTNER": {"code_partenaire": "PART-001", "name": "Camtel Express"},
+    "PARTNER": {"code_partenaire": "PART-MC", "name": "Master Color"},
     "DSM": {"matricule": "DSM-DLA-01", "full_name": "Jean Marc"},
     "POS": {"code_pos": "POS-0001", "name": "Kiosque Akwa", "dsm_matricule": "DSM-DLA-01",
              "date_creation": "2026-01-15", "date_expiration": "2026-12-31"},

@@ -100,7 +100,10 @@ def available_partners(db: Session = Depends(get_db), user: User = Depends(get_c
     ids = get_authorized_partners(db, user)
     if not ids:
         return []
-    return db.query(Partner).filter(Partner.id.in_(ids)).all()
+    # Seuls les partenaires actifs sont proposables a la selection : un
+    # partenaire desactive (ex. donnees de demo) ne doit plus apparaitre
+    # dans le referentiel (etape 4 - referentiel reel).
+    return db.query(Partner).filter(Partner.id.in_(ids), Partner.is_active.is_(True)).all()
 
 
 @router.post("/users", response_model=UserOut, status_code=201)

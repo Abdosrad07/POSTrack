@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel, EmailStr
 
 from app.security.permissions import Role
@@ -59,6 +59,7 @@ class PartnerAvailable(BaseModel):
     id: int
     code: str
     name: str
+    contract_start_date: date | None = None
 
     class Config:
         from_attributes = True

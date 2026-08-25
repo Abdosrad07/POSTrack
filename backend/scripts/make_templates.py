@@ -29,8 +29,10 @@ OPTIONAL = {
     "REQUETE": ["description", "priorite", "entite_en_charge", "nombre_demande"],
 }
 
+# Exemple-type des gabarits Excel générés.
+# Reflet du référentiel réel (Master Color = PART-MC), Camtel Express (PART-001) ayant été retiré.
 SAMPLES = {
-    "PARTNER": {"code_partenaire": "PART-001", "name": "Camtel Express"},
+    "PARTNER": {"code_partenaire": "PART-MC", "name": "Master Color"}
     "DSM": {"matricule": "DSM-DLA-01", "full_name": "Jean Marc", "zone": "Douala Akwa"},
     "POS": {"code_pos": "POS-0001", "name": "Kiosque Akwa", "dsm_matricule": "DSM-DLA-01",
              "date_creation": "2026-01-15", "date_expiration": "2026-12-31",

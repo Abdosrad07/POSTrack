@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict
 
 
@@ -6,6 +6,7 @@ class PartnerBase(BaseModel):
     code: str
     name: str
     address: str | None = None
+    contract_start_date: date | None = None
 
 
 class PartnerCreate(PartnerBase):

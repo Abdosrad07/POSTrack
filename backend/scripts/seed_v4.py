@@ -28,54 +28,50 @@ from app.security.password import hash_password
 Base.metadata.create_all(bind=engine)
 
 # (username, email, mot_de_passe, rôle, partner_id si OPERATIONNEL)
+# Comptes (username, email, mot_de_passe, rôle, partner_id si OPERATIONNEL).
+# Camtel Express (partner_id=1, anciennement démo) a été retiré → plus d'utilisateur `oper` dessus.
 USERS = [
     ("admin", "admin@postrack.cm", "admin123", Role.ADMIN, None),
     ("manager", "manager@postrack.cm", "manager123", Role.MANAGER, None),
     ("manager.mc", "manager.mc@postrack.cm", "manager123", Role.MANAGER, None),
     ("chef", "chef@postrack.cm", "chef123", Role.CHEF_OPERATIONNEL, None),
     ("dsm.mc", "dsm.mc@postrack.cm", "dsm123", Role.CHEF_OPERATIONNEL, None),
-    ("oper", "oper@postrack.cm", "oper123", Role.OPERATIONNEL, 1),
     ("oper.mc", "oper.mc@postrack.cm", "oper123", Role.OPERATIONNEL, 2),
 ]
 
+# Les 4 partenaires réels communiqués par le client.
+# MasterColor7 était une faute de frappe → corrigé en Master Color (PART-MC).
+# Camtel Express (id=1, PART-001, is_active=False) était un partenaire de démo → retiré.
 PARTNERS = [
-    {"id": 1, "code": "PART-001", "nom": "Camtel Express", "ville": "Douala"},
-    {"id": 2, "code": "PART-MC", "nom": "Master Color", "ville": "Douala"},
-    {"id": 3, "code": "PART-GL", "nom": "Glothelo", "ville": None},
+    {"id": 2, "code": "PART-MC", "nom": "Master Color", "ville": "Douala", "is_active": True, "contract_start_date": date(2025, 7, 1)},
+    {"id": 3, "code": "PART-GL", "nom": "Glothelo", "ville": None, "is_active": True, "contract_start_date": date(2023, 10, 23)},
+    {"id": 4, "code": "PART-ODI", "nom": "Odi", "ville": None, "is_active": True, "contract_start_date": date(2026, 9, 1)},
+    {"id": 5, "code": "PART-SEV", "nom": "Seven", "ville": None, "is_active": True, "contract_start_date": date(2026, 9, 1)},
 ]
 
+# DSM: id=1 (DSM-DLA-01, partner=1 démo) retiré. DSM id=2 (Master Color) conservé.
 DSMS = [
-    {"id": 1, "matricule": "DSM-DLA-01", "full_name": "Jean Marc", "zone": "Douala Akwa", "partner": 1},
     {"id": 2, "matricule": "DSM-TMP-MC", "full_name": "DSM à identifier (import Master Color)", "zone": "À identifier", "partner": 2},
 ]
 
+# POS: id=101/102 (partner=1 démo) retirés. POS id=201 (Master Color) conservé.
 POSES = [
-    {"id": 101, "code": "POS-DEMO-0001", "nom": "Kiosque Akwa Liberte", "adresse": "Akwa — Boulevard de la Liberté", "partner": 1, "dsm": 1, "type": TypePos.NOUVEAU, "statut": StatutPos.ACTIF, "dc": date(2026, 1, 1), "de": date(2026, 12, 31)},
-    {"id": 102, "code": "POS-DEMO-0002", "nom": "Boutique Bonanjo Central", "adresse": "Bonanjo — Central", "partner": 1, "dsm": 1, "type": TypePos.RECONDUIT, "statut": StatutPos.ACTIF, "dc": date(2025, 1, 1), "de": date(2026, 12, 31)},
     {"id": 201, "code": "POS-MC-000001", "nom": "ALI - NEWBELL", "adresse": "Newbell — Casino", "partner": 2, "dsm": 2, "type": TypePos.NOUVEAU, "statut": StatutPos.ACTIF, "dc": date(2026, 6, 1), "de": date(2026, 12, 31)},
 ]
 
+# BTS: anciennement rattaché à Camtel Express (partner=1) → rattaché à Master Color (partner=2).
 BTS_LIST = [
-    {"partner": 1, "code_bts": "BTS-DLA-01", "operateur": "CAMTEL", "technologie": "4G", "capacite_max": 1000.0, "latitude": 4.0511, "longitude": 9.7679, "zone": "Douala 1er"},
+    {"partner": 2, "code_bts": "BTS-MC-01", "operateur": "CAMTEL", "technologie": "4G", "capacite_max": 1000.0, "latitude": 4.0511, "longitude": 9.7679, "zone": "Douala 1er"},
 ]
 
+# SIMs: celles liées aux POS 101/102 (Camtel Express démo) retirées.
+# Conservées celles liées au POS 201 (Master Color) :
 SIMS = [
-    ("89237010000000000001", StatutSim.EN_STOCK, 101),
-    ("89237010000000000002", StatutSim.ACTIVE, 101),
-    ("89237010000000000003", StatutSim.ASSIGNEE, 101),
-    ("89237010000000000004", StatutSim.PERDUE, 102),
-    ("89237010000000000005", StatutSim.RETOURNEE, 102),
     ("89337020000000000001", StatutSim.EN_STOCK, 201),
 ]
 
-REQUETES = [
-    {"ext": "EXT-REQ-001", "partner": 1, "type": TypeRequete.AJOUT, "titre": "Rupture de stock SIM",
-     "desc": "Le POS Akwa Liberte n'a plus de SIM CAMTEL en stock.", "prio": PrioriteRequete.NORMALE,
-     "dc": datetime(2026, 8, 1, 9, 0), "nd": 1, "ne": 0, "nr": 0, "delai": 48},
-    {"ext": "EXT-REQ-002", "partner": 1, "type": TypeRequete.RECONDUCTION, "titre": "Reconduction POS Bonanjo",
-     "desc": "Demande de renouvellement annuel du POS Bonanjo Central.", "prio": PrioriteRequete.HAUTE,
-     "dc": datetime(2026, 8, 5, 11, 0), "nd": 1, "ne": 1, "nr": 0, "delai": 24},
-]
+# Requêtes: EXT-REQ-001/002 (partner=1 démo) retirées.
+REQUETES = []
 def clear_all(db):
     """Vide les tables seedées dans l'ordre des clés étrangères."""
     from sqlalchemy import text
@@ -106,7 +102,11 @@ def seed():
 
         partners = {}
         for p in PARTNERS:
-            obj = Partner(code=p["code"], name=p["nom"], address=p["ville"], is_active=True)
+            obj = Partner(
+                code=p["code"], name=p["nom"], address=p["ville"],
+                is_active=p.get("is_active", True),
+                contract_start_date=p.get("contract_start_date"),
+            )
             obj.id = p["id"]
             db.add(obj)
             db.flush()
@@ -147,17 +147,17 @@ def seed():
             db.flush()  # on récupère obj.id pour les relevés
             bts_objs[b["code_bts"]] = obj
 
-        # Relevés de charge/saturation des BTS (page "Historique des relevés")
+                # Relevés de charge/saturation des BTS (page "Historique des relevés")
         now = datetime.now()
         for _ts in (now, datetime(now.year, now.month, now.day)):
             db.add(BTSReleve(
-                bts_id=bts_objs["BTS-DLA-01"].id,
+                bts_id=bts_objs["BTS-MC-01"].id,
                 date_releve=_ts,
                 charge=92.0, debit=42.5, connexions=78, latence=24.0,
                 statut="actif", taux_saturation=88.0, rendement=94.2,
             ))
         db.add(BTSReleve(
-            bts_id=bts_objs["BTS-DLA-01"].id, date_releve=now,
+            bts_id=bts_objs["BTS-MC-01"].id, date_releve=now,
             charge=64.0, debit=38.1, connexions=55, latence=18.0,
             statut="actif", taux_saturation=60.0, rendement=88.5,
         ))

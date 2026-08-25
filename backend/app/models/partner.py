@@ -5,7 +5,7 @@ client (responsable, commercial, numero MasterSIM) et pointe vers ses
 micro-zones geographiques (table `micro_zones`).
 """
 from sqlalchemy import (
-    Column, Integer, String, DateTime, Boolean, Float, ForeignKey,
+    Column, Integer, String, DateTime, Boolean, Float, ForeignKey, Date,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -35,6 +35,9 @@ class Partner(Base):
 
     # Numero MasterSIM (carte SIM "maitresse" / compte de reference).
     master_sim_number = Column(String(50), nullable=True)
+
+    # Debut du contrat de distribution (carte d'identite partenaire).
+    contract_start_date = Column(Date, nullable=True)
 
     # Référence vers un fichier interne sécurisé d'import BTS.
     # Le contenu brut ne doit pas être exposé ni journalisé.

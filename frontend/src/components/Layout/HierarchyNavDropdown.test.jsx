@@ -13,7 +13,7 @@ vi.mock('../../services/hierarchyService', () => ({
 }));
 
 const mockHierarchyData = [
-  { id: 1, nom: 'Camtel Express', code_partenaire: 'PART-001', dsms: [{ id: 10, nom: 'Jean Marc', matricule: 'DSM-DLA-01', pos: [{ id: 101, code_pos: 'POS-DEMO-0001' }] }] },
+  { id: 2, nom: 'Master Color', code_partenaire: 'PART-MC', dsms: [{ id: 2, nom: 'DSM Master Color', matricule: 'DSM-TMP-MC', pos: [{ id: 201, code_pos: 'POS-MC-000001' }] }] },
 ];
 
 const renderComponent = (userRole = ROLES.ADMIN, partnerVal = null) => {
@@ -37,9 +37,9 @@ describe('HierarchyNavDropdown', () => {
     hierarchyService.getHierarchy.mockResolvedValue(mockHierarchyData);
   });
 
-  it('affiche le résumé de contexte', () => {
+    it('affiche le résumé de contexte', () => {
     renderComponent(ROLES.ADMIN);
-    expect(screen.getByText('Hiérarchie')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Hiérarchie/i })).toBeInTheDocument();
     expect(screen.getByText('Tous les partenaires')).toBeInTheDocument();
   });
 
@@ -48,15 +48,15 @@ describe('HierarchyNavDropdown', () => {
     fireEvent.click(screen.getByRole('button', { name: /Hiérarchie/i }));
 
     await waitFor(() => expect(hierarchyService.getHierarchy).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText('Navigation réseau')).toBeInTheDocument();
-    expect(screen.getByText('Camtel Express')).toBeInTheDocument();
-    expect(screen.getByText('PART-001')).toBeInTheDocument();
-    expect(screen.getByText('Jean Marc')).toBeInTheDocument();
-    expect(screen.getByText(/POS-DEMO-0001/i)).toBeInTheDocument();
+        expect(await screen.findByText('Navigation réseau')).toBeInTheDocument();
+    expect(screen.getByText('Master Color')).toBeInTheDocument();
+    expect(screen.getByText('PART-MC')).toBeInTheDocument();
+    expect(screen.getByText('DSM Master Color')).toBeInTheDocument();
+    expect(screen.getByText(/POS-MC-000001/i)).toBeInTheDocument();
   });
 
-  it('affiche un contexte verrouillé pour OPERATIONNEL', () => {
-    renderComponent(ROLES.OPERATIONNEL, { id: 1, nom: 'Camtel Express' });
+    it('affiche un contexte verrouillé pour OPERATIONNEL', () => {
+    renderComponent(ROLES.OPERATIONNEL, { id: 2, nom: 'Master Color' });
     expect(screen.getByText(/verrouillé/i)).toBeInTheDocument();
   });
 });

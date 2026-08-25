@@ -14,9 +14,11 @@ export default function PartenairesListPage() {
       const response = await api.get('/partenaires')
       setPartenaires(response.data.data || response.data || [])
     } catch {
-      setPartenaires([
-        { id: 1, nom: 'Partenaire ABC', email: 'contact@abc.com', telephone: '+237600000001', pos_count: 5, statut: 'actif' },
-        { id: 2, nom: 'Partenaire XYZ', email: 'contact@xyz.com', telephone: '+237600000002', pos_count: 3, statut: 'inactif' },
+            setPartenaires([
+        { id: 2, nom: 'Master Color', email: 'contact@mastercolor.com', telephone: '+237699000003', pos_count: 1, statut: 'actif', date_debut_contrat: '2025-07-01' },
+        { id: 3, nom: 'Glothelo', email: 'contact@glothelo.com', telephone: '+237699000004', pos_count: 0, statut: 'actif', date_debut_contrat: '2023-10-23' },
+        { id: 4, nom: 'Odi', email: '', telephone: '', pos_count: 0, statut: 'actif', date_debut_contrat: '2026-09-01' },
+        { id: 5, nom: 'Seven', email: '', telephone: '', pos_count: 0, statut: 'actif', date_debut_contrat: '2026-09-01' },
       ])
     } finally {
       setLoading(false)
@@ -81,20 +83,21 @@ export default function PartenairesListPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Téléphone</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nombre de POS</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Début du contrat</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                                <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
                     Chargement...
                   </td>
                 </tr>
               ) : filteredPartenaires.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                                    <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
                     Aucun partenaire enregistré pour le moment
                   </td>
                 </tr>
@@ -108,7 +111,10 @@ export default function PartenairesListPage() {
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${p.statut === 'actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {p.statut}
-                      </span>
+                       </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-50">
+                      {p.date_debut_contrat ? new Date(p.date_debut_contrat).toLocaleDateString('fr-FR') : '—'}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                       <button className="text-indigo-600 hover:text-indigo-900">Modifier</button>
