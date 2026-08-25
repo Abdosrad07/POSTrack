@@ -25,6 +25,7 @@ describe('LoginPage', () => {
     )
 
     expect(screen.getByText('POSTrack')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'POSTrack logo' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Se connecter' })).toBeInTheDocument()
   })
 

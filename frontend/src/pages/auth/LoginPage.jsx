@@ -5,6 +5,7 @@ import usePartner from '../../hooks/usePartner';
 import Button from '../../components/Common/Button/Button';
 import Alert from '../../components/Common/Alert/Alert';
 import { clearAuthSession } from '../../services/api';
+import Logo from '../../assets/logos/LOGO.jpeg';
 
 const mockAccounts = [
   { label: 'Admin', username: 'admin', password: 'admin123' },
@@ -65,6 +66,11 @@ const LoginPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-sky-50 to-slate-200 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
         <div>
+          <img
+            src={Logo}
+            alt="POSTrack logo"
+            className="mx-auto mb-4 h-20 w-auto"
+          />
           <h2 className="text-center text-3xl font-extrabold text-slate-900">POSTrack</h2>
           <p className="mt-2 text-center text-sm text-slate-600">Connectez-vous à votre compte</p>
         </div>

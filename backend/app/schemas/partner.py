@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class PartnerBase(BaseModel):
@@ -9,17 +9,48 @@ class PartnerBase(BaseModel):
 
 
 class PartnerCreate(PartnerBase):
-    pass
+    responsable_name: str | None = None
+    responsable_contact: str | None = None
+    responsable_user_id: int | None = None
+    commercial_name: str | None = None
+    commercial_contact: str | None = None
+    commercial_user_id: int | None = None
+    master_sim_number: str | None = None
 
 
 class PartnerOut(PartnerBase):
     id: int
     is_active: bool
     bts_import_file_path: str | None = None
+    responsable_name: str | None = None
+    responsable_contact: str | None = None
+    responsable_user_id: int | None = None
+    commercial_name: str | None = None
+    commercial_contact: str | None = None
+    commercial_user_id: int | None = None
+    master_sim_number: str | None = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MicroZoneBase(BaseModel):
+    name: str
+    code: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+
+
+class MicroZoneCreate(MicroZoneBase):
+    pass
+
+
+class MicroZoneOut(MicroZoneBase):
+    id: int
+    partner_id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DSMBase(BaseModel):
@@ -37,5 +68,4 @@ class DSMOut(DSMBase):
     partner_id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -25,7 +25,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dsm = relationship("DSM", back_populates="users")
-    partner = relationship("Partner")
+    partner = relationship("Partner", foreign_keys=[partner_id])
     partner_links = relationship("UserPartner", back_populates="user", cascade="all, delete-orphan")
     pos_links = relationship("UserPOS", back_populates="user", cascade="all, delete-orphan")
 
