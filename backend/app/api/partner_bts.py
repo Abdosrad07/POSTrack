@@ -12,6 +12,7 @@ from app.core.errors import ValidationErrorApp
 from app.crud.bts_crud import bts_crud, bts_releve_crud
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
+from app.models.partner import MicroZone
 from app.models.user import User
 from app.schemas.bts import BTSCreate, BTSOut, BTSReleveCreate, BTSReleveListOut, BTSReleveOut
 from app.schemas.pagination import Page
@@ -23,6 +24,38 @@ from app.security.permissions import IMPORT_ROLES
 router = APIRouter(prefix="/api/partners/{partner_id}/bts", tags=["BTS"])
 
 
+def _bts_status(bts_id: int, last_releve: BTSReleve | None) -> str:
+    """Statut derivé d'une BTS a partir de son dernier releve.
+
+    - 'actif' si le dernier releve existe et n'est pas 'hors_service'.
+    - 'hors_service' si le dernier releve est marque hors service.
+    - 'inconnu' si aucun releve n'a ete enregistre.
+    """
+    if not last_releve:
+        return "inconnu"
+    return (last_releve.statut or "actif").lower()
+
+
+def _nearest_microzone(bts: BTS, microzones: list[MicroZone]) -> MicroZone | None:
+    """Associe une BTS a la micro-zone la plus proche (rayon 25 km).
+
+    Les coordonnees reellement saisies cote BTS determinent la zone
+    couverte ; on ne retourne rien si aucun point n'est exploitable.
+    """
+    if bts.latitude is None or bts.longitude is None or not microzones:
+        return None
+    best = None
+    best_d2 = 25.0 ** 2  # ~25 km
+    for mz in microzones:
+        if mz.latitude is None or mz.longitude is None:
+            continue
+        d2 = (mz.latitude - bts.latitude) ** 2 + (mz.longitude - bts.longitude) ** 2
+        if d2 <= best_d2:
+            best_d2 = d2
+            best = mz
+    return best
+
+
 @router.get("", response_model=Page[BTSOut])
 def list_bts(partner_id: int = Depends(get_partner_context), skip: int = 0,
              limit: int = Query(default=100, le=500),
@@ -32,8 +65,16 @@ def list_bts(partner_id: int = Depends(get_partner_context), skip: int = 0,
     # Champs d'affichage pour les cartes/tableaux frontend :
     # - ville : alias metier de zone ;
     # - derniere_saturation : taux du releve le plus recent de la BTS.
+    # - quartier / region : derives de zone
+    # - micro_zone : rattachee par proximite (rayon 25 km)
+    # - statut : derive du dernier releve
+    microzones = db.query(MicroZone).filter(MicroZone.partner_id == partner_id).all()
     for bts in result.get("items", []):
         bts.ville = bts.zone
+        bts.quartier = bts.zone
+        bts.region = bts.zone
+        mz = _nearest_microzone(bts, microzones)
+        bts.micro_zone = mz.name if mz else None
         last = (
             db.query(BTSReleve)
             .filter(BTSReleve.bts_id == bts.id)
@@ -41,6 +82,11 @@ def list_bts(partner_id: int = Depends(get_partner_context), skip: int = 0,
             .first()
         )
         bts.derniere_saturation = last.taux_saturation if last else None
+        bts.saturation = last.taux_saturation if last else None
+        bts.statut = _bts_status(bts.id, last)
+        bts.saturation = last.taux_saturation if last else None
+        bts.statut = _bts_status(bts.id, last)
+
     return result
 
 

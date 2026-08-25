@@ -26,6 +26,11 @@ class BTSOut(BaseModel):
     # Champs d'affichage calcules par la couche service :
     ville: str | None = None                 # alias metier de zone
     derniere_saturation: float | None = None  # taux de saturation du dernier releve
+    quartier: str | None = None              # alias metier de zone (quartier)
+    micro_zone: str | None = None            # micro-zone geographique pour ce BTS
+    region: str | None = None               # region / zone geographique pour la carte
+    statut: str | None = None               # statut actuel du BTS (actif/maintenance/hors_service)
+    saturation: float | None = None         # taux de saturation actuel du dernier relev
 
     class Config:
         from_attributes = True

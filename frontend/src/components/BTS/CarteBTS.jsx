@@ -32,12 +32,12 @@ export default function CarteBTS({ btsList = [], selectedId = null, onSelect = (
         .map((bts) => {
           const lat = parseFloat(bts.latitude ?? bts.lat)
           const lng = parseFloat(bts.longitude ?? bts.lng)
-          if (isNaN(lat) || isNaN(lng)) return null
+          if (Number.isNaN(lat) || Number.isNaN(lng)) return null
           return {
             ...bts,
             lat,
             lng,
-            statut: bts.statut || 'ACTIF',
+            statut: (bts.statut || 'ACTIF').toUpperCase(),
             nom: bts.nom || bts.code_bts,
           }
         })
@@ -61,6 +61,7 @@ export default function CarteBTS({ btsList = [], selectedId = null, onSelect = (
         zoom={validBts.length > 0 ? 13 : DEFAULT_ZOOM}
         className="h-full w-full"
         scrollWheelZoom={true}
+        zoomControl={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -100,7 +101,9 @@ export default function CarteBTS({ btsList = [], selectedId = null, onSelect = (
                       <div className="text-sm text-gray-600">Opérateur : {bts.operateur || 'N/A'}</div>
                       <div className="text-sm text-gray-600">Technologie : {bts.technologie || 'N/A'}</div>
                       <div className="text-sm text-gray-600 mt-1">Région : {bts.region || 'N/A'} | Ville : {bts.ville || 'N/A'}</div>
-                      <div className="text-sm text-gray-600 mt-1">Capacité : {bts.capacite_max || 'N/A'}</div>
+                      <div className="text-sm text-gray-600 mt-1">Quartier : {bts.quartier || 'N/A'}</div>
+                      <div className="text-sm text-gray-600 mt-1">Micro-zone : {bts.micro_zone || 'N/A'}</div>
+                      <div className="text-sm text-gray-600 mt-1">Capacité : {bts.capacite_max ?? 'N/A'}</div>
                       <div className="text-sm mt-1">Statut : <span style={{ color: style.color }}>{style.label}</span></div>
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${bts.lat},${bts.lng}`}
@@ -118,6 +121,12 @@ export default function CarteBTS({ btsList = [], selectedId = null, onSelect = (
           )
         })}
       </MapContainer>
+
+      {btsList.some((bts) => Number.isNaN(parseFloat(bts.latitude ?? bts.lat)) || Number.isNaN(parseFloat(bts.longitude ?? bts.lng))) && (
+        <div className="absolute right-3 top-3 rounded bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow-sm border border-amber-200">
+          Certaines BTS n'ont pas de coordonnées et ne sont pas placées sur la carte.
+        </div>
+      )}
 
       {/* Légende */}
       <div className="absolute bottom-3 left-3 rounded bg-white/95 border border-gray-200 p-2 text-xs shadow-sm">

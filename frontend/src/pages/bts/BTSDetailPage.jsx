@@ -30,7 +30,9 @@ const normalizeBts = (b) => ({
   statut: (b.statut || 'ACTIF').toUpperCase(),
   latitude: b.latitude ?? b.lat,
   longitude: b.longitude ?? b.lng,
-  lieux_couverts: b.lieux_couverts || (b.ville ? [b.ville] : []),
+  lieux_couverts: b.lieux_couverts || (b.quartier || b.ville ? [b.quartier || b.ville] : []),
+  quartier: b.quartier || b.zone || null,
+  micro_zone: b.micro_zone || null,
 })
 
 export default function BTSDetailPage() {

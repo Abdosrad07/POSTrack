@@ -16,7 +16,7 @@ const STATUS_STYLE = {
 const Field = ({ label, value }) => (
   <div className="flex items-center justify-between border-b border-gray-100 py-2 last:border-0">
     <span className="text-sm text-gray-500">{label}</span>
-    <span className="text-sm font-medium text-gray-900">{value || 'N/A'}</span>
+    <span className="text-sm font-medium text-gray-900">{value ?? 'Non renseigné'}</span>
   </div>
 )
 
@@ -59,10 +59,12 @@ export default function BTSInfoPanel({ bts }) {
         <Field label="Technologie" value={bts.technologie} />
         <Field label="Ville" value={bts.ville} />
         <Field label="Région" value={bts.region} />
+        <Field label="Quartier" value={bts.quartier} />
+        <Field label="Micro-zone" value={bts.micro_zone} />
         <Field label="Capacité max" value={bts.capacite_max != null ? `${bts.capacite_max}` : null} />
         <Field
           label="Saturation"
-          value={bts.dernier_taux_saturation != null ? `${bts.dernier_taux_saturation}%` : null}
+          value={bts.saturation != null ? `${bts.saturation}%` : null}
         />
         <Field label="Coordonnées" value={bts.latitude != null && bts.longitude != null ? `${bts.latitude}, ${bts.longitude}` : null} />
       </div>
