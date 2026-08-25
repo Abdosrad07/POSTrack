@@ -54,6 +54,41 @@ class MicroZoneOut(MicroZoneBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PartnerIdentityOut(BaseModel):
+    """Carte d'identité partenaire (étape 5).
+
+    Identité déclarative (responsable, commercial, MasterSIM) + compteurs
+    d'exploitation calculés côté backend : le frontend n'invente jamais de
+    valeur métier et affiche « Non renseigné » pour tout champ absent.
+    """
+    id: int
+    code: str
+    name: str
+    address: str | None = None
+    is_active: bool
+    contract_start_date: date | None = None
+    created_at: datetime
+
+    responsable_name: str | None = None
+    responsable_contact: str | None = None
+    responsable_user_id: int | None = None
+    responsable_username: str | None = None
+
+    commercial_name: str | None = None
+    commercial_contact: str | None = None
+    commercial_user_id: int | None = None
+    commercial_username: str | None = None
+
+    master_sim_number: str | None = None
+
+    nb_micro_zones: int = 0
+    nb_pos_crees: int = 0
+    nb_pos_actifs: int = 0
+    nb_bts: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class DSMBase(BaseModel):
     matricule: str
     full_name: str

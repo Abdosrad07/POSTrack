@@ -17,8 +17,9 @@ from app.api.deps import get_current_user, require_roles, get_partner_context
 from app.crud.partner_crud import partner_crud
 from app.models.partner import Partner
 from app.models.user import User
-from app.schemas.partner import PartnerCreate, PartnerOut
+from app.schemas.partner import PartnerCreate, PartnerIdentityOut, PartnerOut
 from app.security.permissions import ADMIN_SCREEN_ROLES, Role
+from app.services.partner_identity_service import get_partner_identity
 
 router = APIRouter(prefix="/api/partenaires", tags=["Partenaires"])
 
@@ -50,6 +51,19 @@ def get_partenaire(partner_id: int = Depends(get_partner_context),
     if not partner:
         raise HTTPException(status_code=404, detail="Partenaire introuvable.")
     return partner
+
+
+@router.get("/{partner_id}/identity", response_model=PartnerIdentityOut)
+def get_partenaire_identity(partner_id: int = Depends(get_partner_context),
+                            db: Session = Depends(get_db),
+                            _user: User = Depends(get_current_user)):
+    """Carte d'identité du partenaire courant (étape 5).
+
+    Identité déclarative + compteurs d'exploitation calculés côté backend
+    (micro-zones, POS créés/actifs, BTS). Accès scopé au PartnerContext :
+    un utilisateur ne peut lire que l'identité de son périmètre.
+    """
+    return get_partner_identity(db, partner_id)
 
 
 @router.post("", response_model=PartnerOut, status_code=201)

@@ -1,17 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import usePartner from '../hooks/usePartner'
 import analyticsService from '../services/analyticsService'
-import api from '../services/api'
-
-type PartnerOverview = {
-  code?: string
-  name?: string
-  address?: string | null
-  is_active?: boolean
-  bts_import_file_path?: string | null
-  created_at?: string
-}
+import partenaireService from '../services/partenaireService'
+import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 
 type Stats = {
   partner_name?: string
@@ -34,6 +26,30 @@ type PartnerContext = {
   code?: string
 }
 
+/** Fiche d'identité renvoyée par GET /api/partenaires/{id}/identity (étape 5). */
+type Identity = {
+  id?: number
+  code?: string | null
+  name?: string | null
+  address?: string | null
+  is_active?: boolean | null
+  contract_start_date?: string | null
+  created_at?: string | null
+  responsable_name?: string | null
+  responsable_contact?: string | null
+  responsable_user_id?: number | null
+  responsable_username?: string | null
+  commercial_name?: string | null
+  commercial_contact?: string | null
+  commercial_user_id?: number | null
+  commercial_username?: string | null
+  master_sim_number?: string | null
+  nb_micro_zones?: number
+  nb_pos_crees?: number
+  nb_pos_actifs?: number
+  nb_bts?: number
+}
+
 const features = [
   { label: 'DSM', to: '/dsm' },
   { label: 'POS', to: '/pos' },
@@ -50,7 +66,7 @@ export default function PartnerHomePage() {
     partner: PartnerContext | null
   }
   const [stats, setStats] = useState<Stats | null>(null)
-  const [overview, setOverview] = useState<PartnerOverview | null>(null)
+  const [identity, setIdentity] = useState<Identity | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -61,26 +77,18 @@ export default function PartnerHomePage() {
         return
       }
       try {
-        const [statsRes, detailsRes] = await Promise.all([
+        const [statsRes, identityRes] = await Promise.all([
           analyticsService.getDashboard(partnerContextId),
-          api.get(`/partenaires/${partnerContextId}`, { headers: { 'X-Skip-Partner-Context': 'true' } }),
+          partenaireService.getIdentity(partnerContextId),
         ])
         if (!ignore) {
           setStats(statsRes.data)
-          const p = detailsRes.data?.data ?? detailsRes.data ?? {}
-          setOverview({
-            code: p.code,
-            name: p.name,
-            address: p.address,
-            is_active: p.is_active,
-            bts_import_file_path: p.bts_import_file_path ?? null,
-            created_at: p.created_at,
-          })
+          setIdentity(identityRes.data?.data ?? identityRes.data ?? null)
         }
       } catch {
         if (!ignore) {
           setStats(null)
-          setOverview(null)
+          setIdentity(null)
         }
       } finally {
         if (!ignore) setLoading(false)
@@ -92,15 +100,6 @@ export default function PartnerHomePage() {
 
   const partnerTitle = partner?.nom ?? partner?.code_partenaire ?? (partnerContextId ? `Partenaire #${partnerContextId}` : 'Partenaire')
 
-  const infoCards = useMemo(() => [
-    ['Code partenaire', overview?.code],
-    ['Nom', overview?.name],
-    ['Adresse', overview?.address],
-    ['Statut', overview?.is_active === undefined ? undefined : (overview?.is_active ? 'ACTIF' : 'INACTIF')],
-    ['Créé le', overview?.created_at ? String(overview.created_at).slice(0, 10) : undefined],
-    ['Fichier import BTS', overview?.bts_import_file_path ? 'déposé' : undefined],
-  ], [overview])
-
   return (
     <div className="space-y-6">
       <div>
@@ -110,14 +109,7 @@ export default function PartnerHomePage() {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {infoCards.map(([label, value]) => (
-          <div key={label as string} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label as string}</div>
-            <div className="mt-2 text-sm font-semibold text-slate-900">{loading ? '…' : String(value ?? '—')}</div>
-          </div>
-        ))}
-      </div>
+            <PartnerIdentityCard identity={identity} loading={loading} />
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-3">

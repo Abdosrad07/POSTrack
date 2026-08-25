@@ -88,6 +88,6 @@ def get_partner_context(
             raise ForbiddenError("Acces refuse : un OPERATIONNEL ne peut pas changer de Partenaire.")
         return forced_partner
     authorized = get_authorized_partners(db, user)
-    if partner_id not in authorized:
+    if user.role != Role.ADMIN and partner_id not in authorized:
         raise ForbiddenError("Acces refuse : ce Partenaire n'est pas dans votre perimetre.")
     return partner_id
