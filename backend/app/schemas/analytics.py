@@ -89,4 +89,29 @@ class PartnerLoadingSummaryOut(BaseModel):
     loading: int
     objectif: int | None = None
     progression: float | None = None
-    by_dsm: list[LoadingByDsmRow]
+    by_dsm: list[LoadingByDsmRow] = []
+
+
+class MonthlyMetricRow(BaseModel):
+    period: str
+    date: date
+    prevision: int | None = None
+    cumul_prevision: int | None = None
+    realisation: int
+    cumul_realisation: int
+    ecart: int | None = None
+    statut: str | None = None
+
+
+class MonthlyTableBlock(BaseModel):
+    label: str
+    rows: list[MonthlyMetricRow] = []
+
+
+class PartnerMonthlyTableOut(BaseModel):
+    partner_id: int
+    partner_name: str
+    sell_out: MonthlyTableBlock
+    loading: MonthlyTableBlock
+    creation: MonthlyTableBlock
+    redeploiement: MonthlyTableBlock

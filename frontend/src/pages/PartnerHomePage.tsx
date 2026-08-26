@@ -6,6 +6,7 @@ import partenaireService from '../services/partenaireService'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 import SalesProgressCard from '../components/Sales/SalesProgressCard'
 import LoadingSummaryCard from '../components/Sales/LoadingSummaryCard'
+import MonthlyTableCard from '../components/Sales/MonthlyTableCard'
 
 type Stats = {
   partner_name?: string
@@ -71,6 +72,7 @@ export default function PartnerHomePage() {
   const [identity, setIdentity] = useState<Identity | null>(null)
   const [salesSummary, setSalesSummary] = useState<any | null>(null)
   const [loadingSummary, setLoadingSummary] = useState<any | null>(null)
+  const [monthlyTable, setMonthlyTable] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingPeriod, setLoadingPeriod] = useState<{ period_start?: string; period_end?: string }>({})
 
@@ -87,12 +89,16 @@ export default function PartnerHomePage() {
           partenaireService.getIdentity(partnerContextId),
           analyticsService.getSalesSummary(partnerContextId),
         ])
-        const loadingRes = await analyticsService.getLoadingSummary(partnerContextId, loadingPeriod)
+          const [loadingRes, monthlyRes] = await Promise.all([
+            analyticsService.getLoadingSummary(partnerContextId, loadingPeriod),
+            analyticsService.getMonthlyTable(partnerContextId),
+          ])
         if (!ignore) {
           setStats(statsRes.data)
           setIdentity(identityRes.data?.data ?? identityRes.data ?? null)
           setSalesSummary(salesRes.data ?? null)
           setLoadingSummary(loadingRes.data ?? null)
+          setMonthlyTable(monthlyRes.data ?? null)
         }
       } catch {
         if (!ignore) {
@@ -100,6 +106,7 @@ export default function PartnerHomePage() {
           setIdentity(null)
           setSalesSummary(null)
           setLoadingSummary(null)
+          setMonthlyTable(null)
         }
       } finally {
         if (!ignore) setLoading(false)
@@ -182,6 +189,8 @@ export default function PartnerHomePage() {
         data={loadingSummary}
         onPeriodChange={setLoadingPeriod}
       />
+
+      <MonthlyTableCard data={monthlyTable} />
     </div>
   )
 }

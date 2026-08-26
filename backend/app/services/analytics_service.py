@@ -28,6 +28,7 @@ from app.models.requete import Requete
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
 from app.models.pos_performance import POSPerformance, SourcePerformance
+from app.models.prime_period import PrimePeriod
 
 # Nombre maximum d'alertes d'expiration renvoyees par le dashboard : le
 # dashboard est une vue de synthese, pas une liste exhaustive -- au-dela,
@@ -419,6 +420,100 @@ def get_partner_loading_summary(
         "objectif": loading_objectif,
         "progression": _progression(loading_cumul, loading_objectif),
         "by_dsm": dsm_rows,
+    }
+
+
+def _month_key(value: date | None) -> str:
+    return value.strftime("%Y-%m") if value else "inconnu"
+
+
+def _progression_gap(realisation: int, objectif: int | None) -> int | None:
+    if objectif is None:
+        return None
+    return realisation - objectif
+
+
+def get_partner_monthly_table(db: Session, partner_id: int) -> dict:
+    partner = db.query(Partner).filter(Partner.id == partner_id).first()
+    if not partner:
+        raise NotFoundError("Partenaire introuvable.")
+
+    periods = (
+        db.query(PrimePeriod)
+        .filter(PrimePeriod.partner_id == partner_id)
+        .order_by(PrimePeriod.start_date.asc())
+        .all()
+    )
+    if not periods:
+        return {
+            "partner_id": partner_id,
+            "partner_name": partner.name,
+            "sell_out": {"label": "Sell-out", "rows": []},
+            "loading": {"label": "Loading", "rows": []},
+            "creation": {"label": "Création", "rows": []},
+            "redeploiement": {"label": "Redéploiement", "rows": []},
+        }
+
+    target = db.query(PartnerSalesTarget).filter(PartnerSalesTarget.partner_id == partner_id).order_by(
+        PartnerSalesTarget.month.asc()
+    ).all()
+    target_by_month = {t.month.strftime("%Y-%m"): t for t in target}
+
+    pos_rows = (
+        db.query(POS)
+        .filter(POS.partner_id == partner_id)
+        .order_by(POS.date_creation.asc(), POS.id.asc())
+        .all()
+    )
+    sim_rows = (
+        db.query(SIMMovement)
+        .join(SIM)
+        .filter(SIMMovement.partner_id == partner_id)
+        .order_by(SIMMovement.created_at.asc(), SIMMovement.id.asc())
+        .all()
+    )
+
+    def build_rows(kind: str) -> list[dict]:
+        cumul_realisation = 0
+        cumul_prevision = 0
+        rows: list[dict] = []
+        for period in periods:
+            month_key = period.start_date.strftime("%Y-%m")
+            target_row = target_by_month.get(month_key)
+            if kind == "creation":
+                realisation = sum(1 for pos in pos_rows if pos.type_pos == TypePos.NOUVEAU and period.start_date <= pos.date_creation <= period.end_date)
+                prevision = target_row.creation_target if target_row else None
+            elif kind == "redeploiement":
+                realisation = sum(1 for pos in pos_rows if pos.type_pos == TypePos.RECONDUIT and period.start_date <= pos.date_creation <= period.end_date)
+                prevision = target_row.redeployment_target if target_row else None
+            elif kind == "sell_out":
+                realisation = sum(1 for mv in sim_rows if mv.movement_type in {TypeMouvementSim.VENTE, TypeMouvementSim.ACTIVATION} and period.start_date <= mv.created_at.date() <= period.end_date)
+                prevision = target_row.sell_out_target if target_row else None
+            else:
+                realisation = sum(1 for mv in sim_rows if mv.movement_type == TypeMouvementSim.RECEPTION and period.start_date <= mv.created_at.date() <= period.end_date)
+                prevision = target_row.loading_target if target_row else None
+
+            cumul_realisation += int(realisation)
+            cumul_prevision += int(prevision or 0)
+            rows.append({
+                "period": month_key,
+                "date": period.start_date,
+                "prevision": prevision,
+                "cumul_prevision": cumul_prevision if prevision is not None else None,
+                "realisation": int(realisation),
+                "cumul_realisation": cumul_realisation,
+                "ecart": _progression_gap(int(realisation), prevision),
+                "statut": "Atteint" if prevision is not None and int(realisation) >= prevision else ("Non renseigné" if prevision is None else "En cours"),
+            })
+        return rows
+
+    return {
+        "partner_id": partner_id,
+        "partner_name": partner.name,
+        "sell_out": {"label": "Sell-out", "rows": build_rows("sell_out")},
+        "loading": {"label": "Loading", "rows": build_rows("loading")},
+        "creation": {"label": "Création", "rows": build_rows("creation")},
+        "redeploiement": {"label": "Redéploiement", "rows": build_rows("redeploiement")},
     }
 
 
