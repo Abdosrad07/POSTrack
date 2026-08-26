@@ -26,15 +26,16 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
             <Th>DSM</Th>
             <Th>Coordonnées</Th>
             <Th onClick={() => toggle('statut')}>Statut</Th>
+            <Th>Linkage</Th>
             <Th onClick={() => toggle('date_expiration')}>Expiration</Th>
             <Th>Actions</Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {loading ? (
-            <tr><td colSpan={9} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
+            <tr><td colSpan={10} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
           ) : safeRows.length === 0 ? (
-            <tr><td colSpan={9} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
+            <tr><td colSpan={10} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
           ) : (
             safeRows.map((pos) => (
               <tr
@@ -64,6 +65,15 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
                       : 'Aucune'}
                 </td>
                 <td className="px-4 py-3"><StatusBadge statut={pos.statut} /></td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                    (pos.linkage_status === 'LINKED' || pos.holder_user_id) 
+                      ? 'bg-emerald-100 text-emerald-800' 
+                      : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {(pos.linkage_status === 'LINKED' || pos.holder_user_id) ? 'Linké' : 'Délinké'}
+                  </span>
+                </td>
                 <td className="px-4 py-3">{pos.date_expiration}</td>
                 <td className="px-4 py-3">
                   <button

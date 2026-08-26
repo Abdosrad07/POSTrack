@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict
 
-from app.models.pos import TypePos, StatutPos
+from app.models.pos import TypePos, StatutPos, LinkageStatus
 
 
 class POSPartnerNested(BaseModel):
@@ -71,6 +71,8 @@ class POSOut(BaseModel):
     # Objets imbriques pour l'affichage (colonnes Partenaire / DSM des tableaux)
     partner: POSPartnerNested | None = None
     dsm: POSDsmNested | None = None
+    # Statut de linkage déduit
+    linkage_status: LinkageStatus
 
 
 class ReconductionCreate(BaseModel):

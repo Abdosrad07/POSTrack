@@ -205,7 +205,7 @@ export default function PartnerHomePage() {
           </Link>
         </div>
         {partnerContextId && (
-          <TerritoryMap partnerId={partnerContextId} onSelect={(bts) => console.log('BTS sélectionné:', bts)} />
+          <TerritoryMap partnerId={partnerContextId} onSelect={(bts: any) => console.log('BTS sélectionné:', bts)} />
         )}
       </div>
     </div>

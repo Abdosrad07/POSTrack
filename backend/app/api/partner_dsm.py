@@ -16,6 +16,7 @@ from app.models.prime import Prime, StatutPrime
 from app.models.dsm_commission import DSMCommission, StatutCommission
 from app.schemas.partner import DSMBase, DSMOut
 from app.services.dsm_identity_service import get_dsm_identity
+from app.services.pos_linkage_service import get_pos_linkage_stats
 
 router = APIRouter(prefix="/api/partners/{partner_id}/dsm", tags=["DSM"])
 
@@ -41,7 +42,9 @@ def dsm_dashboard(partner_id: int = Depends(get_partner_context),
             DSM.full_name,
             DSM.zone,
             func.count(POS.id).label('nb_pos_crees'),
-            func.sum(case((POS.status == StatutPos.ACTIF, 1), else_=0)).label('nb_pos_actifs')
+            func.sum(case((POS.status == StatutPos.ACTIF, 1), else_=0)).label('nb_pos_actifs'),
+            func.sum(case((POS.holder_user_id.isnot(None), 1), else_=0)).label('nb_pos_linkes'),
+            func.sum(case((POS.holder_user_id.is_(None), 1), else_=0)).label('nb_pos_delinkes')
         )
         .outerjoin(POS, (POS.partner_id == partner_id) & (POS.dsm_id == DSM.id))
         .filter(DSM.partner_id == partner_id)
@@ -95,7 +98,7 @@ def dsm_dashboard(partner_id: int = Depends(get_partner_context),
         Requete.closed_at.is_(None)
     ).scalar() or 0
     
-    for dsm_id, matricule, full_name, zone, nb_pos_crees, nb_pos_actifs in dsm_stats:
+    for dsm_id, matricule, full_name, zone, nb_pos_crees, nb_pos_actifs, nb_pos_linkes, nb_pos_delinkes in dsm_stats:
         # Calculer les statistiques spécifiques par DSM (optimisé)
         dsm_loading = db.query(func.count(SIM.id)).join(POS).filter(
             POS.partner_id == partner_id,
@@ -134,6 +137,8 @@ def dsm_dashboard(partner_id: int = Depends(get_partner_context),
             "micro_zone": zone,
             "nb_pos_crees": int(nb_pos_crees or 0),
             "nb_pos_actifs": int(nb_pos_actifs or 0),
+            "nb_pos_linkes": int(nb_pos_linkes or 0),
+            "nb_pos_delinkes": int(nb_pos_delinkes or 0),
             "loading": dsm_loading,
             "sell_out": dsm_sell_out,
             "recettes": float(dsm_recettes),
@@ -201,7 +206,9 @@ def dsm_detailed_dashboard(dsm_id: int, partner_id: int = Depends(get_partner_co
         func.count(POS.id).label('total_pos'),
         func.sum(case((POS.status == StatutPos.ACTIF, 1), else_=0)).label('pos_actifs'),
         func.sum(case((POS.type_pos == TypePos.NOUVEAU, 1), else_=0)).label('pos_nouveaux'),
-        func.sum(case((POS.type_pos == TypePos.RECONDUIT, 1), else_=0)).label('pos_reconduits')
+        func.sum(case((POS.type_pos == TypePos.RECONDUIT, 1), else_=0)).label('pos_reconduits'),
+        func.sum(case((POS.holder_user_id.isnot(None), 1), else_=0)).label('pos_linkes'),
+        func.sum(case((POS.holder_user_id.is_(None), 1), else_=0)).label('pos_delinkes')
     ).filter(
         POS.partner_id == partner_id,
         POS.dsm_id == dsm_id
@@ -241,6 +248,8 @@ def dsm_detailed_dashboard(dsm_id: int, partner_id: int = Depends(get_partner_co
         "pos_actifs": pos_actifs,
         "pos_nouveaux": int(pos_stats.pos_nouveaux or 0),
         "pos_reconduits": int(pos_stats.pos_reconduits or 0),
+        "pos_linkes": int(pos_stats.pos_linkes or 0),
+        "pos_delinkes": int(pos_stats.pos_delinkes or 0),
         "loading": loading,
         "sell_out": sell_out,
         "recettes": float(recettes),
@@ -318,6 +327,7 @@ def dsm_detailed_dashboard(dsm_id: int, partner_id: int = Depends(get_partner_co
             "name": pos.name,
             "status": pos.status.value,
             "type_pos": pos.type_pos.value,
+            "linkage_status": "LINKED" if pos.holder_user_id else "UNLINKED",
             "zone": pos.zone,
             "address": pos.address,
             "date_creation": pos.date_creation.isoformat() if pos.date_creation else None,

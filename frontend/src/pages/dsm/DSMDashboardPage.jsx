@@ -42,20 +42,20 @@ const DSMRow = ({ dsm, onClick }) => (
         <div className="text-sm font-semibold text-slate-900">{dsm.nb_pos_actifs ?? 0}</div>
       </div>
       <div>
+        <div className="text-xs text-slate-500">POS linkés</div>
+        <div className="text-sm font-semibold text-emerald-600">{dsm.nb_pos_linkes ?? 0}</div>
+      </div>
+      <div>
+        <div className="text-xs text-slate-500">POS délinkés</div>
+        <div className="text-sm font-semibold text-amber-600">{dsm.nb_pos_delinkes ?? 0}</div>
+      </div>
+      <div>
         <div className="text-xs text-slate-500">Loading</div>
         <div className="text-sm font-semibold text-slate-900">{dsm.loading ?? 0}</div>
       </div>
       <div>
         <div className="text-xs text-slate-500">Sell-out</div>
         <div className="text-sm font-semibold text-slate-900">{dsm.sell_out ?? 0}</div>
-      </div>
-      <div>
-        <div className="text-xs text-slate-500">Recettes</div>
-        <div className="text-sm font-semibold text-slate-900">{dsm.recettes ? `${dsm.recettes.toLocaleString()} FCFA` : '—'}</div>
-      </div>
-      <div>
-        <div className="text-xs text-slate-500">Requêtes</div>
-        <div className="text-sm font-semibold text-slate-900">{dsm.requetes ?? 0}</div>
       </div>
     </div>
     

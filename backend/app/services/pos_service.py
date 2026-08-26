@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError, ValidationErrorApp
 from app.crud.pos_crud import pos_crud, reconduction_crud, get_by_code_in_partner
-from app.models.pos import POS, TypePos
+from app.models.pos import POS, TypePos, LinkageStatus, LinkageStatus
 from app.models.dsm import DSM
 from app.models.user import User, UserPOS
 from app.services import audit_service

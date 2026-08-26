@@ -21,6 +21,12 @@ class StatutPos(str, enum.Enum):
     FERME = "FERME"
 
 
+class LinkageStatus(str, enum.Enum):
+    """Statut de linkage déduit de holder_user_id (pas de champ explicite)."""
+    LINKED = "LINKED"      # POS avec holder_user_id
+    UNLINKED = "UNLINKED"  # POS sans holder_user_id
+
+
 class POS(Base):
     __tablename__ = "pos"
     __table_args__ = (
@@ -74,3 +80,8 @@ class POS(Base):
     holder = relationship("User", foreign_keys=[holder_user_id])
     reconductions = relationship("Reconduction", back_populates="pos", cascade="all, delete-orphan")
     primes = relationship("Prime", back_populates="pos", cascade="all, delete-orphan")
+
+    @property
+    def linkage_status(self) -> LinkageStatus:
+        """Déduit le statut de linkage à partir de holder_user_id."""
+        return LinkageStatus.LINKED if self.holder_user_id else LinkageStatus.UNLINKED

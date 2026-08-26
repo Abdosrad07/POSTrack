@@ -16,6 +16,7 @@ from app.services.pos_service import (
     create_pos, get_pos_in_partner, reconduire_pos,
     lier_detenteur, delier_detenteur, lister_liens,
 )
+from app.services.pos_linkage_service import get_pos_linkage_stats, get_pos_type_counts
 
 router = APIRouter(prefix="/api/partners/{partner_id}/pos", tags=["POS"])
 
@@ -48,6 +49,28 @@ def create_pos_route(
 def get_pos(pos_id: int, partner_id: int = Depends(get_partner_context),
             db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     return get_pos_in_partner(db, partner_id, pos_id)
+
+
+@router.get("/stats/linkage")
+def pos_linkage_stats(
+    partner_id: int = Depends(get_partner_context),
+    dsm_id: int | None = None,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """Statistiques de linkage POS pour le partenaire ou un DSM spécifique."""
+    return get_pos_linkage_stats(db, partner_id, dsm_id)
+
+
+@router.get("/stats/types")
+def pos_type_stats(
+    partner_id: int = Depends(get_partner_context),
+    dsm_id: int | None = None,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """Compteurs par type de POS (NOUVEAU/RECONDUIT) pour le partenaire ou un DSM."""
+    return get_pos_type_counts(db, partner_id, dsm_id)
 
 
 @router.patch("/{pos_id}", response_model=POSOut)

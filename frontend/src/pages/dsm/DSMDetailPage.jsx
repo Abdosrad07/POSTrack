@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import dsmService from '../../services/dsmService'
 import requeteService from '../../services/requeteService'
+import posService from '../../services/posService'
 import DSMIdentityCard from '../../components/DSM/DSMIdentityCard'
 import DSMPerformanceCard from '../../components/DSM/DSMPerformanceCard'
 import DSMRequestsCard from '../../components/DSM/DSMRequestsCard'
 import DSMRequestProgressCard from '../../components/DSM/DSMRequestProgressCard'
 import DSMPOSCard from '../../components/DSM/DSMPOSCard'
+import POSLinkageStatsCard from '../../components/POS/POSLinkageStatsCard'
 import DSMTerritoryMap from '../../components/DSMTerritoryMap'
 import usePartner from '../../hooks/usePartner'
 
@@ -169,6 +171,9 @@ export default function DSMDetailPage() {
           />
         </div>
       </div>
+
+      {/* POS Linkage Stats - Full width */}
+      <POSLinkageStatsCard dsmId={parseInt(id)} />
 
       {/* POS Management - Full width */}
       <DSMPOSCard 

@@ -33,6 +33,22 @@ const TypeBadge = ({ type }) => {
   );
 };
 
+const LinkageBadge = ({ linkageStatus }) => {
+  const linkageStyles = {
+    'LINKED': 'bg-emerald-100 text-emerald-800',
+    'UNLINKED': 'bg-amber-100 text-amber-800'
+  };
+
+  const defaultStyle = 'bg-gray-100 text-gray-800';
+  const style = linkageStyles[linkageStatus] || defaultStyle;
+
+  return (
+    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${style}`}>
+      {linkageStatus === 'LINKED' ? 'Linké' : 'Délinké'}
+    </span>
+  );
+};
+
 const formatDate = (dateString) => {
   if (!dateString) return '—';
   return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -53,6 +69,7 @@ const POSRow = ({ pos, onClick }) => {
           <div className="flex items-center gap-2 mb-1">
             <StatusBadge status={pos.status} />
             <TypeBadge type={pos.type_pos} />
+            <LinkageBadge linkageStatus={pos.linkage_status} />
           </div>
           <h4 className="text-sm font-medium text-gray-900">{pos.code_pos}</h4>
           <p className="text-xs text-gray-500 truncate">{pos.name || 'Sans nom'}</p>

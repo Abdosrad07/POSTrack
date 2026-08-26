@@ -18,6 +18,8 @@ const normalizePos = (pos) => ({
   type_pos: pos?.type_pos ?? pos?.type ?? null,
   statut: pos?.statut ?? pos?.status ?? null,
   date_expiration: pos?.date_expiration ?? null,
+  linkage_status: pos?.linkage_status ?? (pos?.holder_user_id ? 'LINKED' : 'UNLINKED'),
+  holder_user_id: pos?.holder_user_id ?? null,
   partenaire: pos?.partenaire ? {
     ...pos.partenaire,
     id: pos.partenaire.id,
@@ -57,6 +59,12 @@ export const posService = {
   linkDetenteur: (id, userId) => api.post(`/pos/${id}/link`, { user_id: Number(userId) }),
   unlinkDetenteur: (id, userId = null) =>
     api.post(`/pos/${id}/unlink`, userId != null && userId !== '' ? { user_id: Number(userId) } : {}),
+
+  /** Statistiques de linkage POS */
+  getLinkageStats: (dsmId = null) => api.get('/pos/stats/linkage', { params: dsmId ? { dsm_id: dsmId } : {} }),
+  
+  /** Compteurs par type de POS */
+  getTypeStats: (dsmId = null) => api.get('/pos/stats/types', { params: dsmId ? { dsm_id: dsmId } : {} }),
 };
 
 export default posService;

@@ -5,6 +5,7 @@ import partenaireService from '../services/partenaireService'
 import api from '../services/api'
 import { getRoleLabel } from '../utils/roles'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
+import POSLinkageStatsCard from '../components/POS/POSLinkageStatsCard'
 
 type Stats = {
   partner_name?: string
@@ -26,6 +27,7 @@ type PosRow = {
   nom: string
   statut: string
   type_pos: string
+  linkage_status?: string
   partenaire?: { nom: string }
 }
 
@@ -46,6 +48,8 @@ type PosApiRow = {
   status?: string
   type_pos?: string
   type?: string
+  linkage_status?: string
+  holder_user_id?: number | null
   partenaire?: { nom?: string; name?: string; code_partenaire?: string }
 }
 
@@ -69,6 +73,7 @@ const normalizePosRows = (payload: unknown): PosRow[] => {
     nom: row?.nom || row?.name || '',
     statut: row?.statut || row?.status || '',
     type_pos: row?.type_pos || row?.type || '',
+    linkage_status: row?.linkage_status || (row?.holder_user_id ? 'LINKED' : 'UNLINKED'),
     partenaire: row?.partenaire
       ? { nom: row.partenaire?.nom || row.partenaire?.name || row.partenaire?.code_partenaire || '' }
       : undefined,
@@ -183,6 +188,11 @@ function Dashboard() {
         />
       </div>
 
+      {/* Statistiques de linkage POS - Niveau partenaire */}
+      {partnerContextId && (
+        <POSLinkageStatsCard />
+      )}
+
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-900">POS récents</h2>
@@ -196,6 +206,7 @@ function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Partenaire</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Linkage</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -215,6 +226,15 @@ function Dashboard() {
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.partenaire?.nom ?? '—'}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.type_pos}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.statut}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                        p.linkage_status === 'LINKED' 
+                          ? 'bg-emerald-100 text-emerald-800' 
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {p.linkage_status === 'LINKED' ? 'Linké' : 'Délinké'}
+                      </span>
+                    </td>
                   </tr>
                 ))
               )}

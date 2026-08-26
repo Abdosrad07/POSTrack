@@ -89,6 +89,16 @@ export default function DSMPerformanceCard({ performance, loading }) {
           subLabel={`${performance.pos_nouveaux ?? 0} nouveaux, ${performance.pos_reconduits ?? 0} reconduits`}
         />
         <MetricRow
+          label="POS linkés"
+          value={performance.pos_linkes ?? 0}
+          subLabel="Avec détenteur assigné"
+        />
+        <MetricRow
+          label="POS délinkés"
+          value={performance.pos_delinkes ?? 0}
+          subLabel="Sans détenteur assigné"
+        />
+        <MetricRow
           label="Loading"
           value={performance.loading ?? 0}
           subLabel="SIM en stock (DSM)"
