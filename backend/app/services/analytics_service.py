@@ -29,6 +29,7 @@ from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
 from app.models.pos_performance import POSPerformance, SourcePerformance
 from app.models.prime_period import PrimePeriod
+from app.models.prime import Prime, StatutPrime
 
 # Nombre maximum d'alertes d'expiration renvoyees par le dashboard : le
 # dashboard est une vue de synthese, pas une liste exhaustive -- au-dela,
@@ -383,7 +384,7 @@ def get_partner_loading_summary(
         db.query(
             DSM.id,
             DSM.matricule,
-            func.coalesce(DSM.nom, DSM.full_name, DSM.matricule),
+            func.coalesce(DSM.full_name, DSM.matricule),
             func.count(SIMMovement.id),
         )
         .join(POS, POS.dsm_id == DSM.id)
@@ -399,7 +400,7 @@ def get_partner_loading_summary(
     if period_end is not None:
         dsm_query = dsm_query.filter(SIMMovement.created_at < period_end)
 
-    dsm_query = dsm_query.group_by(DSM.id, DSM.matricule, DSM.nom, DSM.full_name).all()
+    dsm_query = dsm_query.group_by(DSM.id, DSM.matricule, DSM.full_name).all()
 
     for dsm_id, dsm_code, dsm_name, loading in dsm_query:
         dsm_rows.append({

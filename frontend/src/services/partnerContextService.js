@@ -1,5 +1,4 @@
 import api from './api';
-import { getMockPartnersForRole, mockPartners } from '../mocks/partners';
 import btsDebug from '../utils/btsDebug';
 
 const normalizeList = (data) => {
@@ -54,14 +53,8 @@ export const partnerContextService = {
         throw error;
       }
     } catch (error) {
-      if (error.code === 'ERR_NETWORK' || !error.response) {
-        btsDebug.warn('Réseau indisponible pour les partenaires, fallback mock', {
-          message: error?.message,
-          code: error?.code,
-        })
-        const fallback = getMockPartnersForRole(user?.role) || mockPartners;
-        return fallback.map((partner) => normalizePartner({ ...partner, __mock: true }));
-      }
+      // Source de vérité unique : pas de référentiel partenaire simulé.
+      // Sans backend joignable, l'échec est propagé vers l'écran de sélection.
       btsDebug.error('Erreur partenaires', error?.response?.status, error?.response?.data || error.message)
       throw error;
     }

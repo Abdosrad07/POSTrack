@@ -1,6 +1,5 @@
 import api, { applyPartnerPrefix } from './api';
 import { STORAGE_KEYS } from '../utils/constants';
-import { buildMockImportBatch } from '../mocks/importMocks';
 
 /**
  * Service du Module A3 — Import Excel centralisé (ImportBatch).
@@ -13,12 +12,10 @@ import { buildMockImportBatch } from '../mocks/importMocks';
  * Le préfixe /partners/{id}/ est automatiquement ajouté par l'intercepteur
  * Axios (services/api.js) à partir du partner_context_id.
  *
- * Tant que le Backend n'est pas disponible, un fallback en mode démo renvoie
- * des données mockées. Les réponses vides du backend ne sont pas remplacées
- * automatiquement afin de privilégier la source de vérité serveur.
+ * Source de vérité unique : aucune donnée d'import n'est simulée côté
+ * client. En cas d'indisponibilité du backend, les erreurs sont propagées
+ * à l'UI (états error dédiés).
  */
-
-const isNetworkUnavailable = (error) => Boolean(error && (error.code === 'ERR_NETWORK' || !error.response));
 
 const unwrap = (response) => response?.data?.data ?? response?.data ?? response;
 
@@ -33,15 +30,10 @@ export const importService = {
     body.append('file', file);
     body.append('entity_type', entityType);
 
-    try {
-      const response = await importServicePost('/imports/validate', body, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return normalizeBatch(unwrap(response), entityType, file?.name);
-    } catch (error) {
-      if (isNetworkUnavailable(error)) return buildMockImportBatch(entityType, file?.name);
-      throw error;
-    }
+    const response = await importServicePost('/imports/validate', body, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return normalizeBatch(unwrap(response), entityType, file?.name);
   },
 
   /**
@@ -49,26 +41,16 @@ export const importService = {
    * @param {string} batchId
    */
   async apply(batchId) {
-    try {
-      const response = await api.post(`/imports/${batchId}/apply`, {});
-      const result = unwrap(response);
-      if (result && typeof result === 'object') return result;
-      return { id: batchId, status: 'APPLIED' };
-    } catch (error) {
-      if (isNetworkUnavailable(error)) return { id: batchId, status: 'APPLIED' };
-      throw error;
-    }
+    const response = await api.post(`/imports/${batchId}/apply`, {});
+    const result = unwrap(response);
+    if (result && typeof result === 'object') return result;
+    return { id: batchId, status: 'APPLIED' };
   },
 
   /** Consultation d'un lot (utile pour reprendre un import en cours). */
   async getBatch(batchId) {
-    try {
-      const response = await api.get(`/imports/${batchId}`);
-      return normalizeBatch(unwrap(response));
-    } catch (error) {
-      if (isNetworkUnavailable(error)) return null;
-      throw error;
-    }
+    const response = await api.get(`/imports/${batchId}`);
+    return normalizeBatch(unwrap(response));
   },
 
   /**
@@ -93,7 +75,7 @@ const importServicePost = (url, body, config) => api.post(url, body, config);
 /** Normalise un lot Backend vers la forme attendue par l'UI. */
 function normalizeBatch(batch, entityType = 'POS', fileName = 'import.xlsx') {
   if (!batch || typeof batch !== 'object') {
-    return buildMockImportBatch(entityType, fileName);
+    throw new Error("Réponse d'import invalide : le backend n'a renvoyé aucune donnée.");
   }
   return {
     id: batch.id,

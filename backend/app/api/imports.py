@@ -13,7 +13,7 @@ from app.models.user import User
 from app.security.permissions import Role, IMPORT_ROLES
 from app.schemas.import_batch import ImportBatchOut, ImportValidationResult
 from app.schemas.pagination import Page
-from app.services.import_validation_service import validate_import, apply_import
+from app.services.import_validation_service import validate_import, apply_import, REQUIRED_COLUMNS
 
 router = APIRouter(prefix="/api/partners/{partner_id}/imports", tags=["Import Excel"])
 

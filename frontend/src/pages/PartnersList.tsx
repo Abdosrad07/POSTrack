@@ -49,6 +49,7 @@ type PartenairePayload = {
 export default function PartenairesListPage() {
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const navigate = useNavigate()
@@ -83,15 +84,19 @@ export default function PartenairesListPage() {
         if (!ignore) {
           setPartenaires(data)
         }
-      } catch {
+      } catch (err) {
         if (!ignore) {
-          // Fallback hors-ligne : reflet du référentiel réel (Master Color, Glothelo, Odi, Seven).
-          setPartenaires([
-              { id: 2, nom: 'Master Color', code_partenaire: 'PART-MC', type_partenaire: 'MASTER_DEALER', ville: 'Douala', region: 'Littoral', adresse: 'Akwa', email: 'contact@mastercolor.com', telephone: '+237699000003', pos_count: 1, statut: 'actif', date_debut_contrat: '2025-07-01' },
-              { id: 3, nom: 'Glothelo', code_partenaire: 'PART-GL', type_partenaire: 'REVENDEUR', ville: null, region: null, adresse: null, email: 'contact@glothelo.com', telephone: '+237699000004', pos_count: 0, statut: 'actif', date_debut_contrat: '2023-10-23' },
-              { id: 4, nom: 'Odi', code_partenaire: 'PART-ODI', type_partenaire: 'DISTRIBUTEUR', ville: null, region: null, adresse: null, email: '', telephone: '', pos_count: 0, statut: 'actif', date_debut_contrat: '2026-09-01' },
-              { id: 5, nom: 'Seven', code_partenaire: 'PART-SEV', type_partenaire: 'DISTRIBUTEUR', ville: null, region: null, adresse: null, email: '', telephone: '', pos_count: 0, statut: 'actif', date_debut_contrat: '2026-09-01' },
-            ])
+          // Source de verite unique : erreur affichee, aucun referentiel simule.
+          const apiError = err as {
+            response?: { data?: { detail?: string } }
+            message?: string
+          }
+          setError(
+            apiError?.response?.data?.detail ||
+              apiError?.message ||
+              'Impossible de charger les partenaires.'
+          )
+          setPartenaires([])
         }
       } finally {
         if (!ignore) {
@@ -153,6 +158,12 @@ export default function PartenairesListPage() {
           <option value="inactif">Inactif</option>
         </select>
       </div>
+
+      {error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
 
       {/* Tableau des partenaires */}
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">

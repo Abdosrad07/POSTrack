@@ -1,89 +1,6 @@
 import api from './api';
 import { STORAGE_KEYS } from '../utils/constants';
 
-const mockUsers = [
-  {
-    id: 1,
-    username: 'admin',
-    email: 'admin@postrack.local',
-    password: 'admin123',
-    role: 'ADMIN',
-    full_name: 'Admin Demo',
-    nom_complet: 'Admin Demo',
-  },
-  {
-    id: 2,
-    username: 'manager',
-    email: 'manager@postrack.local',
-    password: 'manager123',
-    role: 'MANAGER',
-    full_name: 'Manager Demo',
-    nom_complet: 'Manager Demo',
-  },
-  {
-    id: 3,
-    username: 'chef',
-    email: 'chef@postrack.local',
-    password: 'chef123',
-    role: 'CHEF_OPERATIONNEL',
-    full_name: 'Chef Opérationnel Demo',
-    nom_complet: 'Chef Opérationnel Demo',
-  },
-  {
-    id: 4,
-    username: 'oper',
-    email: 'oper@postrack.local',
-    password: 'oper123',
-    role: 'OPERATIONNEL',
-    full_name: 'Opérationnel Demo',
-    nom_complet: 'Opérationnel Demo',
-  },
-  {
-    id: 5,
-    username: 'chef',
-    email: 'chef@postrack.local',
-    password: 'chef123',
-    role: 'CHEF_OPERATIONNEL',
-    full_name: 'Chef Opérationnel Demo',
-    nom_complet: 'Chef Opérationnel Demo',
-  },
-  {
-    id: 6,
-    username: 'oper',
-    email: 'oper@postrack.local',
-    password: 'oper123',
-    role: 'OPERATIONNEL',
-    full_name: 'Opérationnel Demo',
-    nom_complet: 'Opérationnel Demo',
-  },
-];
-
-const USERNAME_TO_EMAIL = {
-  admin: 'admin@postrack.local',
-  manager: 'manager@postrack.local',
-  chef: 'chef@postrack.local',
-  oper: 'oper@postrack.local',
-};
-
-const resolveEmail = ({ username, email, password }) => {
-  if (email) return email;
-  if (username && username.includes('@')) return username;
-  if (username && USERNAME_TO_EMAIL[username]) return USERNAME_TO_EMAIL[username];
-  const mockUser = mockUsers.find(
-    (user) => user.username === username || user.email === username
-  );
-  return mockUser?.email || username;
-};
-
-const findMockUser = ({ username, password }) => {
-  const email = resolveEmail({ username, password });
-  return mockUsers.find(
-    (user) =>
-      (user.username === username || user.email === username || user.email === email) &&
-      user.password === password
-  );
-};
-
 const persistTokens = ({ access_token, refresh_token }) => {
   if (access_token) {
     localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token);
@@ -101,23 +18,10 @@ const clearSession = () => {
   localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT);
 };
 
-const saveMockSession = (user) => {
-  const access_token = `mock-token-${user.username}`;
-  const refresh_token = `mock-refresh-${user.username}`;
-  persistTokens({ access_token, refresh_token });
-  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-  return {
-    access_token,
-    refresh_token,
-    token_type: 'bearer',
-    user,
-  };
-};
-
 export const authService = {
   async login(credentials) {
     const payload = {
-      username: credentials.username || credentials.email || resolveEmail(credentials),
+      username: credentials.username || credentials.email,
       password: credentials.password,
     };
 
@@ -140,12 +44,8 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
-      if (error.code === 'ERR_NETWORK' || !error.response) {
-        const mockUser = findMockUser(credentials);
-        if (mockUser) {
-          return saveMockSession(mockUser);
-        }
-      }
+      // Source de vérité unique : si le backend est injoignable, l'échec est
+      // propagé. Aucune session simulée n'est créée côté client.
       throw error;
     }
   },
@@ -154,12 +54,6 @@ export const authService = {
     const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
     if (!refreshToken) {
       throw new Error('Aucun refresh token disponible');
-    }
-
-    if (refreshToken.startsWith('mock-refresh-')) {
-      const access_token = refreshToken.replace('mock-refresh-', 'mock-token-');
-      persistTokens({ access_token, refresh_token: refreshToken });
-      return { access_token, refresh_token: refreshToken, token_type: 'bearer' };
     }
 
     const response = await api.post(

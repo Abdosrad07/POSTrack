@@ -44,14 +44,12 @@ describe('importService — Module A3', () => {
     expect(res.summary.created).toBe(1);
   });
 
-  it('renvoie un lot mocké si le backend est indisponible (fallback réseau)', async () => {
+  it("propage l'erreur réseau au lieu de simuler un lot (source de vérité serveur)", async () => {
     api.post.mockRejectedValueOnce({ code: 'ERR_NETWORK' });
 
-    const res = await importService.validate('POS', makeFile('offline.xlsx'));
-
-    expect(res.status).toBe('VALIDATED');
-    expect(res.file_name).toBe('offline.xlsx');
-    expect(res.errors).toBeInstanceOf(Array);
+    await expect(importService.validate('POS', makeFile('offline.xlsx'))).rejects.toEqual({
+      code: 'ERR_NETWORK',
+    });
   });
 
   it('commit le lot via POST /imports/{batch_id}/apply', async () => {
@@ -63,12 +61,10 @@ describe('importService — Module A3', () => {
     expect(res).toMatchObject({ id: 'batch-1', status: 'APPLIED' });
   });
 
-  it('renvoie status APPLIED en mode démo si le backend est indisponible', async () => {
+  it('ne confirme jamais un lot si le backend est indisponible (pas de faux APPLIED)', async () => {
     api.post.mockRejectedValueOnce({ code: 'ERR_NETWORK' });
 
-    const res = await importService.apply('batch-1');
-
-    expect(res).toMatchObject({ id: 'batch-1', status: 'APPLIED' });
+    await expect(importService.apply('batch-1')).rejects.toEqual({ code: 'ERR_NETWORK' });
   });
 
   it('construit l URL du gabarit préfixée par le partenaire courant', () => {
