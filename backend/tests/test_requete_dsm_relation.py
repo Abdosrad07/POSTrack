@@ -287,3 +287,33 @@ def test_requete_sans_dsm(db: Session, test_partner, test_user):
     assert enriched["dsm_id"] is None
     assert enriched["dsm_name"] is None
     assert enriched["statut"] == "En cours"
+
+
+def test_api_summary_filters_by_dsm(client, admin_token, seed):
+    """Test que l'endpoint summary accepte le paramètre dsm_id."""
+    from tests.conftest import auth_headers
+    
+    # Créer un DSM supplémentaire pour le test
+    dsm_response = client.post(
+        f"/api/partners/{seed['p1']}/dsm",
+        json={"matricule": "DSM_TEST_001", "full_name": "DSM Test Filtre"},
+        headers=auth_headers(admin_token)
+    )
+    assert dsm_response.status_code == 201
+    dsm_id = dsm_response.json()["id"]
+    
+    # Tester que le paramètre dsm_id est accepté par l'endpoint
+    summary_filtre = client.get(
+        f"/api/partners/{seed['p1']}/requests/summary",
+        params={"dsm_id": dsm_id},
+        headers=auth_headers(admin_token)
+    )
+    assert summary_filtre.status_code == 200
+    body = summary_filtre.json()
+    
+    # Vérifier la structure de la réponse
+    assert "items" in body
+    assert "total" in body
+    # Les items retournés doivent avoir le dsm_id spécifié (s'il y en a)
+    for item in body["items"]:
+        assert item["dsm_id"] == dsm_id

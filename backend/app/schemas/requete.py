@@ -15,6 +15,7 @@ class RequeteCreate(BaseModel):
     description: str | None = None
     priorite: PrioriteRequete = PrioriteRequete.NORMALE
     responsable_id: int | None = None
+    dsm_id: int | None = None  # DSM demandeur
     nombre_demande: int = 1
     nombre_effectue: int = 0
     nombre_rejete: int = 0

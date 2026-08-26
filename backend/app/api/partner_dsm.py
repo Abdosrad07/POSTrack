@@ -117,6 +117,13 @@ def dsm_dashboard(partner_id: int = Depends(get_partner_context),
             Prime.status.in_([StatutPrime.VALIDEE, StatutPrime.PAYEE])
         ).scalar() or 0
         
+        # Requêtes spécifiques à ce DSM
+        dsm_requetes = db.query(func.count(Requete.id)).filter(
+            Requete.partner_id == partner_id,
+            Requete.dsm_id == dsm_id,
+            Requete.closed_at.is_(None)
+        ).scalar() or 0
+        
         dsm_info = {
             "id": dsm_id,
             "matricule": matricule,
@@ -130,7 +137,7 @@ def dsm_dashboard(partner_id: int = Depends(get_partner_context),
             "loading": dsm_loading,
             "sell_out": dsm_sell_out,
             "recettes": float(dsm_recettes),
-            "requetes": global_requetes,  # Pour l'instant, requêtes au niveau partenaire
+            "requetes": dsm_requetes,  # Requêtes spécifiques à ce DSM
             "progression": None  # Sera calculé à partir des objectifs si disponibles
         }
         
@@ -142,7 +149,7 @@ def dsm_dashboard(partner_id: int = Depends(get_partner_context),
         total_loading += dsm_loading
         total_sell_out += dsm_sell_out
         total_recettes += float(dsm_recettes)
-        total_requetes = global_requetes
+        total_requetes += dsm_requetes
     
     return {
         "partner_id": partner_id,
@@ -241,7 +248,7 @@ def dsm_detailed_dashboard(dsm_id: int, partner_id: int = Depends(get_partner_co
         "progression": round(progression, 1)
     }
     
-    # 3. Requêtes du DSM
+    # 3. Requêtes du DSM (filtrées par dsm_id)
     requetes = db.query(
         Requete.id,
         Requete.type_requete,
@@ -258,12 +265,9 @@ def dsm_detailed_dashboard(dsm_id: int, partner_id: int = Depends(get_partner_co
     ).join(
         User, Requete.demandeur_id == User.id
     ).filter(
-        Requete.partner_id == partner_id
+        Requete.partner_id == partner_id,
+        Requete.dsm_id == dsm_id
     ).order_by(Requete.date_creation.desc()).limit(50).all()
-    
-    # Filtrer les requêtes qui concernent ce DSM (via POS ou autre entité)
-    # Pour l'instant, on retourne toutes les requêtes du partenaire
-    # TODO: Filtrer par DSM quand le modèle Requete aura un champ dsm_id
     requetes_data = []
     for req in requetes:
         progression_req = (req.nombre_effectue / req.nombre_demande * 100) if req.nombre_demande > 0 else 0

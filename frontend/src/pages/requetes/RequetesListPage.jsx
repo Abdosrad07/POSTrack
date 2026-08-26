@@ -25,9 +25,11 @@ const RequetesListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
+  const [dsms, setDsms] = useState([]);
   const [filters, setFilters] = useState({
     type_requete: '',
     entite_en_charge: '',
+    dsm_id: '',
     date_creation_from: '',
     date_creation_to: '',
     date_fin_from: '',
@@ -38,7 +40,11 @@ const RequetesListPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await requeteService.list({ limit: 500 });
+      const params = { limit: 500 };
+      if (filters.dsm_id) {
+        params.dsm_id = filters.dsm_id;
+      }
+      const response = await requeteService.list(params);
       setItems(response.data?.items ?? []);
     } catch (err) {
       setError(err?.apiMessage || err?.message || 'Impossible de charger les requêtes.');
@@ -46,16 +52,28 @@ const RequetesListPage = () => {
     } finally {
       setLoading(false);
     }
+  }, [filters.dsm_id]);
+
+  const fetchDSMs = useCallback(async () => {
+    try {
+      const response = await dsmService.list();
+      setDsms(response.data || []);
+    } catch (err) {
+      console.error('Impossible de charger les DSM:', err);
+      setDsms([]);
+    }
   }, []);
 
   useEffect(() => {
     void fetchRequests();
-  }, [fetchRequests]);
+    void fetchDSMs();
+  }, [fetchRequests, fetchDSMs]);
 
   const rows = useMemo(() => items.filter((item) => {
     if (filters.type_requete && item.type_requete !== filters.type_requete) return false;
     if (filters.entite_en_charge
       && (item.entite_en_charge || '') !== filters.entite_en_charge) return false;
+    if (filters.dsm_id && item.dsm_id != filters.dsm_id) return false;
     const created = dayOf(item.date_creation);
     if (filters.date_creation_from && created < filters.date_creation_from) return false;
     if (filters.date_creation_to && created > filters.date_creation_to) return false;
@@ -95,6 +113,18 @@ const RequetesListPage = () => {
             <option value="">Tous</option>
             {Object.entries(TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm">
+          <span className="mb-1 block font-medium text-slate-700">DSM</span>
+          <select className="w-full rounded-lg border border-slate-300 px-3 py-2"
+            value={filters.dsm_id}
+            onChange={(e) => updateFilter('dsm_id', e.target.value)}>
+            <option value="">Tous</option>
+            {dsms.map((dsm) => (
+              <option key={dsm.id} value={dsm.id}>{dsm.full_name || dsm.matricule || `DSM #${dsm.id}`}</option>
             ))}
           </select>
         </label>

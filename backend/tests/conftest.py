@@ -149,3 +149,13 @@ def client_p2_pos(client, admin_token, seed):
     resp = client.post(f"/api/partners/{seed['p2']}/pos", json=payload, headers=auth_headers(admin_token))
     assert resp.status_code == 201
     return resp.json()["id"]
+
+
+@pytest.fixture
+def db():
+    """Fixture de base de données pour les tests unitaires."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
