@@ -17,12 +17,20 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('requetes', sa.Column('dsm_id', sa.Integer(), nullable=True))
-    op.create_index(op.f('ix_requetes_dsm_id'), 'requetes', ['dsm_id'], unique=False)
-    op.create_foreign_key('fk_requetes_dsm_id', 'requetes', 'dsm', ['dsm_id'], ['id'])
+    # SQLite ne supporte pas l'ALTER de contraintes : passage par le mode
+    # batch (recreation de la table) comme pour structures_geographiques.
+    _conn = op.get_bind()
+    _req = sa.Table("requetes", sa.MetaData(), autoload_with=_conn)
+    with op.batch_alter_table("requetes", copy_from=_req) as batch_op:
+        batch_op.add_column(sa.Column('dsm_id', sa.Integer(), nullable=True))
+        batch_op.create_index(op.f('ix_requetes_dsm_id'), ['dsm_id'], unique=False)
+        batch_op.create_foreign_key('fk_requetes_dsm_id', 'dsm', ['dsm_id'], ['id'])
 
 
 def downgrade() -> None:
-    op.drop_constraint('fk_requetes_dsm_id', 'requetes', type_='foreignkey')
-    op.drop_index(op.f('ix_requetes_dsm_id'), table_name='requetes')
-    op.drop_column('requetes', 'dsm_id')
+    _conn = op.get_bind()
+    _req = sa.Table("requetes", sa.MetaData(), autoload_with=_conn)
+    with op.batch_alter_table("requetes", copy_from=_req) as batch_op:
+        batch_op.drop_constraint('fk_requetes_dsm_id', type_='foreignkey')
+        batch_op.drop_index(op.f('ix_requetes_dsm_id'))
+        batch_op.drop_column('dsm_id')
