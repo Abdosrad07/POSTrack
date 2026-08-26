@@ -41,6 +41,10 @@ export const dsmService = {
     const response = await api.get('/dsm/dashboard');
     return response;
   },
+  getDSMDashboard: async (dsmId) => {
+    const response = await api.get(`/dsm/${dsmId}/dashboard`);
+    return response;
+  },
 };
 
 export default dsmService;
