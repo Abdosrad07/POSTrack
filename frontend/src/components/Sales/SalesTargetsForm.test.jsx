@@ -12,6 +12,7 @@ describe('SalesTargetsForm', () => {
     fireEvent.change(screen.getByLabelText('Objectif redéploiement'), { target: { value: '10' } });
     fireEvent.change(screen.getByLabelText('Objectif sell-out'), { target: { value: '60' } });
     fireEvent.change(screen.getByLabelText('Objectif loading'), { target: { value: '12' } });
+    fireEvent.change(screen.getByLabelText('Objectif global de vente (FCFA)'), { target: { value: '10000000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(onSubmit).toHaveBeenCalledWith({
@@ -20,6 +21,7 @@ describe('SalesTargetsForm', () => {
       redeployment_target: 10,
       sell_out_target: 60,
       loading_target: 12,
+      revenue_target: 10000000,
       creation_stock_initial: null,
       redeployment_stock_initial: null,
     });

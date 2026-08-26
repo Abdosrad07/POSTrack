@@ -6,6 +6,7 @@ const EMPTY = {
   redeployment_target: '',
   sell_out_target: '',
   loading_target: '',
+  revenue_target: '',
   creation_stock_initial: '',
   redeployment_stock_initial: '',
 };
@@ -37,6 +38,7 @@ export default function SalesTargetsForm({ partnerName, initialValues = EMPTY, o
       redeployment_target: toIntOrNull(form.redeployment_target),
       sell_out_target: toIntOrNull(form.sell_out_target),
       loading_target: toIntOrNull(form.loading_target),
+      revenue_target: toIntOrNull(form.revenue_target),
       creation_stock_initial: toIntOrNull(form.creation_stock_initial),
       redeployment_stock_initial: toIntOrNull(form.redeployment_stock_initial),
     });
@@ -65,6 +67,7 @@ export default function SalesTargetsForm({ partnerName, initialValues = EMPTY, o
           ['redeployment_target', 'Objectif redéploiement'],
           ['sell_out_target', 'Objectif sell-out'],
           ['loading_target', 'Objectif loading'],
+          ['revenue_target', 'Objectif global de vente (FCFA)'],
           ['creation_stock_initial', 'Stock initial création'],
           ['redeployment_stock_initial', 'Stock initial redéploiement'],
         ].map(([key, label]) => (

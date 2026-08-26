@@ -281,8 +281,11 @@ def get_partner_sales_summary(db: Session, partner_id: int) -> dict:
     redeploiement_stock_initial = target.redeployment_stock_initial if target else None
 
     # Recettes de vente (donnée manquante identifiée - à alimenter via import/API)
+    # SOURCE DE DONNÉE REQUISE: Import Excel ou API fournissant le chiffre d'affaires réalisé
+    # par partenaire et par DSM. Les recettes doivent être distinctes de sell-out et loading.
+    # Format attendu: montant en FCFA, granularité partenaire et DSM si disponible.
     revenue_objectif = target.revenue_target if target else None
-    revenue_realisation = None  # Donnée non disponible actuellement
+    revenue_realisation = None  # Donnée non disponible actuellement - source à définir
 
     return {
         "partner_id": partner.id,
@@ -292,7 +295,7 @@ def get_partner_sales_summary(db: Session, partner_id: int) -> dict:
             "cumul": creation_cumul,
             "stock_initial": creation_stock_initial,
             "progression": _progression(creation_cumul, creation_objectif),
-            "recette": None,  # Recettes spécifiques création - donnée manquante
+            "recette": None,  # Recettes spécifiques création - donnée manquante (source à définir)
         },
         "redeploiement": {
             "objectif": redeploiement_objectif,
@@ -313,7 +316,7 @@ def get_partner_sales_summary(db: Session, partner_id: int) -> dict:
             "cumul": loading_cumul,
             "stock_initial": None,
             "progression": _progression(loading_cumul, loading_objectif),
-            "recette": None,  # Recettes spécifiques loading - donnée manquante
+            "recette": None,  # Recettes spécifiques loading - donnée manquante (source à définir)
         },
         "revenue_global": {
             "objectif": revenue_objectif,
