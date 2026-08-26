@@ -75,6 +75,13 @@ class POSOut(BaseModel):
     linkage_status: LinkageStatus
 
 
+class POSOutEnriched(POSOut):
+    """POS enrichi avec les données métier calculées (loading, sell-out, recettes)."""
+    loading: int = 0
+    sell_out: int = 0
+    recettes: float = 0
+
+
 class ReconductionCreate(BaseModel):
     new_expiration: date
     motif: str | None = None

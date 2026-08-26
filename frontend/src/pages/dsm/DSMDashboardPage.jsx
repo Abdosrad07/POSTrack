@@ -11,7 +11,7 @@ const StatCard = ({ label, value, subLabel }) => (
   </div>
 );
 
-const DSMRow = ({ dsm, onClick }) => (
+const DSMRow = ({ dsm, onClick, onViewDetails }) => (
   <div 
     onClick={() => onClick(dsm.id)}
     className="cursor-pointer rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all"
@@ -25,9 +25,18 @@ const DSMRow = ({ dsm, onClick }) => (
           Code: {dsm.matricule || 'N/A'} • Zone: {dsm.zone || dsm.micro_zone || 'Non renseigné'}
         </p>
       </div>
-      <div className="ml-4 flex items-center">
+      <div className="ml-4 flex items-center gap-3">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails(dsm.id);
+          }}
+          className="text-sm font-medium text-slate-600 hover:text-indigo-600"
+        >
+          Dashboard
+        </button>
         <span className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-          Voir détails →
+          POS →
         </span>
       </div>
     </div>
@@ -114,6 +123,10 @@ export default function DSMDashboardPage() {
   }, [partnerContextId]);
 
   const handleDSMClick = (dsmId) => {
+    navigate(`/dsm/${dsmId}/pos`);
+  };
+
+  const handleViewDetails = (dsmId) => {
     navigate(`/dsm/${dsmId}`);
   };
 
@@ -296,7 +309,8 @@ export default function DSMDashboardPage() {
             <DSMRow 
               key={dsm.id} 
               dsm={dsm} 
-              onClick={handleDSMClick} 
+              onClick={handleDSMClick}
+              onViewDetails={handleViewDetails}
             />
           ))}
         </div>

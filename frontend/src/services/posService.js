@@ -20,6 +20,9 @@ const normalizePos = (pos) => ({
   date_expiration: pos?.date_expiration ?? null,
   linkage_status: pos?.linkage_status ?? (pos?.holder_user_id ? 'LINKED' : 'UNLINKED'),
   holder_user_id: pos?.holder_user_id ?? null,
+  loading: pos?.loading ?? 0,
+  sell_out: pos?.sell_out ?? 0,
+  recettes: pos?.recettes ?? 0,
   partenaire: pos?.partenaire ? {
     ...pos.partenaire,
     id: pos.partenaire.id,
@@ -65,6 +68,13 @@ export const posService = {
   
   /** Compteurs par type de POS */
   getTypeStats: (dsmId = null) => api.get('/pos/stats/types', { params: dsmId ? { dsm_id: dsmId } : {} }),
+
+  /** POS enrichis avec loading, sell-out et recettes */
+  getEnriched: async (params) => {
+    const response = await api.get('/pos/enriched', { params });
+    const list = normalizeList(response.data).map(normalizePos);
+    return { ...response, data: { ...(response.data || {}), items: list } };
+  },
 };
 
 export default posService;

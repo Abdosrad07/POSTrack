@@ -27,15 +27,17 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
             <Th>Coordonnées</Th>
             <Th onClick={() => toggle('statut')}>Statut</Th>
             <Th>Linkage</Th>
+            <Th>Loading</Th>
+            <Th>Sell-out</Th>
             <Th onClick={() => toggle('date_expiration')}>Expiration</Th>
             <Th>Actions</Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {loading ? (
-            <tr><td colSpan={10} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
+            <tr><td colSpan={12} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
           ) : safeRows.length === 0 ? (
-            <tr><td colSpan={10} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
+            <tr><td colSpan={12} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
           ) : (
             safeRows.map((pos) => (
               <tr
@@ -74,6 +76,8 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
                     {(pos.linkage_status === 'LINKED' || pos.holder_user_id) ? 'Linké' : 'Délinké'}
                   </span>
                 </td>
+                <td className="px-4 py-3 font-medium text-blue-600">{pos.loading ?? 0}</td>
+                <td className="px-4 py-3 font-medium text-green-600">{pos.sell_out ?? 0}</td>
                 <td className="px-4 py-3">{pos.date_expiration}</td>
                 <td className="px-4 py-3">
                   <button

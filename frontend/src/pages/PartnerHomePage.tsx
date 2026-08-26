@@ -58,7 +58,7 @@ type Identity = {
 const features = [
   { label: 'Dashboard', to: '/dashboard' },
   { label: 'DSM', to: '/dsm' },
-  { label: 'POS créés', to: '/pos' },
+  { label: 'POS du partenaire', to: '/partenaires/pos' },
   { label: 'BTS', to: '/bts' },
   { label: 'Suivi des ventes', to: '/ventes' },
   { label: 'Requêtes', to: '/requetes' },
@@ -88,7 +88,7 @@ export default function PartnerHomePage() {
         const [statsRes, identityRes, posRes] = await Promise.all([
           analyticsService.getDashboard(partnerContextId),
           partenaireService.getIdentity(partnerContextId),
-          posService.getAll({ limit: 100 }),
+          posService.getEnriched({ limit: 100 }),
         ])
         const posData = posRes.data?.items ?? posRes.data?.data ?? posRes.data?.results ?? posRes.data ?? []
         if (!ignore) {

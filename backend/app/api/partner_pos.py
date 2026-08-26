@@ -1,14 +1,18 @@
 """Ressources POS sous /api/partners/{partner_id}/pos."""
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 
 from app.core.database import get_db
 from app.api.deps import get_current_user, get_partner_context
 from app.crud.pos_crud import pos_crud, reconduction_crud
 from app.models.user import User
-from app.models.pos import TypePos, StatutPos
+from app.models.pos import TypePos, StatutPos, POS
+from app.models.sim import SIM, StatutSim
+from app.models.sim import SIMMovement
+from app.models.prime import Prime, StatutPrime
 from app.schemas.pos import (
-    POSCreate, POSUpdate, POSOut, ReconductionCreate, ReconductionOut,
+    POSCreate, POSUpdate, POSOut, POSOutEnriched, ReconductionCreate, ReconductionOut,
     POSLinkCreate, POSUnlinkCreate, POSLinkOut,
 )
 from app.schemas.pagination import Page
@@ -33,6 +37,70 @@ def list_pos(
 ):
     return pos_crud.list_paginated(db, skip=skip, limit=limit, partner_id=partner_id,
                                     type_pos=type_pos, status=status, dsm_id=dsm_id)
+
+
+@router.get("/enriched", response_model=Page[POSOutEnriched])
+def list_pos_enriched(
+    partner_id: int = Depends(get_partner_context),
+    type_pos: TypePos | None = None,
+    status: StatutPos | None = None,
+    dsm_id: int | None = None,
+    skip: int = 0, limit: int = Query(default=100, le=500),
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """Liste des POS enrichie avec les données métier (loading, sell-out, recettes)."""
+    # Requête principale pour les POS
+    query = db.query(POS).filter(POS.partner_id == partner_id)
+    
+    if type_pos:
+        query = query.filter(POS.type_pos == type_pos)
+    if status:
+        query = query.filter(POS.status == status)
+    if dsm_id:
+        query = query.filter(POS.dsm_id == dsm_id)
+    
+    # Pagination
+    total = query.count()
+    pos_list = query.offset(skip).limit(limit).all()
+    
+    # Enrichir chaque POS avec les données métier
+    enriched_pos = []
+    for pos in pos_list:
+        # Loading: nombre de SIM en stock pour ce POS
+        loading = db.query(func.count(SIM.id)).filter(
+            SIM.pos_id == pos.id,
+            SIM.status == StatutSim.EN_STOCK
+        ).scalar() or 0
+        
+        # Sell-out: nombre de mouvements de type VENTE ou ACTIVATION pour ce POS
+        sell_out = db.query(func.count(SIMMovement.id)).join(
+            SIM, SIMMovement.sim_id == SIM.id
+        ).filter(
+            SIM.pos_id == pos.id,
+            SIMMovement.movement_type.in_(["VENTE", "ACTIVATION"])
+        ).scalar() or 0
+        
+        # Recettes: somme des primes validées/payées pour ce POS
+        recettes = db.query(func.coalesce(func.sum(Prime.montant), 0)).filter(
+            Prime.pos_id == pos.id,
+            Prime.status.in_([StatutPrime.VALIDEE, StatutPrime.PAYEE])
+        ).scalar() or 0
+        
+        # Créer l'objet enrichi
+        pos_dict = POSOut.model_validate(pos).model_dump()
+        pos_dict["loading"] = loading
+        pos_dict["sell_out"] = sell_out
+        pos_dict["recettes"] = float(recettes)
+        enriched_pos.append(pos_dict)
+    
+    return {
+        "items": enriched_pos,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "has_next": skip + len(enriched_pos) < total,
+    }
 
 
 @router.post("", response_model=POSOut, status_code=201)

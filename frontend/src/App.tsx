@@ -17,6 +17,7 @@ import DSMCreatePage from './pages/dsm/DSMCreatePage'
 import DSMDetailPage from './pages/dsm/DSMDetailPage'
 import DSMHomePage from './pages/dsm/DSMHomePage'
 import DSMDashboardPage from './pages/dsm/DSMDashboardPage'
+import DSMPOSPage from './pages/dsm/DSMPOSPage'
 import LoginPage from './pages/auth/LoginPage'
 import RequeteCreatePage from './pages/requetes/RequeteCreatePage'
 import SelectPartnerPage from './pages/auth/SelectPartnerPage'
@@ -33,6 +34,7 @@ import { PartnerProvider } from './context/PartnerContext'
 import PartenaireCreatePage from './pages/partenaires/PartenaireCreatePage'
 import POSCreatePage from './pages/pos/POSCreatePage'
 import PrimeCreatePage from './pages/primes/PrimeCreatePage'
+import PartnerPOSPage from './pages/partners/PartnerPOSPage'
 import { ROLE_GROUPS } from './utils/constants'
 
 function App() {
@@ -53,6 +55,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="unauthorized" element={<UnauthorizedPage />} />
 
+            <Route path="partenaires/pos" element={<PartnerPOSPage />} />
             <Route path="pos" element={<POSListPage />} />
             <Route path="pos/new" element={<POSCreatePage />} />
             <Route path="pos/nouveau" element={<POSCreatePage />} />
@@ -130,6 +133,14 @@ function App() {
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <DSMDetailPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="dsm/:id/pos"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
+                  <DSMPOSPage />
                 </RoleGuard>
               }
             />

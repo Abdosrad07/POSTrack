@@ -112,13 +112,22 @@ export default function DSMDetailPage() {
             Vue complète et détaillée du DSM - {identity?.full_name || identity?.nom || `DSM #${id}`}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate('/dsm')}
-          className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-        >
-          Retour
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(`/dsm/${id}/pos`)}
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            Voir les POS
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/dsm')}
+            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+          >
+            Retour
+          </button>
+        </div>
       </div>
 
       {/* Summary stats - DSM-specific */}

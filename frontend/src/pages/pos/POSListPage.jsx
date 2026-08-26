@@ -64,7 +64,7 @@ export default function POSListPage() {
       }).filter(([, v]) => v !== '' && v != null)
     );
     posService
-      .getAll(params)
+      .getEnriched(params)
       .then((res) => {
         const data = res.data?.items ?? res.data?.data ?? res.data?.results ?? res.data ?? [];
         const items = Array.isArray(data) ? data : [];
