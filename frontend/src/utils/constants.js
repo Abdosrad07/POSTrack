@@ -79,6 +79,12 @@ export const NAV_ITEMS = [
     roles: ROLE_GROUPS.ADMIN_ONLY,
   },
   {
+    id: 'sales-targets',
+    to: '/analytics/sales-targets',
+    label: 'Objectifs de ventes',
+    roles: ROLE_GROUPS.ADMIN_ONLY,
+  },
+  {
     id: 'partenaires',
     to: '/partenaires',
     label: 'Partenaires',

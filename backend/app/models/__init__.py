@@ -3,7 +3,7 @@
 Importer ce module suffit a charger l'ensemble du schema.
 """
 from app.models.user import User, UserPartner, UserPOS  # noqa: F401
-from app.models.partner import Partner, MicroZone  # noqa: F401
+from app.models.partner import Partner, MicroZone, PartnerSalesTarget  # noqa: F401
 from app.models.dsm import DSM  # noqa: F401
 from app.models.pos import POS, TypePos, StatutPos  # noqa: F401
 from app.models.reconduction import Reconduction  # noqa: F401

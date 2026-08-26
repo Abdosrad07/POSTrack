@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from decimal import Decimal
 from pydantic import BaseModel
 
@@ -29,3 +30,43 @@ class DashboardOut(BaseModel):
 class DSMDashboardOut(DashboardOut):
     dsm_id: int
     dsm_name: str
+
+
+class SalesProgressBlock(BaseModel):
+    objectif: int | None = None
+    cumul: int = 0
+    stock_initial: int | None = None
+    progression: float | None = None
+
+
+class PartnerSalesSummaryOut(BaseModel):
+    partner_id: int
+    partner_name: str
+    creation: SalesProgressBlock
+    redeploiement: SalesProgressBlock
+    sell_out: SalesProgressBlock
+    loading: SalesProgressBlock
+
+
+class PartnerSalesTargetBase(BaseModel):
+    month: date
+    creation_target: int | None = None
+    redeployment_target: int | None = None
+    sell_out_target: int | None = None
+    loading_target: int | None = None
+    creation_stock_initial: int | None = None
+    redeployment_stock_initial: int | None = None
+
+
+class PartnerSalesTargetCreate(PartnerSalesTargetBase):
+    partner_id: int | None = None
+
+
+class PartnerSalesTargetOut(PartnerSalesTargetBase):
+    id: int
+    partner_id: int
+    created_at: datetime
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True

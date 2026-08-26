@@ -21,13 +21,14 @@ from sqlalchemy import func, and_
 from app.core.config import settings
 from app.core.errors import NotFoundError
 from app.models.partner import Partner
+from app.models.partner import PartnerSalesTarget
 from app.models.dsm import DSM
 from app.models.pos import POS, TypePos
 from app.models.prime import Prime, StatutPrime
 from app.models.requete import Requete
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
-from app.models.sim import SIM, StatutSim
+from app.models.sim import SIM, SIMMovement, StatutSim
 from app.models.pos_performance import POSPerformance, SourcePerformance
 
 # Nombre maximum d'alertes d'expiration renvoyees par le dashboard : le
@@ -221,6 +222,130 @@ def get_dsm_dashboard(db: Session, partner_id: int, dsm_id: int) -> dict:
         "sim_assignees": sim_assignees,
         "pos_expirations_proches": [],
     }
+
+
+def _progression(cumul: int, objectif: int | None) -> float | None:
+    if objectif is None:
+        return None
+    if objectif <= 0:
+        return None
+    return min(100.0, (float(cumul) / float(objectif)) * 100.0)
+
+
+def get_partner_sales_summary(db: Session, partner_id: int) -> dict:
+    """Résumé métier du suivi des ventes.
+
+    Les compteurs sont dérivés des données réelles déjà stockées :
+    - création = POS de type NOUVEAU
+    - redéploiement = POS de type RECONDUIT
+    - sell-out = SIM passées en ACTIVE ou ASSIGNEE via mouvements
+    - loading = SIM EN_STOCK
+
+    Aucun objectif métier n'est inventé : à défaut d'une source persistée,
+    la progression reste à None.
+    """
+    partner = db.query(Partner).filter(Partner.id == partner_id).first()
+    if not partner:
+        raise NotFoundError("Partenaire introuvable.")
+
+    target_month = date.today().replace(day=1)
+    target = db.query(PartnerSalesTarget).filter(
+        PartnerSalesTarget.partner_id == partner_id,
+        PartnerSalesTarget.month == target_month,
+    ).first()
+
+    pos_counts = dict(
+        db.query(POS.type_pos, func.count(POS.id))
+        .filter(POS.partner_id == partner_id)
+        .group_by(POS.type_pos)
+        .all()
+    )
+    creation_cumul = pos_counts.get(TypePos.NOUVEAU, 0)
+    redeploiement_cumul = pos_counts.get(TypePos.RECONDUIT, 0)
+
+    sell_out_cumul = db.query(func.count(SIMMovement.id)).filter(
+        SIMMovement.partner_id == partner_id,
+        SIMMovement.movement_type.in_(["VENTE", "ACTIVATION"]),
+    ).scalar() or 0
+    loading_cumul = db.query(func.count(SIM.id)).filter(
+        SIM.partner_id == partner_id,
+        SIM.status == StatutSim.EN_STOCK,
+    ).scalar() or 0
+
+    creation_objectif = target.creation_target if target else None
+    redeploiement_objectif = target.redeployment_target if target else None
+    sell_out_objectif = target.sell_out_target if target else None
+    loading_objectif = target.loading_target if target else None
+
+    creation_stock_initial = target.creation_stock_initial if target else None
+    redeploiement_stock_initial = target.redeployment_stock_initial if target else None
+
+    return {
+        "partner_id": partner.id,
+        "partner_name": partner.name,
+        "creation": {
+            "objectif": creation_objectif,
+            "cumul": creation_cumul,
+            "stock_initial": creation_stock_initial,
+            "progression": _progression(creation_cumul, creation_objectif),
+        },
+        "redeploiement": {
+            "objectif": redeploiement_objectif,
+            "cumul": redeploiement_cumul,
+            "stock_initial": redeploiement_stock_initial,
+            "progression": _progression(redeploiement_cumul, redeploiement_objectif),
+        },
+        "sell_out": {
+            "objectif": sell_out_objectif,
+            "cumul": sell_out_cumul,
+            "stock_initial": None,
+            "progression": _progression(sell_out_cumul, sell_out_objectif),
+        },
+        "loading": {
+            "objectif": loading_objectif,
+            "cumul": loading_cumul,
+            "stock_initial": None,
+            "progression": _progression(loading_cumul, loading_objectif),
+        },
+    }
+
+
+def create_or_update_sales_target(db: Session, *, partner_id: int, payload: dict) -> PartnerSalesTarget:
+    month = payload["month"].replace(day=1)
+    target = db.query(PartnerSalesTarget).filter(
+        PartnerSalesTarget.partner_id == partner_id,
+        PartnerSalesTarget.month == month,
+    ).first()
+    data = {
+        "creation_target": payload.get("creation_target"),
+        "redeployment_target": payload.get("redeployment_target"),
+        "sell_out_target": payload.get("sell_out_target"),
+        "loading_target": payload.get("loading_target"),
+        "creation_stock_initial": payload.get("creation_stock_initial"),
+        "redeployment_stock_initial": payload.get("redeployment_stock_initial"),
+    }
+    if target:
+        for key, value in data.items():
+            setattr(target, key, value)
+        db.add(target)
+        db.commit()
+        db.refresh(target)
+        return target
+
+    target = PartnerSalesTarget(partner_id=partner_id, month=month, **data)
+    db.add(target)
+    db.commit()
+    db.refresh(target)
+    return target
+
+
+def list_sales_targets(db: Session, partner_id: int) -> list[PartnerSalesTarget]:
+    return (
+        db.query(PartnerSalesTarget)
+        .filter(PartnerSalesTarget.partner_id == partner_id)
+        .order_by(PartnerSalesTarget.month.desc())
+        .all()
+    )
 
 
 def calculate_pos_performance(db: Session, *, partner_id: int, period_start: date, period_end: date) -> list[POSPerformance]:

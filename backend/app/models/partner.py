@@ -52,6 +52,10 @@ class Partner(Base):
         "MicroZone", back_populates="partner", cascade="all, delete-orphan",
         order_by="MicroZone.id",
     )
+    sales_targets = relationship(
+        "PartnerSalesTarget", back_populates="partner", cascade="all, delete-orphan",
+        order_by="PartnerSalesTarget.id",
+    )
 
 
 class MicroZone(Base):
@@ -73,3 +77,25 @@ class MicroZone(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     partner = relationship("Partner", back_populates="micro_zones")
+
+
+class PartnerSalesTarget(Base):
+    """Objectifs mensuels persistés du suivi des ventes d'un partenaire."""
+    __tablename__ = "partner_sales_targets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    partner_id = Column(Integer, ForeignKey("partners.id", ondelete="CASCADE"), nullable=False, index=True)
+    month = Column(Date, nullable=False, index=True)
+
+    creation_target = Column(Integer, nullable=True)
+    redeployment_target = Column(Integer, nullable=True)
+    sell_out_target = Column(Integer, nullable=True)
+    loading_target = Column(Integer, nullable=True)
+
+    creation_stock_initial = Column(Integer, nullable=True)
+    redeployment_stock_initial = Column(Integer, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    partner = relationship("Partner", back_populates="sales_targets")

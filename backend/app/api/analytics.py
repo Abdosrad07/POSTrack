@@ -8,11 +8,14 @@ from app.crud.pos_crud import pos_performance_crud
 from app.crud.prime_crud import dsm_commission_crud
 from app.models.user import User
 from app.security.permissions import Role
-from app.schemas.analytics import DashboardOut, DSMDashboardOut
+from app.schemas.analytics import DashboardOut, DSMDashboardOut, PartnerSalesSummaryOut, PartnerSalesTargetCreate, PartnerSalesTargetOut
 from app.schemas.pos_performance import POSPerformanceOut, POSPerformanceCalculateRequest
 from app.schemas.prime import DSMCommissionOut
 from app.schemas.pagination import Page
-from app.services.analytics_service import get_dashboard, get_dsm_dashboard, calculate_pos_performance
+from app.services.analytics_service import (
+    get_dashboard, get_dsm_dashboard, calculate_pos_performance,
+    get_partner_sales_summary, create_or_update_sales_target, list_sales_targets,
+)
 
 router = APIRouter(prefix="/api/partners/{partner_id}/analytics", tags=["Analytics"])
 
@@ -30,6 +33,21 @@ def list_pos_performance(partner_id: int = Depends(get_partner_context), pos_id:
                           skip: int = 0, limit: int = Query(default=100, le=500),
                           db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     return pos_performance_crud.list_paginated(db, skip=skip, limit=limit, partner_id=partner_id, pos_id=pos_id)
+
+
+@router.get("/sales-summary", response_model=PartnerSalesSummaryOut)
+def sales_summary(partner_id: int = Depends(get_partner_context), db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    return get_partner_sales_summary(db, partner_id)
+
+
+@router.get("/sales-targets", response_model=list[PartnerSalesTargetOut])
+def sales_targets_list(partner_id: int = Depends(get_partner_context), db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    return list_sales_targets(db, partner_id)
+
+
+@router.post("/sales-targets", response_model=PartnerSalesTargetOut, status_code=201)
+def sales_targets_upsert(payload: PartnerSalesTargetCreate, partner_id: int = Depends(get_partner_context), db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    return create_or_update_sales_target(db, partner_id=partner_id, payload=payload.model_dump())
 
 
 @router.post("/pos-performance/calculate", response_model=list[POSPerformanceOut], status_code=201)

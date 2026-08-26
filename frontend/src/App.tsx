@@ -24,6 +24,7 @@ import SimsStockPage from './pages/sims/SimsStockPage'
 import RequetesListPage from './pages/requetes/RequetesListPage'
 import ImportExportPage from './pages/import-export/ImportExportPage'
 import AuditLogsPage from './pages/audit/AuditLogsPage'
+import SalesTargetsPage from './pages/analytics/SalesTargetsPage'
 import PartnerRoute from './routes/PartnerRoute'
 import { AuthProvider } from './context/AuthContext'
 import { PartnerProvider } from './context/PartnerContext'
@@ -173,6 +174,14 @@ function App() {
               element={
                 <RoleGuard roles={ROLE_GROUPS.PARTNER_PORTFOLIO}>
                   <ImportExportPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="analytics/sales-targets"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
+                  <SalesTargetsPage />
                 </RoleGuard>
               }
             />
