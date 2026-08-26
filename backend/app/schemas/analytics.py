@@ -70,3 +70,23 @@ class PartnerSalesTargetOut(PartnerSalesTargetBase):
 
     class Config:
         from_attributes = True
+
+
+class LoadingByDsmRow(BaseModel):
+    dsm_id: int
+    dsm_code: str
+    dsm_name: str
+    loading: int
+    objectif: int | None = None
+    progression: float | None = None
+
+
+class PartnerLoadingSummaryOut(BaseModel):
+    partner_id: int
+    partner_name: str
+    period_start: date | None = None
+    period_end: date | None = None
+    loading: int
+    objectif: int | None = None
+    progression: float | None = None
+    by_dsm: list[LoadingByDsmRow]

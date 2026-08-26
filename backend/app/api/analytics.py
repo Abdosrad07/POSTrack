@@ -8,13 +8,13 @@ from app.crud.pos_crud import pos_performance_crud
 from app.crud.prime_crud import dsm_commission_crud
 from app.models.user import User
 from app.security.permissions import Role
-from app.schemas.analytics import DashboardOut, DSMDashboardOut, PartnerSalesSummaryOut, PartnerSalesTargetCreate, PartnerSalesTargetOut
+from app.schemas.analytics import DashboardOut, DSMDashboardOut, PartnerSalesSummaryOut, PartnerSalesTargetCreate, PartnerSalesTargetOut, PartnerLoadingSummaryOut
 from app.schemas.pos_performance import POSPerformanceOut, POSPerformanceCalculateRequest
 from app.schemas.prime import DSMCommissionOut
 from app.schemas.pagination import Page
 from app.services.analytics_service import (
     get_dashboard, get_dsm_dashboard, calculate_pos_performance,
-    get_partner_sales_summary, create_or_update_sales_target, list_sales_targets,
+    get_partner_sales_summary, get_partner_loading_summary, create_or_update_sales_target, list_sales_targets,
 )
 
 router = APIRouter(prefix="/api/partners/{partner_id}/analytics", tags=["Analytics"])
@@ -38,6 +38,21 @@ def list_pos_performance(partner_id: int = Depends(get_partner_context), pos_id:
 @router.get("/sales-summary", response_model=PartnerSalesSummaryOut)
 def sales_summary(partner_id: int = Depends(get_partner_context), db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     return get_partner_sales_summary(db, partner_id)
+
+
+@router.get("/loading-summary", response_model=PartnerLoadingSummaryOut)
+def loading_summary(
+    partner_id: int = Depends(get_partner_context),
+    period_start: str | None = None,
+    period_end: str | None = None,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    from datetime import date as _date
+
+    parsed_start = _date.fromisoformat(period_start) if period_start else None
+    parsed_end = _date.fromisoformat(period_end) if period_end else None
+    return get_partner_loading_summary(db, partner_id, parsed_start, parsed_end)
 
 
 @router.get("/sales-targets", response_model=list[PartnerSalesTargetOut])

@@ -20,15 +20,13 @@ from sqlalchemy import func, and_
 
 from app.core.config import settings
 from app.core.errors import NotFoundError
-from app.models.partner import Partner
-from app.models.partner import PartnerSalesTarget
+from app.models.partner import Partner, PartnerSalesTarget
 from app.models.dsm import DSM
 from app.models.pos import POS, TypePos
-from app.models.prime import Prime, StatutPrime
+from app.models.sim import SIM, StatutSim, TypeMouvementSim, SIMMovement
 from app.models.requete import Requete
 from app.models.bts import BTS
 from app.models.bts_releve import BTSReleve
-from app.models.sim import SIM, SIMMovement, StatutSim
 from app.models.pos_performance import POSPerformance, SourcePerformance
 
 # Nombre maximum d'alertes d'expiration renvoyees par le dashboard : le
@@ -346,6 +344,82 @@ def list_sales_targets(db: Session, partner_id: int) -> list[PartnerSalesTarget]
         .order_by(PartnerSalesTarget.month.desc())
         .all()
     )
+
+
+def get_partner_loading_summary(
+    db: Session,
+    partner_id: int,
+    period_start: date | None = None,
+    period_end: date | None = None,
+) -> dict:
+    partner = db.query(Partner).filter(Partner.id == partner_id).first()
+    if not partner:
+        raise NotFoundError("Partenaire introuvable.")
+
+    # Loading = ce que le marche a consomme : on compte les mouvements SIM
+    # qui traduisent une consommation effective (VENTE ou ACTIVATION).
+    loading_movement_types = [TypeMouvementSim.VENTE, TypeMouvementSim.ACTIVATION]
+    loading_query = (
+        db.query(func.count(SIMMovement.id))
+        .join(SIM, SIMMovement.sim_id == SIM.id)
+        .join(POS, SIM.pos_id == POS.id)
+        .filter(POS.partner_id == partner_id, SIMMovement.movement_type.in_(loading_movement_types))
+    )
+    if period_start is not None:
+        loading_query = loading_query.filter(SIMMovement.created_at >= period_start)
+    if period_end is not None:
+        loading_query = loading_query.filter(SIMMovement.created_at < period_end)
+
+    loading_cumul = int(loading_query.scalar() or 0)
+
+    target = db.query(PartnerSalesTarget).filter(PartnerSalesTarget.partner_id == partner_id).order_by(
+        PartnerSalesTarget.month.desc()
+    ).first()
+    loading_objectif = target.loading_target if target else None
+
+    dsm_rows = []
+    dsm_query = (
+        db.query(
+            DSM.id,
+            DSM.matricule,
+            func.coalesce(DSM.nom, DSM.full_name, DSM.matricule),
+            func.count(SIMMovement.id),
+        )
+        .join(POS, POS.dsm_id == DSM.id)
+        .join(SIM, SIM.pos_id == POS.id)
+        .join(SIMMovement, SIMMovement.sim_id == SIM.id)
+        .filter(
+            POS.partner_id == partner_id,
+            SIMMovement.movement_type.in_(loading_movement_types),
+        )
+    )
+    if period_start is not None:
+        dsm_query = dsm_query.filter(SIMMovement.created_at >= period_start)
+    if period_end is not None:
+        dsm_query = dsm_query.filter(SIMMovement.created_at < period_end)
+
+    dsm_query = dsm_query.group_by(DSM.id, DSM.matricule, DSM.nom, DSM.full_name).all()
+
+    for dsm_id, dsm_code, dsm_name, loading in dsm_query:
+        dsm_rows.append({
+            "dsm_id": dsm_id,
+            "dsm_code": dsm_code,
+            "dsm_name": dsm_name,
+            "loading": int(loading or 0),
+            "objectif": None,
+            "progression": None,
+        })
+
+    return {
+        "partner_id": partner_id,
+        "partner_name": partner.name,
+        "period_start": period_start,
+        "period_end": period_end,
+        "loading": loading_cumul,
+        "objectif": loading_objectif,
+        "progression": _progression(loading_cumul, loading_objectif),
+        "by_dsm": dsm_rows,
+    }
 
 
 def calculate_pos_performance(db: Session, *, partner_id: int, period_start: date, period_end: date) -> list[POSPerformance]:

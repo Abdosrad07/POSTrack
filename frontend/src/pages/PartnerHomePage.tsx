@@ -5,6 +5,7 @@ import analyticsService from '../services/analyticsService'
 import partenaireService from '../services/partenaireService'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 import SalesProgressCard from '../components/Sales/SalesProgressCard'
+import LoadingSummaryCard from '../components/Sales/LoadingSummaryCard'
 
 type Stats = {
   partner_name?: string
@@ -69,7 +70,9 @@ export default function PartnerHomePage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [identity, setIdentity] = useState<Identity | null>(null)
   const [salesSummary, setSalesSummary] = useState<any | null>(null)
+  const [loadingSummary, setLoadingSummary] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadingPeriod, setLoadingPeriod] = useState<{ period_start?: string; period_end?: string }>({})
 
   useEffect(() => {
     let ignore = false
@@ -84,16 +87,19 @@ export default function PartnerHomePage() {
           partenaireService.getIdentity(partnerContextId),
           analyticsService.getSalesSummary(partnerContextId),
         ])
+        const loadingRes = await analyticsService.getLoadingSummary(partnerContextId, loadingPeriod)
         if (!ignore) {
           setStats(statsRes.data)
           setIdentity(identityRes.data?.data ?? identityRes.data ?? null)
           setSalesSummary(salesRes.data ?? null)
+          setLoadingSummary(loadingRes.data ?? null)
         }
       } catch {
         if (!ignore) {
           setStats(null)
           setIdentity(null)
           setSalesSummary(null)
+          setLoadingSummary(null)
         }
       } finally {
         if (!ignore) setLoading(false)
@@ -101,7 +107,7 @@ export default function PartnerHomePage() {
     }
     void load()
     return () => { ignore = true }
-  }, [partnerContextId])
+  }, [partnerContextId, loadingPeriod])
 
   const partnerTitle = partner?.nom ?? partner?.code_partenaire ?? (partnerContextId ? `Partenaire #${partnerContextId}` : 'Partenaire')
 
@@ -171,6 +177,11 @@ export default function PartnerHomePage() {
       </div>
 
       <SalesProgressCard data={salesSummary} />
+
+      <LoadingSummaryCard
+        data={loadingSummary}
+        onPeriodChange={setLoadingPeriod}
+      />
     </div>
   )
 }

@@ -15,7 +15,7 @@ type Partenaire = {
   telephone: string
   responsable?: string
   pos_count: number
-    statut: 'actif' | 'inactif' | string
+  statut: 'actif' | 'inactif' | string
   date_debut_contrat?: string | Date | null
 }
 
@@ -59,7 +59,7 @@ export default function PartenairesListPage() {
       } catch {
         if (!ignore) {
           // Fallback hors-ligne : reflet du référentiel réel (Master Color, Glothelo, Odi, Seven).
-            setPartenaires([
+          setPartenaires([
               { id: 2, nom: 'Master Color', code_partenaire: 'PART-MC', type_partenaire: 'MASTER_DEALER', ville: 'Douala', region: 'Littoral', adresse: 'Akwa', email: 'contact@mastercolor.com', telephone: '+237699000003', pos_count: 1, statut: 'actif', date_debut_contrat: '2025-07-01' },
               { id: 3, nom: 'Glothelo', code_partenaire: 'PART-GL', type_partenaire: 'REVENDEUR', ville: null, region: null, adresse: null, email: 'contact@glothelo.com', telephone: '+237699000004', pos_count: 0, statut: 'actif', date_debut_contrat: '2023-10-23' },
               { id: 4, nom: 'Odi', code_partenaire: 'PART-ODI', type_partenaire: 'DISTRIBUTEUR', ville: null, region: null, adresse: null, email: '', telephone: '', pos_count: 0, statut: 'actif', date_debut_contrat: '2026-09-01' },
@@ -142,10 +142,11 @@ export default function PartenairesListPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Téléphone</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Adresse</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Contact</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nombre de POS</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nombre de POS</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Début du contrat</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {loading ? (
@@ -176,7 +177,7 @@ export default function PartenairesListPage() {
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${p.statut === 'actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {p.statut}
-                       </span>
+                      </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {p.date_debut_contrat ? new Date(p.date_debut_contrat).toLocaleDateString('fr-FR') : '—'}
