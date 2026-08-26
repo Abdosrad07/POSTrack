@@ -5,6 +5,11 @@ const formatValue = (value) => {
   return value
 }
 
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return 'Non renseigné'
+  return `${new Intl.NumberFormat('fr-FR').format(Number(value))} FCFA`
+}
+
 const clampPercent = (value) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return null
   return Math.max(0, Math.min(100, Number(value)))
@@ -39,6 +44,9 @@ function ProgressRow({ label, block, accent = 'indigo' }) {
         <div><span className="font-medium text-slate-700">Stock initial :</span> {formatValue(block?.stock_initial)}</div>
         <div><span className="font-medium text-slate-700">Cumul :</span> {formatValue(block?.cumul)}</div>
         <div><span className="font-medium text-slate-700">Objectif :</span> {formatValue(block?.objectif)}</div>
+        {block?.recette != null && (
+          <div className="col-span-2 sm:col-span-3"><span className="font-medium text-slate-700">Recettes :</span> {formatCurrency(block.recette)}</div>
+        )}
       </div>
     </div>
   )

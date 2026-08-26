@@ -177,26 +177,55 @@ const SuiviVentesPage = () => {
         ))}
       </section>
 
-      {/* Recettes : montants de primes de la période courante (donnée disponible) */}
+      {/* Recettes : distinction entre primes et recettes de vente */}
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900">Recettes</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Recettes de vente (chiffre d'affaires) - donnée manquante identifiée */}
+          <div className="rounded-lg bg-blue-50 p-4">
+            <div className="text-sm text-slate-500">Objectif vente global</div>
+            <div className="mt-1 text-2xl font-bold text-slate-900">
+              {summary?.revenue_global?.objectif != null
+                ? `${formatInt(summary.revenue_global.objectif)} FCFA`
+                : 'Non renseigné'}
+            </div>
+            <p className="mt-1 text-xs text-slate-400">Objectif de chiffre d'affaires</p>
+          </div>
+          <div className="rounded-lg bg-blue-50 p-4">
+            <div className="text-sm text-slate-500">Réalisation vente</div>
+            <div className="mt-1 text-2xl font-bold text-slate-900">
+              {summary?.revenue_global?.realisation != null
+                ? `${formatInt(summary.revenue_global.realisation)} FCFA`
+                : 'Donnée non disponible'}
+            </div>
+            <p className="mt-1 text-xs text-slate-400">Chiffre d'affaires réalisé</p>
+          </div>
+          <div className="rounded-lg bg-blue-50 p-4">
+            <div className="text-sm text-slate-500">Progression vente</div>
+            <div className="mt-1 text-2xl font-bold text-slate-900">
+              {summary?.revenue_global?.progression != null
+                ? `${summary.revenue_global.progression.toFixed(1)}%`
+                : 'Non calculable'}
+            </div>
+            <p className="mt-1 text-xs text-slate-400">Progression vs objectif</p>
+          </div>
+          
+          {/* Primes (indicateur différent des recettes de vente) */}
           <div className="rounded-lg bg-emerald-50 p-4">
-            <div className="text-sm text-slate-500">Montant primes période courante</div>
+            <div className="text-sm text-slate-500">Montant primes période</div>
             <div className="mt-1 text-2xl font-bold text-slate-900">
               {stats?.montant_primes_periode != null
                 ? `${Number(stats.montant_primes_periode).toLocaleString('fr-FR')} FCFA`
                 : 'Non renseigné'}
             </div>
+            <p className="mt-1 text-xs text-slate-400">Récompenses versées (différent du CA)</p>
           </div>
-          <div className="rounded-lg bg-indigo-50 p-4">
-            <div className="text-sm text-slate-500">Primes validées</div>
-            <div className="mt-1 text-2xl font-bold text-slate-900">{stats?.primes_validees ?? 0}</div>
-          </div>
-          <div className="rounded-lg bg-amber-50 p-4">
-            <div className="text-sm text-slate-500">Primes en attente</div>
-            <div className="mt-1 text-2xl font-bold text-slate-900">{stats?.primes_en_attente ?? 0}</div>
-          </div>
+        </div>
+        
+        <div className="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
+          <strong>⚠️ Note importante :</strong> Les recettes de vente (chiffre d'affaires) sont actuellement non disponibles. 
+          Voir <code>RECETTES_DATA_SOURCE.md</code> pour les données source nécessaires. 
+          Les primes affichées sont des récompenses, pas le chiffre d'affaires.
         </div>
       </section>
 

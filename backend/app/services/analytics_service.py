@@ -280,6 +280,10 @@ def get_partner_sales_summary(db: Session, partner_id: int) -> dict:
     creation_stock_initial = target.creation_stock_initial if target else None
     redeploiement_stock_initial = target.redeployment_stock_initial if target else None
 
+    # Recettes de vente (donnée manquante identifiée - à alimenter via import/API)
+    revenue_objectif = target.revenue_target if target else None
+    revenue_realisation = None  # Donnée non disponible actuellement
+
     return {
         "partner_id": partner.id,
         "partner_name": partner.name,
@@ -288,24 +292,33 @@ def get_partner_sales_summary(db: Session, partner_id: int) -> dict:
             "cumul": creation_cumul,
             "stock_initial": creation_stock_initial,
             "progression": _progression(creation_cumul, creation_objectif),
+            "recette": None,  # Recettes spécifiques création - donnée manquante
         },
         "redeploiement": {
             "objectif": redeploiement_objectif,
             "cumul": redeploiement_cumul,
             "stock_initial": redeploiement_stock_initial,
             "progression": _progression(redeploiement_cumul, redeploiement_objectif),
+            "recette": None,  # Recettes spécifiques redéploiement - donnée manquante
         },
         "sell_out": {
             "objectif": sell_out_objectif,
             "cumul": sell_out_cumul,
             "stock_initial": None,
             "progression": _progression(sell_out_cumul, sell_out_objectif),
+            "recette": None,  # Recettes spécifiques sell-out - donnée manquante
         },
         "loading": {
             "objectif": loading_objectif,
             "cumul": loading_cumul,
             "stock_initial": None,
             "progression": _progression(loading_cumul, loading_objectif),
+            "recette": None,  # Recettes spécifiques loading - donnée manquante
+        },
+        "revenue_global": {
+            "objectif": revenue_objectif,
+            "realisation": revenue_realisation,
+            "progression": _progression(revenue_realisation or 0, revenue_objectif) if revenue_realisation is not None else None,
         },
     }
 
@@ -321,6 +334,7 @@ def create_or_update_sales_target(db: Session, *, partner_id: int, payload: dict
         "redeployment_target": payload.get("redeployment_target"),
         "sell_out_target": payload.get("sell_out_target"),
         "loading_target": payload.get("loading_target"),
+        "revenue_target": payload.get("revenue_target"),  # Objectif global de vente
         "creation_stock_initial": payload.get("creation_stock_initial"),
         "redeployment_stock_initial": payload.get("redeployment_stock_initial"),
     }
@@ -515,6 +529,84 @@ def get_partner_monthly_table(db: Session, partner_id: int) -> dict:
         "loading": {"label": "Loading", "rows": build_rows("loading")},
         "creation": {"label": "Création", "rows": build_rows("creation")},
         "redeploiement": {"label": "Redéploiement", "rows": build_rows("redeploiement")},
+    }
+
+
+def get_dsm_summary(db: Session, partner_id: int) -> dict:
+    """Résumé des performances par DSM avec objectifs, réalisations et recettes."""
+    partner = db.query(Partner).filter(Partner.id == partner_id).first()
+    if not partner:
+        raise NotFoundError("Partenaire introuvable.")
+
+    target_month = date.today().replace(day=1)
+    target = db.query(PartnerSalesTarget).filter(
+        PartnerSalesTarget.partner_id == partner_id,
+        PartnerSalesTarget.month == target_month,
+    ).first()
+
+    # Récupérer tous les DSM du partenaire
+    dsm_list = db.query(DSM).filter(DSM.partner_id == partner_id).all()
+
+    dsm_rows = []
+    for dsm in dsm_list:
+        # Comptage POS par type pour ce DSM
+        pos_counts = dict(
+            db.query(POS.type_pos, func.count(POS.id))
+            .filter(POS.partner_id == partner_id, POS.dsm_id == dsm.id)
+            .group_by(POS.type_pos)
+            .all()
+        )
+        creation_realisation = pos_counts.get(TypePos.NOUVEAU, 0)
+        redeploiement_realisation = pos_counts.get(TypePos.RECONDUIT, 0)
+
+        # Sell-out pour ce DSM
+        sell_out_realisation = db.query(func.count(SIMMovement.id)).filter(
+            SIMMovement.partner_id == partner_id,
+            SIMMovement.movement_type.in_(["VENTE", "ACTIVATION"]),
+        ).join(SIM, SIMMovement.sim_id == SIM.id).join(POS, SIM.pos_id == POS.id).filter(
+            POS.dsm_id == dsm.id
+        ).scalar() or 0
+
+        # Loading pour ce DSM
+        loading_realisation = db.query(func.count(SIM.id)).join(POS, SIM.pos_id == POS.id).filter(
+            POS.partner_id == partner_id,
+            POS.dsm_id == dsm.id,
+            SIM.status == StatutSim.EN_STOCK,
+        ).scalar() or 0
+
+        # Recettes de vente DSM (donnée manquante identifiée)
+        recettes_dsm = None  # À alimenter via import/API
+
+        # Objectifs depuis PartnerSalesTarget (globaux partenaire - pourraient être spécifiques DSM)
+        objectif_creation = target.creation_target if target else None
+        objectif_redeploiement = target.redeployment_target if target else None
+
+        # Progression globale (moyenne des progressions disponibles)
+        progressions = []
+        if objectif_creation and objectif_creation > 0:
+            progressions.append(_progression(creation_realisation, objectif_creation))
+        if objectif_redeploiement and objectif_redeploiement > 0:
+            progressions.append(_progression(redeploiement_realisation, objectif_redeploiement))
+        progression_globale = sum(progressions) / len(progressions) if progressions else None
+
+        dsm_rows.append({
+            "dsm_id": dsm.id,
+            "dsm_code": dsm.matricule,
+            "dsm_name": dsm.full_name or dsm.matricule,
+            "objectif_creation": objectif_creation,
+            "realisation_creation": creation_realisation,
+            "objectif_redeploiement": objectif_redeploiement,
+            "realisation_redeploiement": redeploiement_realisation,
+            "loading": loading_realisation,
+            "sell_out": sell_out_realisation,
+            "recettes": recettes_dsm,  # Donnée manquante identifiée
+            "progression_globale": progression_globale,
+        })
+
+    return {
+        "partner_id": partner_id,
+        "partner_name": partner.name,
+        "by_dsm": dsm_rows,
     }
 
 

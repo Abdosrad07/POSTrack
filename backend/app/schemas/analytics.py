@@ -37,6 +37,13 @@ class SalesProgressBlock(BaseModel):
     cumul: int = 0
     stock_initial: int | None = None
     progression: float | None = None
+    recette: int | None = None  # Recettes de vente (chiffre d'affaires) - donnée manquante identifiée
+
+
+class RevenueGlobalBlock(BaseModel):
+    objectif: int | None = None
+    realisation: int | None = None
+    progression: float | None = None
 
 
 class PartnerSalesSummaryOut(BaseModel):
@@ -46,6 +53,7 @@ class PartnerSalesSummaryOut(BaseModel):
     redeploiement: SalesProgressBlock
     sell_out: SalesProgressBlock
     loading: SalesProgressBlock
+    revenue_global: RevenueGlobalBlock  # Objectif global de vente
 
 
 class PartnerSalesTargetBase(BaseModel):
@@ -56,6 +64,7 @@ class PartnerSalesTargetBase(BaseModel):
     loading_target: int | None = None
     creation_stock_initial: int | None = None
     redeployment_stock_initial: int | None = None
+    revenue_target: int | None = None  # Objectif global de vente (recettes) - donnée manquante identifiée
 
 
 class PartnerSalesTargetCreate(PartnerSalesTargetBase):
@@ -79,6 +88,27 @@ class LoadingByDsmRow(BaseModel):
     loading: int
     objectif: int | None = None
     progression: float | None = None
+    recette: int | None = None  # Recettes de vente DSM - donnée manquante identifiée
+
+
+class DSMSummaryRow(BaseModel):
+    dsm_id: int
+    dsm_code: str
+    dsm_name: str
+    objectif_creation: int | None = None
+    realisation_creation: int | None = None
+    objectif_redeploiement: int | None = None
+    realisation_redeploiement: int | None = None
+    loading: int | None = None
+    sell_out: int | None = None
+    recettes: int | None = None  # Recettes de vente DSM - donnée manquante identifiée
+    progression_globale: float | None = None
+
+
+class DSMSummaryOut(BaseModel):
+    partner_id: int
+    partner_name: str
+    by_dsm: list[DSMSummaryRow] = []
 
 
 class PartnerLoadingSummaryOut(BaseModel):

@@ -59,13 +59,22 @@ const DSMSummaryCard = ({ data }) => {
                   <td className="px-4 py-3">{formatValue(row.realisation_redeploiement)}</td>
                   <td className="px-4 py-3">{formatValue(row.loading)}</td>
                   <td className="px-4 py-3">{formatValue(row.sell_out)}</td>
-                  <td className="px-4 py-3">{formatCurrency(row.recettes)}</td>
+                  <td className="px-4 py-3">
+                    {row.recettes != null ? formatCurrency(row.recettes) : (
+                      <span className="text-amber-600 italic">Donnée non disponible</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{formatPct(row.progression_globale)}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+      </div>
+      
+      <div className="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
+        <strong>⚠️ Note :</strong> Les recettes de vente par DSM sont actuellement non disponibles. 
+        Cette donnée devra être alimentée via import/API futur.
       </div>
     </section>
   );

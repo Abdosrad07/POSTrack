@@ -130,7 +130,12 @@ export default function DSMDetailPage() {
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recettes</div>
           <div className="mt-2 text-2xl font-bold text-slate-900">
-            {performance?.recettes ? `${performance.recettes.toLocaleString()} FCFA` : '—'}
+            {performance?.recettes != null ? `${performance.recettes.toLocaleString()} FCFA` : (
+              <span className="text-amber-600 text-lg">Non disponible</span>
+            )}
+          </div>
+          <div className="mt-1 text-xs text-slate-600">
+            {performance?.recettes != null ? 'Chiffre d\'affaires réalisé' : 'Donnée manquante'}
           </div>
         </div>
       </div>

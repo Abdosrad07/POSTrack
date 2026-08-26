@@ -99,6 +99,7 @@ class PartnerSalesTarget(Base):
     redeployment_target = Column(Integer, nullable=True)
     sell_out_target = Column(Integer, nullable=True)
     loading_target = Column(Integer, nullable=True)
+    revenue_target = Column(Integer, nullable=True)  # Objectif global de vente (recettes) - donnée manquante identifiée
 
     creation_stock_initial = Column(Integer, nullable=True)
     redeployment_stock_initial = Column(Integer, nullable=True)

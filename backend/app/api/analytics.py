@@ -8,13 +8,13 @@ from app.crud.pos_crud import pos_performance_crud
 from app.crud.prime_crud import dsm_commission_crud
 from app.models.user import User
 from app.security.permissions import Role
-from app.schemas.analytics import DashboardOut, DSMDashboardOut, PartnerSalesSummaryOut, PartnerSalesTargetCreate, PartnerSalesTargetOut, PartnerLoadingSummaryOut
+from app.schemas.analytics import DashboardOut, DSMDashboardOut, PartnerSalesSummaryOut, PartnerSalesTargetCreate, PartnerSalesTargetOut, PartnerLoadingSummaryOut, DSMSummaryOut
 from app.schemas.pos_performance import POSPerformanceOut, POSPerformanceCalculateRequest
 from app.schemas.prime import DSMCommissionOut
 from app.schemas.pagination import Page
 from app.services.analytics_service import (
     get_dashboard, get_dsm_dashboard, calculate_pos_performance,
-    get_partner_sales_summary, get_partner_loading_summary, create_or_update_sales_target, list_sales_targets, get_partner_monthly_table,
+    get_partner_sales_summary, get_partner_loading_summary, create_or_update_sales_target, list_sales_targets, get_partner_monthly_table, get_dsm_summary,
 )
 
 router = APIRouter(prefix="/api/partners/{partner_id}/analytics", tags=["Analytics"])
@@ -86,3 +86,8 @@ def list_commissions(partner_id: int = Depends(get_partner_context), period_id: 
                       db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     return dsm_commission_crud.list_paginated(db, skip=skip, limit=limit, partner_id=partner_id,
                                                prime_period_id=period_id)
+
+
+@router.get("/dsm-summary", response_model=DSMSummaryOut)
+def dsm_summary(partner_id: int = Depends(get_partner_context), db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
+    return get_dsm_summary(db, partner_id)
