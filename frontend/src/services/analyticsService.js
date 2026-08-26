@@ -7,6 +7,7 @@ export const analyticsService = {
   upsertSalesTarget: (partnerId, payload) => api.post(`/partners/${partnerId}/analytics/sales-targets`, payload, { skipPartnerPrefix: true }),
   getLoadingSummary: (partnerId, params) => api.get(`/partners/${partnerId}/analytics/loading-summary`, { params, skipPartnerPrefix: true }),
   getMonthlyTable: (partnerId) => api.get(`/partners/${partnerId}/analytics/monthly-table`, { skipPartnerPrefix: true }),
+  getDSMSummary: (partnerId) => api.get(`/partners/${partnerId}/analytics/dsm-summary`, { skipPartnerPrefix: true }),
 };
 
 export default analyticsService;

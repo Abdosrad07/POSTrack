@@ -48,8 +48,8 @@ export default function SalesProgressCard({ data }) {
   return (
     <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
       <div>
-        <h2 className="text-xl font-bold text-slate-900">Suivi des ventes</h2>
-        <p className="text-sm text-slate-600">Synthèse calculée à partir des données du partenaire sélectionné.</p>
+        <h2 className="text-xl font-bold text-slate-900">Progressions par catégorie</h2>
+        <p className="text-sm text-slate-600">Niveau partenaire : création, redéploiement, sell-out et loading.</p>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <ProgressRow label="Création" block={data?.creation} accent="indigo" />

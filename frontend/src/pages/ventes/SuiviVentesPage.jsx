@@ -5,6 +5,7 @@ import ErrorState from '../../components/Common/ErrorState/ErrorState';
 import SalesProgressCard from '../../components/Sales/SalesProgressCard';
 import LoadingSummaryCard from '../../components/Sales/LoadingSummaryCard';
 import MonthlyTableCard from '../../components/Sales/MonthlyTableCard';
+import DSMSummaryCard from '../../components/Sales/DSMSummaryCard';
 import analyticsService from '../../services/analyticsService';
 import usePartner from '../../hooks/usePartner';
 
@@ -14,12 +15,18 @@ const formatInt = (value) =>
     : new Intl.NumberFormat('fr-FR').format(Number(value));
 
 /**
- * Module « Suivi des ventes » — analyse détaillée des performances
- * commerciales du partenaire actif.
+ * Module « Suivi des ventes » — module indépendant de la sidebar
+ * pour l'analyse détaillée des performances commerciales du partenaire actif.
  *
- * Composition exclusive de composants existants :
+ * Ce module fournit une vue complète sur trois niveaux :
+ *   - Niveau partenaire : objectifs, réalisations et progressions globales
+ *   - Niveau DSM : analyse détaillée des performances par DSM
+ *   - Niveau temporel : tableau mensuel des prévisions et réalisations
+ *
+ * Composition de composants existants :
  *   - SalesProgressCard  (progressions création/redéploiement/sell-out/loading)
  *   - LoadingSummaryCard (loading + détail par DSM, filtre période)
+ *   - DSMSummaryCard     (performances complètes par DSM)
  *   - MonthlyTableCard   (tableau mensuel prévisions/réalisations)
  * et des objectifs mensuels issus de /analytics/sales-targets.
  */
@@ -33,25 +40,28 @@ const SuiviVentesPage = () => {
   const [monthlyTable, setMonthlyTable] = useState(null);
   const [stats, setStats] = useState(null);
   const [loadingPeriod, setLoadingPeriod] = useState({});
+  const [dsmSummary, setDsmSummary] = useState(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       if (!partnerContextId) throw new Error('Aucun partenaire sélectionné.');
-      const [summaryRes, targetsRes, loadingRes, monthlyRes, statsRes] =
+      const [summaryRes, targetsRes, loadingRes, monthlyRes, statsRes, dsmRes] =
         await Promise.all([
           analyticsService.getSalesSummary(partnerContextId),
           analyticsService.listSalesTargets(partnerContextId),
           analyticsService.getLoadingSummary(partnerContextId, loadingPeriod),
           analyticsService.getMonthlyTable(partnerContextId),
           analyticsService.getDashboard(partnerContextId),
+          analyticsService.getDSMSummary(partnerContextId),
         ]);
       setSummary(summaryRes.data ?? null);
       setTargets(targetsRes.data?.items ?? []);
       setLoadingSummary(loadingRes.data ?? null);
       setMonthlyTable(monthlyRes.data ?? null);
       setStats(statsRes.data ?? null);
+      setDsmSummary(dsmRes.data ?? null);
     } catch (err) {
       setError(err?.apiMessage || err?.message || 'Impossible de charger le suivi des ventes.');
     } finally {
@@ -96,7 +106,7 @@ const SuiviVentesPage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Suivi des ventes"
-        subtitle="Objectifs, réalisations, sell-out, loading et tableaux mensuels du partenaire actif."
+        subtitle="Module indépendant d'analyse des performances commerciales par partenaire, DSM et période."
         breadcrumbs={['Espace partenaire', 'Suivi des ventes']}
       />
 
@@ -192,6 +202,10 @@ const SuiviVentesPage = () => {
 
       {/* Loading + tableau mensuel (composants existants) */}
       <LoadingSummaryCard data={loadingSummary} onPeriodChange={setLoadingPeriod} />
+      
+      {/* Performances par DSM (nouveau composant) */}
+      <DSMSummaryCard data={dsmSummary} />
+      
       <MonthlyTableCard data={monthlyTable} />
     </div>
   );
