@@ -38,6 +38,7 @@ class SIM(Base):
     pos_id = Column(Integer, ForeignKey("pos.id"), nullable=False, index=True)
 
     iccid = Column(String(30), unique=True, nullable=False, index=True)
+    numero_msisdn = Column(String(20), nullable=True)
     status = Column(SAEnum(StatutSim), nullable=False, default=StatutSim.EN_STOCK)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

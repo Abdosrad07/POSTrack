@@ -35,7 +35,7 @@ describe('SimsStockPage', () => {
         });
       }
       return Promise.resolve({
-        data: { items: [{ id: 1, iccid: '8923700000000000001', pos_id: 1, status: 'EN_STOCK' }] },
+        data: { items: [{ id: 1, iccid: '8923700000000000001', numero_msisdn: '699123456', pos_id: 1, status: 'EN_STOCK' }] },
       });
     });
 
@@ -46,7 +46,7 @@ describe('SimsStockPage', () => {
     // La table d'inventaire est derrière l'onglet « Inventaire »
     await user.click(screen.getByRole('button', { name: 'Inventaire' }));
 
-    expect(await screen.findByText('8923700000000000001')).toBeInTheDocument();
+    expect(await screen.findByText('699123456')).toBeInTheDocument();
     expect(screen.getByText(/POS-001/)).toBeInTheDocument();
     // EN_STOCK apparaît dans la cellule ET dans l'option du filtre de statut
     expect(screen.getAllByText('EN_STOCK').length).toBeGreaterThan(0);

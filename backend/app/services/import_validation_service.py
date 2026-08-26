@@ -381,6 +381,8 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
             if existing.partner_id != partner_id:
                 raise ConflictError(f"ICCID '{row['iccid']}' appartient a un autre Partenaire.")
             existing.pos_id = pos.id
+            if not _is_blank(row.get("numero_msisdn")):
+                existing.numero_msisdn = _clean_str(row.get("numero_msisdn"))
             db.add(existing)
         else:
             if pos.stock_actuel <= 0:
@@ -389,7 +391,13 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
                 )
             pos.stock_actuel -= 1
             db.add(pos)
-            db.add(SIM(partner_id=partner_id, pos_id=pos.id, iccid=str(row["iccid"]), status=StatutSim.EN_STOCK))
+            db.add(SIM(
+                partner_id=partner_id,
+                pos_id=pos.id,
+                iccid=str(row["iccid"]),
+                numero_msisdn=_clean_optional(row.get("numero_msisdn")),
+                status=StatutSim.EN_STOCK
+            ))
 
     elif entity_type == "PRIME_PERIOD":
         existing = db.query(PrimePeriod).filter(

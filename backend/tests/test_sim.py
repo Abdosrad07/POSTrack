@@ -21,12 +21,13 @@ def _create_pos(client, token, partner_id, dsm_id, code, stock):
 
 
 def test_create_sim_and_reject_duplicate_iccid(client, oper_token, seed):
-    payload = {"pos_id": seed["pos1"], "iccid": "8923700000000012345"}
+    payload = {"pos_id": seed["pos1"], "iccid": "8923700000000012345", "numero_msisdn": "699123456"}
     before = client.get(f"/api/partners/{seed['p1']}/pos/{seed['pos1']}", headers=auth_headers(oper_token))
     before_stock = before.json()["stock_actuel"]
     first = client.post(f"/api/partners/{seed['p1']}/sim", json=payload, headers=auth_headers(oper_token))
     assert first.status_code == 201
     assert first.json()["status"] == "EN_STOCK"
+    assert first.json()["numero_msisdn"] == "699123456"
 
     # Le stock doit diminuer d'une unité.
     pos = client.get(f"/api/partners/{seed['p1']}/pos/{seed['pos1']}", headers=auth_headers(oper_token))
@@ -40,12 +41,12 @@ def test_create_sim_blocks_when_stock_exhausted(client, oper_token, seed):
     pos_id = _create_pos(client, oper_token, seed["p1"], seed["dsm1"], "T-POS-SIM-0", stock=1)
 
     ok = client.post(f"/api/partners/{seed['p1']}/sim",
-                     json={"pos_id": pos_id, "iccid": "8923700000000099100"},
+                     json={"pos_id": pos_id, "iccid": "8923700000000099100", "numero_msisdn": "699111111"},
                      headers=auth_headers(oper_token))
     assert ok.status_code == 201
 
     blocked = client.post(f"/api/partners/{seed['p1']}/sim",
-                          json={"pos_id": pos_id, "iccid": "8923700000000099101"},
+                          json={"pos_id": pos_id, "iccid": "8923700000000099101", "numero_msisdn": "699222222"},
                           headers=auth_headers(oper_token))
     assert blocked.status_code == 422
     assert "epuise" in blocked.json()["detail"]
@@ -53,7 +54,7 @@ def test_create_sim_blocks_when_stock_exhausted(client, oper_token, seed):
 
 def test_sim_movements_full_lifecycle(client, oper_token, seed):
     sim_resp = client.post(f"/api/partners/{seed['p1']}/sim",
-                            json={"pos_id": seed["pos1"], "iccid": "8923700000000099003"},
+                            json={"pos_id": seed["pos1"], "iccid": "8923700000000099003", "numero_msisdn": "699333333"},
                             headers=auth_headers(oper_token))
     sim_id = sim_resp.json()["id"]
 
@@ -84,7 +85,7 @@ def test_sim_movements_full_lifecycle(client, oper_token, seed):
 
 def test_sim_activation_rejected_if_not_assigned(client, oper_token, seed):
     sim_resp = client.post(f"/api/partners/{seed['p1']}/sim",
-                            json={"pos_id": seed["pos1"], "iccid": "8923700000000099004"},
+                            json={"pos_id": seed["pos1"], "iccid": "8923700000000099004", "numero_msisdn": "699444444"},
                             headers=auth_headers(oper_token))
     sim_id = sim_resp.json()["id"]
 
@@ -95,7 +96,7 @@ def test_sim_activation_rejected_if_not_assigned(client, oper_token, seed):
 
 def test_sim_status_update_route(client, oper_token, seed):
     sim_resp = client.post(f"/api/partners/{seed['p1']}/sim",
-                            json={"pos_id": seed["pos1"], "iccid": "8923700000000099005"},
+                            json={"pos_id": seed["pos1"], "iccid": "8923700000000099005", "numero_msisdn": "699555555"},
                             headers=auth_headers(oper_token))
     sim_id = sim_resp.json()["id"]
 
@@ -103,4 +104,32 @@ def test_sim_status_update_route(client, oper_token, seed):
                            json={"status": "PERDUE"}, headers=auth_headers(oper_token))
     assert update.status_code == 200
     assert update.json()["status"] == "PERDUE"
+
+
+def test_sim_phone_number_optional(client, oper_token, seed):
+    """Test that phone number is optional and can be null."""
+    # Create SIM without phone number
+    sim_resp = client.post(f"/api/partners/{seed['p1']}/sim",
+                            json={"pos_id": seed["pos1"], "iccid": "8923700000000099006"},
+                            headers=auth_headers(oper_token))
+    assert sim_resp.status_code == 201
+    assert sim_resp.json()["numero_msisdn"] is None
+
+    # Create SIM with phone number
+    sim_resp2 = client.post(f"/api/partners/{seed['p1']}/sim",
+                             json={"pos_id": seed["pos1"], "iccid": "8923700000000099007", "numero_msisdn": "699666666"},
+                             headers=auth_headers(oper_token))
+    assert sim_resp2.status_code == 201
+    assert sim_resp2.json()["numero_msisdn"] == "699666666"
+
+    # List SIMs and verify phone numbers are returned
+    list_resp = client.get(f"/api/partners/{seed['p1']}/sim", headers=auth_headers(oper_token))
+    assert list_resp.status_code == 200
+    sims = list_resp.json()["items"]
+    sim_with_phone = next((s for s in sims if s["iccid"] == "8923700000000099007"), None)
+    sim_without_phone = next((s for s in sims if s["iccid"] == "8923700000000099006"), None)
+    assert sim_with_phone is not None
+    assert sim_with_phone["numero_msisdn"] == "699666666"
+    assert sim_without_phone is not None
+    assert sim_without_phone["numero_msisdn"] is None
 

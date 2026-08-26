@@ -7,6 +7,7 @@ from app.models.sim import StatutSim, TypeMouvementSim
 class SIMCreate(BaseModel):
     pos_id: int
     iccid: str
+    numero_msisdn: str | None = None
 
 
 class SIMStatusUpdate(BaseModel):
@@ -20,6 +21,7 @@ class SIMOut(BaseModel):
     partner_id: int
     pos_id: int
     iccid: str
+    numero_msisdn: str | None
     status: StatutSim
     created_at: datetime
 

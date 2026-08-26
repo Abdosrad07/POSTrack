@@ -32,6 +32,7 @@ const SimsStockPage = () => {
   // Formulaire : création
   const [creationPosId, setCreationPosId] = useState('');
   const [iccid, setIccid] = useState('');
+  const [numeroMsisdn, setNumeroMsisdn] = useState('');
 
   // Formulaire : reconduction
   const [reconductionSimId, setReconductionSimId] = useState('');
@@ -96,9 +97,10 @@ const SimsStockPage = () => {
     setActionError('');
     setActionMessage('');
     try {
-      await simService.create({ pos_id: Number(creationPosId), iccid: iccid.trim() });
+      await simService.create({ pos_id: Number(creationPosId), iccid: iccid.trim(), numero_msisdn: numeroMsisdn.trim() || null });
       setActionMessage(`SIM ${iccid.trim()} créée et rattachée au stock.`);
       setIccid('');
+      setNumeroMsisdn('');
       void fetchSims();
     } catch (err) {
       setActionError(err?.apiMessage || err?.response?.data?.detail || 'Impossible de créer la SIM.');
@@ -159,7 +161,7 @@ const SimsStockPage = () => {
       )}
 
       {view === 'creation' && (
-        <form onSubmit={handleCreateSim} className="mb-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[2fr_2fr_auto]">
+        <form onSubmit={handleCreateSim} className="mb-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[2fr_2fr_2fr_auto]">
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-slate-700">POS destinataire</span>
             <select value={creationPosId} onChange={(e) => setCreationPosId(e.target.value)} className="rounded-md border border-slate-300 px-3 py-2 text-sm" required>
@@ -173,12 +175,16 @@ const SimsStockPage = () => {
             <span className="font-medium text-slate-700">ICCID</span>
             <input value={iccid} onChange={(e) => setIccid(e.target.value)} placeholder="892370..." className="rounded-md border border-slate-300 px-3 py-2 text-sm" required />
           </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-slate-700">Numéro de téléphone</span>
+            <input value={numeroMsisdn} onChange={(e) => setNumeroMsisdn(e.target.value)} placeholder="699..." className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+          </label>
           <div className="flex items-end">
             <button disabled={busy || !creationPosId || !iccid.trim()} className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
               Créer la SIM
             </button>
           </div>
-          <p className="text-xs text-slate-500 sm:col-span-3">
+          <p className="text-xs text-slate-500 sm:col-span-4">
             La création consomme une unité du stock du POS sélectionné (erreur si stock épuisé).
           </p>
         </form>
@@ -192,7 +198,7 @@ const SimsStockPage = () => {
               <option value="">— Choisir une SIM —</option>
               {items.map((s) => (
                 <option key={s.id} value={String(s.id)}>
-                  {s.iccid} · {s.status ?? s.statut} · {posLabel(s.pos_id)}
+                  {s.numero_msisdn || s.iccid} · {s.status ?? s.statut} · {posLabel(s.pos_id)}
                 </option>
               ))}
             </select>
@@ -251,7 +257,7 @@ const SimsStockPage = () => {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">ICCID</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Numéro de téléphone</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">POS</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Statut</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Créée le</th>
@@ -260,7 +266,7 @@ const SimsStockPage = () => {
               <tbody className="divide-y divide-slate-200 bg-white">
                 {filteredRows.map((item) => (
                   <tr key={item.id}>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">{item.iccid}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-900">{item.numero_msisdn || '—'}</td>
                     <td className="px-4 py-3 text-sm text-slate-600">{item.pos_id != null ? posLabel(item.pos_id) : '—'}</td>
                     <td className="px-4 py-3 text-sm text-slate-600">{item.status ?? item.statut ?? '—'}</td>
                     <td className="px-4 py-3 text-sm text-slate-600">{item.created_at ? new Date(item.created_at).toLocaleDateString() : '—'}</td>
