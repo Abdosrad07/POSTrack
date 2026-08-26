@@ -11,6 +11,15 @@ export const geoService = {
    */
   getPartnerGeo: (partnerId) =>
     api.get(`/partners/${partnerId}/geo`, { skipPartnerPrefix: true }),
+
+  /**
+   * Recupere les donnees geographiques pour un DSM specifique.
+   * @param {number} partnerId - ID du partenaire
+   * @param {number} dsmId - ID du DSM
+   * @returns {Promise<Object>} Donnees geo DSM avec pos, bts, micro_zones, zones, territory
+   */
+  getDsmGeo: (partnerId, dsmId) =>
+    api.get(`/partners/${partnerId}/dsm/${dsmId}/geo`, { skipPartnerPrefix: true }),
 };
 
 export default geoService;

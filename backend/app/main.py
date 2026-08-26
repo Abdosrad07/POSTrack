@@ -22,7 +22,7 @@ from app.core.errors import AppError, app_error_handler
 from app import models as _all_models  # noqa: F401  (charge tous les modeles avant create_all)
 
 from app.api import auth as auth_router
-from app.api import partner_pos, partner_bts, partner_geo, partner_sim, partner_dsm
+from app.api import partner_pos, partner_bts, partner_geo, partner_sim, partner_dsm, dsm_geo
 from app.api import partner_primes, partner_requests, imports, analytics, admin
 from app.api import hierarchy as hierarchy_router
 from app.api import partenaires as partenaires_router
@@ -132,6 +132,7 @@ app.include_router(partner_pos.router)
 app.include_router(partner_bts.router)
 app.include_router(partner_geo.router)
 app.include_router(partner_dsm.router)
+app.include_router(dsm_geo.router)
 app.include_router(partner_sim.router)
 app.include_router(partner_primes.router)
 app.include_router(partner_primes.periods_router)

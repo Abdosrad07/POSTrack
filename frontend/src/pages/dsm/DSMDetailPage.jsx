@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import dsmService from '../../services/dsmService'
 import DSMIdentityCard from '../../components/DSM/DSMIdentityCard'
+import DSMTerritoryMap from '../../components/DSMTerritoryMap'
+import usePartner from '../../hooks/usePartner'
 
 export default function DSMDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { partnerContextId } = usePartner()
   const [dsm, setDsm] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [dsmPartnerId, setDsmPartnerId] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -28,6 +32,7 @@ export default function DSMDetailPage() {
             statut: data.statut || (data.is_active === false ? 'INACTIF' : 'ACTIF'),
             nb_pos_crees: identityResponse?.data?.nb_pos_crees ?? data.nb_pos_crees ?? 0,
           } : null)
+          setDsmPartnerId(data?.partner_id || partnerContextId)
         }
       } catch (error) {
         if (active) {
@@ -106,6 +111,25 @@ export default function DSMDetailPage() {
       </div>
 
       <DSMIdentityCard dsm={dsm} />
+
+      {/* Carte territoriale du DSM */}
+      {dsmPartnerId && (
+        <div className="rounded-lg bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Territoire du DSM</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Représentation géographique du territoire du DSM : POS assignés, zones, micro-zones et contexte BTS.
+              </p>
+            </div>
+          </div>
+          <DSMTerritoryMap 
+            partnerId={dsmPartnerId} 
+            dsmId={parseInt(id)} 
+            onSelect={(item) => console.log('Élément sélectionné:', item)} 
+          />
+        </div>
+      )}
     </div>
   )
 }
