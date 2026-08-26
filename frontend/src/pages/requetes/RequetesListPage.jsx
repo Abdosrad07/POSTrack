@@ -132,28 +132,46 @@ const RequetesListPage = () => {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date de création</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date d'ouverture</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Demandeur</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">DSM demandeur</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Statut</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Type de requête</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Entité en charge</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Demandées</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Traitées</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Rejetées</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Délai d'attente</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date de fin</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Cas / anomalie</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {rows.map((item) => {
                   const created = dayOf(item.date_creation);
                   const fin = dayOf(item.date_finalisation || item.closed_at);
+                  const statut = item.statut || (item.nombre_effectue + item.nombre_rejete >= item.nombre_demande && item.nombre_demande > 0 ? 'Terminée' : 'En cours');
+                  const delaiAttente = item.delai_attente != null ? `${item.delai_attente} jour(s)` : '—';
+                  
                   return (
-                    <tr key={item.id}>
+                    <tr key={item.id} className={item.en_retard ? 'bg-amber-50' : ''}>
                       <td className="px-4 py-3 text-sm text-slate-600">{created}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{item.demandeur_name || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{item.dsm_name || '—'}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                          statut === 'Terminée' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {statut}
+                        </span>
+                        {item.en_retard && (
+                          <span className="ml-2 inline-flex rounded-full px-2 py-1 text-xs font-semibold bg-red-100 text-red-800">
+                            En retard
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">{TYPE_LABELS[item.type_requete] ?? item.type_requete}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{item.entite_en_charge || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{item.nombre_demande}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{item.nombre_effectue}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{item.nombre_rejete}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{delaiAttente}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{fin || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{item.titre || '—'}</td>
                     </tr>
                   );
                 })}

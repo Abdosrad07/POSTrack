@@ -30,6 +30,7 @@ class Requete(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False, index=True)
+    dsm_id = Column(Integer, ForeignKey("dsm.id"), nullable=True, index=True)  # DSM demandeur
 
     # Cle de rapprochement recommandee pour l'import Excel (section 1.7.1
     # du cahier des charges : "Identifiant externe").
@@ -56,6 +57,7 @@ class Requete(Base):
     closed_at = Column(DateTime(timezone=True), nullable=True)
 
     partner = relationship("Partner")
+    dsm = relationship("DSM")
     entites = relationship("RequeteEntite", back_populates="requete", cascade="all, delete-orphan")
     commentaires = relationship("RequeteCommentaire", back_populates="requete", cascade="all, delete-orphan")
 

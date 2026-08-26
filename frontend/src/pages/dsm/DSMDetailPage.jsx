@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import dsmService from '../../services/dsmService'
+import requeteService from '../../services/requeteService'
 import DSMIdentityCard from '../../components/DSM/DSMIdentityCard'
 import DSMPerformanceCard from '../../components/DSM/DSMPerformanceCard'
 import DSMRequestsCard from '../../components/DSM/DSMRequestsCard'
+import DSMRequestProgressCard from '../../components/DSM/DSMRequestProgressCard'
 import DSMPOSCard from '../../components/DSM/DSMPOSCard'
 import DSMTerritoryMap from '../../components/DSMTerritoryMap'
 import usePartner from '../../hooks/usePartner'
@@ -13,6 +15,7 @@ export default function DSMDetailPage() {
   const navigate = useNavigate()
   const { partnerContextId } = usePartner()
   const [dashboardData, setDashboardData] = useState(null)
+  const [requestSummary, setRequestSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [dsmPartnerId, setDsmPartnerId] = useState(null)
@@ -27,15 +30,20 @@ export default function DSMDetailPage() {
         // Fetch the comprehensive dashboard data
         const response = await dsmService.getDSMDashboard(id)
         
+        // Fetch DSM-specific request summary
+        const requestResponse = await requeteService.getDSMSummary(id)
+        
         if (active) {
           const data = response?.data || null
           setDashboardData(data)
           setDsmPartnerId(data?.identity?.partner_id || partnerContextId)
+          setRequestSummary(requestResponse)
         }
       } catch (error) {
         if (active) {
           setError(error?.apiMessage || error?.message || 'Impossible de charger le dashboard du DSM.')
           setDashboardData(null)
+          setRequestSummary(null)
         }
       } finally {
         if (active) setLoading(false)
@@ -111,32 +119,29 @@ export default function DSMDetailPage() {
         </button>
       </div>
 
-      {/* Summary stats */}
+      {/* Summary stats - DSM-specific */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total POS</div>
           <div className="mt-2 text-2xl font-bold text-slate-900">{summary?.total_pos || 0}</div>
+          <div className="mt-1 text-xs text-slate-600">POS assignés à ce DSM</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Requêtes</div>
-          <div className="mt-2 text-2xl font-bold text-slate-900">{summary?.total_requetes || 0}</div>
-          <div className="mt-1 text-xs text-slate-600">{summary?.requetes_ouvertes || 0} ouvertes</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Requêtes DSM</div>
+          <div className="mt-2 text-2xl font-bold text-slate-900">{requestSummary?.total || 0}</div>
+          <div className="mt-1 text-xs text-slate-600">{requestSummary?.en_cours || 0} en cours</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">POS Actifs</div>
-          <div className="mt-2 text-2xl font-bold text-slate-900">{performance?.pos_actifs || 0}</div>
-          <div className="mt-1 text-xs text-slate-600">sur {performance?.pos_crees || 0} créés</div>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recettes</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Progression requêtes</div>
           <div className="mt-2 text-2xl font-bold text-slate-900">
-            {performance?.recettes != null ? `${performance.recettes.toLocaleString()} FCFA` : (
-              <span className="text-amber-600 text-lg">Non disponible</span>
-            )}
+            {requestSummary?.progression != null ? `${requestSummary.progression.toFixed(1)}%` : '—'}
           </div>
-          <div className="mt-1 text-xs text-slate-600">
-            {performance?.recettes != null ? 'Chiffre d\'affaires réalisé' : 'Donnée manquante'}
-          </div>
+          <div className="mt-1 text-xs text-slate-600">{requestSummary?.terminees || 0} terminées</div>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Requêtes en retard</div>
+          <div className="mt-2 text-2xl font-bold text-slate-900">{requestSummary?.en_retard || 0}</div>
+          <div className="mt-1 text-xs text-slate-600">Requêtes dépassant les délais</div>
         </div>
       </div>
 
@@ -149,6 +154,9 @@ export default function DSMDetailPage() {
           
           {/* Performance */}
           <DSMPerformanceCard performance={performance} loading={false} />
+          
+          {/* Request Progress */}
+          <DSMRequestProgressCard data={requestSummary} />
         </div>
 
         {/* Right column */}

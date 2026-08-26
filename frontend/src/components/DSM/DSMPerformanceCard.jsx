@@ -73,10 +73,15 @@ export default function DSMPerformanceCard({ performance, loading }) {
         <h2 className="mt-1 text-xl font-semibold text-slate-900">Indicateurs clés</h2>
       </div>
       <div className="px-5 py-4">
+        <div className="mb-3 rounded-lg bg-blue-50 p-2 text-xs text-blue-800">
+          <strong>ℹ️ Note :</strong> Ces indicateurs sont spécifiques à ce DSM, 
+          pas les chiffres globaux du partenaire.
+        </div>
+        
         <MetricRow
           label="POS créés"
           value={performance.pos_crees ?? 0}
-          subLabel="Total depuis le début"
+          subLabel="Total par ce DSM"
         />
         <MetricRow
           label="POS actifs"
@@ -86,30 +91,30 @@ export default function DSMPerformanceCard({ performance, loading }) {
         <MetricRow
           label="Loading"
           value={performance.loading ?? 0}
-          subLabel="SIM en stock"
+          subLabel="SIM en stock (DSM)"
         />
         <MetricRow
           label="Sell-out"
           value={performance.sell_out ?? 0}
-          subLabel="Activations et ventes"
+          subLabel="Activations et ventes (DSM)"
         />
         <MetricRow
           label="Recettes"
           value={performance.recettes ? `${performance.recettes.toLocaleString()} FCFA` : '—'}
-          subLabel="Primes validées/payées"
+          subLabel="Chiffre d'affaires DSM"
         />
         
         {performance.objectifs && (
           <MetricRow
-            label="Objectifs"
+            label="Objectifs DSM"
             value={performance.objectifs}
-            subLabel="Cible mensuelle"
+            subLabel="Cible mensuelle DSM"
           />
         )}
         
         {performance.progression !== null && (
           <ProgressionBar
-            label="Progression globale"
+            label="Progression DSM"
             value={performance.progression}
             color={performance.progression >= 75 ? 'green' : performance.progression >= 50 ? 'indigo' : performance.progression >= 25 ? 'amber' : 'red'}
           />

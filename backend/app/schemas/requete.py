@@ -53,6 +53,7 @@ class RequeteOut(BaseModel):
 
     id: int
     partner_id: int
+    dsm_id: int | None = None  # DSM demandeur
     type_requete: TypeRequete
     titre: str
     description: str | None
@@ -68,6 +69,12 @@ class RequeteOut(BaseModel):
     responsable_id: int | None
     created_at: datetime
     entites: list[RequeteEntiteOut] = []
+    
+    # Champs calculés pour l'affichage
+    dsm_name: str | None = None  # Nom du DSM demandeur
+    demandeur_name: str | None = None  # Nom du demandeur
+    statut: str | None = None  # Statut calculé (en cours/terminée)
+    en_retard: bool = False  # Indicateur de retard
 
 
 class RequeteSummaryOut(BaseModel):
@@ -77,6 +84,12 @@ class RequeteSummaryOut(BaseModel):
     nombre_rejete: int
     nombre_effectue: int
     date_fin: str | None
+    dsm_id: int | None = None
+    dsm_name: str | None = None
+    demandeur_name: str | None = None
+    statut: str | None = None
+    en_retard: bool = False
+    delai_attente: int | None = None  # Délai d'attente en jours
 
 
 class RequeteSummaryPageOut(BaseModel):

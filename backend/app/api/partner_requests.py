@@ -12,7 +12,7 @@ from app.models.user import User
 from app.schemas.requete import RequeteCreate, RequeteUpdate, RequeteOut, RequeteSummaryPageOut
 from app.schemas.pagination import Page
 from app.security.permissions import Role, RECONDUCTION_ROLES
-from app.services.requete_service import create_requete, get_requete_in_partner, update_requete
+from app.services.requete_service import create_requete, get_requete_in_partner, update_requete, enrich_requete_summary, get_dsm_request_summary
 
 router = APIRouter(prefix="/api/partners/{partner_id}/requests", tags=["Requetes"])
 
@@ -48,6 +48,7 @@ def list_requests_summary(
     date_creation_to: str | None = None,
     date_fin_from: str | None = None,
     date_fin_to: str | None = None,
+    dsm_id: int | None = None,  # Filtre par DSM
     skip: int = 0,
     limit: int = Query(default=100, le=500),
     db: Session = Depends(get_db),
@@ -56,6 +57,8 @@ def list_requests_summary(
     query = db.query(Requete).filter(Requete.partner_id == partner_id)
     if type_requete:
         query = query.filter(Requete.type_requete == TypeRequete(type_requete.upper()))
+    if dsm_id:
+        query = query.filter(Requete.dsm_id == dsm_id)
     if date_creation_from:
         query = query.filter(Requete.date_creation >= _parse_iso_date(date_creation_from))
     if date_creation_to:
@@ -80,6 +83,12 @@ def list_requests_summary(
             "nombre_rejete": 0,
             "nombre_effectue": 0,
             "date_fin": None,
+            "dsm_id": item.dsm_id,
+            "dsm_name": None,
+            "demandeur_name": None,
+            "statut": None,
+            "en_retard": False,
+            "delai_attente": None,
         })
         bucket["nombre_demande"] += int(item.nombre_demande or 0)
         bucket["nombre_rejete"] += int(item.nombre_rejete or 0)
@@ -87,6 +96,15 @@ def list_requests_summary(
         end_value = item.date_finalisation or item.closed_at
         if end_value and not bucket["date_fin"]:
             bucket["date_fin"] = _normalize_day(end_value)
+        
+        # Enrichir avec les informations calculées
+        enriched = enrich_requete_summary(db, item)
+        bucket["dsm_id"] = enriched.get("dsm_id")
+        bucket["dsm_name"] = enriched.get("dsm_name")
+        bucket["demandeur_name"] = enriched.get("demandeur_name")
+        bucket["statut"] = enriched.get("statut")
+        bucket["en_retard"] = enriched.get("en_retard", False)
+        bucket["delai_attente"] = enriched.get("delai_attente")
 
     items = sorted(grouped.values(), key=lambda x: (x["date_creation"], x["type_requete"]), reverse=True)
     total = len(items)
@@ -118,3 +136,14 @@ def update_request(request_id: int, payload: RequeteUpdate,
                    db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return update_requete(db, partner_id=partner_id, user_id=user.id, requete_id=request_id,
                           data=payload.model_dump(exclude_unset=True))
+
+
+@router.get("/dsm/{dsm_id}/summary")
+def dsm_requests_summary(
+    dsm_id: int,
+    partner_id: int = Depends(get_partner_context),
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """Résumé des requêtes spécifiques à un DSM avec indicateurs de progression."""
+    return get_dsm_request_summary(db, partner_id, dsm_id)

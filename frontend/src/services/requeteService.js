@@ -16,6 +16,12 @@ const normalizeRequete = (r) => ({
   date_creation: r?.date_creation ?? null,
   date_finalisation: r?.date_finalisation ?? null,
   closed_at: r?.closed_at ?? null,
+  dsm_id: r?.dsm_id ?? null,
+  dsm_name: r?.dsm_name ?? null,
+  demandeur_name: r?.demandeur_name ?? null,
+  statut: r?.statut ?? null,
+  en_retard: r?.en_retard ?? false,
+  delai_attente: r?.delai_attente ?? null,
 });
 
 export const requeteService = {
@@ -34,6 +40,12 @@ export const requeteService = {
   create: (payload) => api.post('/requests', payload),
 
   update: (id, payload) => api.patch(`/requests/${id}`, payload),
+
+  /** Résumé des requêtes par DSM avec indicateurs de progression */
+  getDSMSummary: async (dsmId) => {
+    const response = await api.get(`/requests/dsm/${dsmId}/summary`);
+    return response.data;
+  },
 };
 
 export default requeteService;

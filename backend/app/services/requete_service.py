@@ -6,14 +6,17 @@ PartnerContext courant (regle F-05 / 6.4).
 Le StatutRequete a ete retire : l'avancement d'une Requete est derive
 des compteurs nombre_demande / nombre_effectue / nombre_rejete.
 """
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.core.errors import NotFoundError, ValidationErrorApp
 from app.crud.requete_crud import requete_crud, requete_entite_crud, requete_commentaire_crud
 from app.models.requete import Requete
 from app.models.pos import POS
 from app.models.bts import BTS
+from app.models.dsm import DSM
+from app.models.user import User
 from app.services import audit_service
 
 ENTITY_MODELS = {"POS": POS, "BTS": BTS}
@@ -119,3 +122,90 @@ def update_requete(db: Session, *, partner_id: int, user_id: int, requete_id: in
         entity_type="REQUETE", entity_id=requete.id, details=f"Requete '{requete.titre}' mise a jour",
     )
     return requete
+
+
+def _calculate_request_status(requete: Requete) -> str:
+    """Calcule le statut d'une requête : en cours ou terminée."""
+    if requete.date_finalisation or (requete.nombre_effectue + requete.nombre_rejete >= requete.nombre_demande and requete.nombre_demande > 0):
+        return "Terminée"
+    return "En cours"
+
+
+def _calculate_delay(requete: Requete) -> int | None:
+    """Calcule le délai d'attente en jours entre création et fin."""
+    if not requete.date_creation:
+        return None
+    end_date = requete.date_finalisation or datetime.now(timezone.utc)
+    return (end_date - requete.date_creation).days
+
+
+def _is_late(requete: Requete) -> bool:
+    """Détermine si une requête est en retard (délai > 7 jours pour les requêtes en cours)."""
+    if requete.date_finalisation:
+        return False  # Les requêtes terminées ne sont pas en retard
+    if not requete.date_creation:
+        return False
+    if requete.delai:
+        return _calculate_delay(requete) > requete.delai
+    # Délai par défaut de 7 jours pour les requêtes en cours
+    return _calculate_delay(requete) > 7
+
+
+def enrich_requete_summary(db: Session, requete: Requete) -> dict:
+    """Enrichit une requête avec les informations calculées pour l'affichage."""
+    statut = _calculate_request_status(requete)
+    delai_attente = _calculate_delay(requete)
+    en_retard = _is_late(requete)
+    
+    # Récupérer le nom du DSM si associé
+    dsm_name = None
+    if requete.dsm_id:
+        dsm = db.query(DSM).filter(DSM.id == requete.dsm_id).first()
+        dsm_name = dsm.full_name or dsm.matricule if dsm else None
+    
+    # Récupérer le nom du demandeur
+    demandeur_name = None
+    if requete.demandeur_id:
+        demandeur = db.query(User).filter(User.id == requete.demandeur_id).first()
+        demandeur_name = demandeur.full_name if demandeur else None
+    
+    return {
+        **requete.__dict__,
+        'dsm_name': dsm_name,
+        'demandeur_name': demandeur_name,
+        'statut': statut,
+        'en_retard': en_retard,
+        'delai_attente': delai_attente,
+    }
+
+
+def get_requetes_by_dsm(db: Session, partner_id: int, dsm_id: int) -> list[Requete]:
+    """Récupère les requêtes spécifiques à un DSM."""
+    return db.query(Requete).filter(
+        Requete.partner_id == partner_id,
+        Requete.dsm_id == dsm_id
+    ).order_by(Requete.created_at.desc()).all()
+
+
+def get_dsm_request_summary(db: Session, partner_id: int, dsm_id: int) -> dict:
+    """Calcule un résumé des requêtes pour un DSM spécifique."""
+    requetes = get_requetes_by_dsm(db, partner_id, dsm_id)
+    
+    total = len(requetes)
+    en_cours = sum(1 for r in requetes if _calculate_request_status(r) == "En cours")
+    terminees = sum(1 for r in requetes if _calculate_request_status(r) == "Terminée")
+    en_retard = sum(1 for r in requetes if _is_late(r))
+    
+    # Calcul de la progression
+    progression = None
+    if total > 0:
+        progression = (terminees / total) * 100
+    
+    return {
+        "total": total,
+        "en_cours": en_cours,
+        "terminees": terminees,
+        "en_retard": en_retard,
+        "progression": progression,
+        "requetes": [enrich_requete_summary(db, r) for r in requetes],
+    }
