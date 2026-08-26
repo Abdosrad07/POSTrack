@@ -1,5 +1,4 @@
-import api, { applyPartnerPrefix } from './api';
-import { STORAGE_KEYS } from '../utils/constants';
+import api from './api';
 
 /**
  * Service du Module A3 — Import Excel centralisé (ImportBatch).
@@ -54,15 +53,22 @@ export const importService = {
   },
 
   /**
-   * Étape 1 — URL du gabarit Excel officiel.
+   * Étape 1 — Téléchargement du gabarit Excel officiel.
+   * Passe par Axios afin d'embarquer le jeton Bearer (un simple <a href>
+   * déclencherait une 401 faute d'en-tête Authorization).
    * @param {string} entityType
+   * @returns {Promise<{ blob: Blob, fileName: string }>}
    */
-  getTemplateUrl(entityType) {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-    const path = `/imports/templates/${encodeURIComponent(entityType)}`;
-    const partnerId = localStorage.getItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
-    // Les gabarits doivent rester accessibles sans contexte partenaire explicite.
-    return partnerId ? `${base}${applyPartnerPrefix(path, partnerId)}` : `${base}${path}`;
+  async downloadTemplate(entityType) {
+    const response = await api.get(`/imports/templates/${encodeURIComponent(entityType)}`, {
+      responseType: 'blob',
+    });
+    const disposition = String(response.headers?.['content-disposition'] || '');
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+    const fileName = match
+      ? decodeURIComponent(match[1])
+      : `gabarit-${entityType.toLowerCase()}.xlsx`;
+    return { blob: response.data, fileName };
   },
 };
 

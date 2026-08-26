@@ -3,10 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import usePartner from '../hooks/usePartner'
 import analyticsService from '../services/analyticsService'
 import partenaireService from '../services/partenaireService'
+import posService from '../services/posService'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
-import SalesProgressCard from '../components/Sales/SalesProgressCard'
-import LoadingSummaryCard from '../components/Sales/LoadingSummaryCard'
-import MonthlyTableCard from '../components/Sales/MonthlyTableCard'
+import POSMap from '../components/POS/POSMap'
 
 type Stats = {
   partner_name?: string
@@ -54,14 +53,15 @@ type Identity = {
 }
 
 /** Charge utile brute des endpoints analytics ; le détail est consommé par les cartes enfants. */
-type AnalyticsPayload = Record<string, unknown>
 
 const features = [
+  { label: 'Dashboard', to: '/dashboard' },
   { label: 'DSM', to: '/dsm' },
-  { label: 'POS', to: '/pos' },
+  { label: 'POS créés', to: '/pos' },
+  { label: 'BTS', to: '/bts' },
+  { label: 'Suivi des ventes', to: '/ventes' },
   { label: 'Requêtes', to: '/requetes' },
   { label: 'Primes', to: '/primes' },
-  { label: 'BTS', to: '/bts' },
   { label: 'Stock SIM', to: '/sims' },
 ]
 
@@ -73,11 +73,8 @@ export default function PartnerHomePage() {
   }
   const [stats, setStats] = useState<Stats | null>(null)
   const [identity, setIdentity] = useState<Identity | null>(null)
-  const [salesSummary, setSalesSummary] = useState<AnalyticsPayload | null>(null)
-  const [loadingSummary, setLoadingSummary] = useState<AnalyticsPayload | null>(null)
-  const [monthlyTable, setMonthlyTable] = useState<AnalyticsPayload | null>(null)
+  const [recentPos, setRecentPos] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
-  const [loadingPeriod, setLoadingPeriod] = useState<{ period_start?: string; period_end?: string }>({})
 
   useEffect(() => {
     let ignore = false
@@ -87,29 +84,22 @@ export default function PartnerHomePage() {
         return
       }
       try {
-        const [statsRes, identityRes, salesRes] = await Promise.all([
+        const [statsRes, identityRes, posRes] = await Promise.all([
           analyticsService.getDashboard(partnerContextId),
           partenaireService.getIdentity(partnerContextId),
-          analyticsService.getSalesSummary(partnerContextId),
+          posService.getAll({ limit: 100 }),
         ])
-          const [loadingRes, monthlyRes] = await Promise.all([
-            analyticsService.getLoadingSummary(partnerContextId, loadingPeriod),
-            analyticsService.getMonthlyTable(partnerContextId),
-          ])
+        const posData = posRes.data?.items ?? posRes.data?.data ?? posRes.data?.results ?? posRes.data ?? []
         if (!ignore) {
           setStats(statsRes.data)
           setIdentity(identityRes.data?.data ?? identityRes.data ?? null)
-          setSalesSummary(salesRes.data ?? null)
-          setLoadingSummary(loadingRes.data ?? null)
-          setMonthlyTable(monthlyRes.data ?? null)
+          setRecentPos(Array.isArray(posData) ? posData : [])
         }
       } catch {
         if (!ignore) {
           setStats(null)
           setIdentity(null)
-          setSalesSummary(null)
-          setLoadingSummary(null)
-          setMonthlyTable(null)
+          setRecentPos([])
         }
       } finally {
         if (!ignore) setLoading(false)
@@ -117,7 +107,7 @@ export default function PartnerHomePage() {
     }
     void load()
     return () => { ignore = true }
-  }, [partnerContextId, loadingPeriod])
+  }, [partnerContextId])
 
   const partnerTitle = partner?.nom ?? partner?.code_partenaire ?? (partnerContextId ? `Partenaire #${partnerContextId}` : 'Partenaire')
 
@@ -174,26 +164,30 @@ export default function PartnerHomePage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg bg-indigo-50 p-4"><div className="text-sm text-slate-500">Primes en attente</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.primes_en_attente ?? 0}</div></div>
             <div className="rounded-lg bg-indigo-50 p-4"><div className="text-sm text-slate-500">Primes validées</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.primes_validees ?? 0}</div></div>
-            <div className="rounded-lg bg-slate-50 p-4 sm:col-span-2">
-              <div className="text-sm text-slate-500">Montant primes période courante</div>
-              <div className="text-2xl font-bold text-slate-900">
-                {loading ? '…' : stats?.montant_primes_periode ? `${Number(stats.montant_primes_periode).toLocaleString('fr-FR')} FCFA` : '—'}
-              </div>
-            </div>
             <div className="rounded-lg bg-slate-50 p-4"><div className="text-sm text-slate-500">SIM en stock</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.sim_en_stock ?? 0}</div></div>
             <div className="rounded-lg bg-slate-50 p-4"><div className="text-sm text-slate-500">SIM assignées</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.sim_assignees ?? 0}</div></div>
           </div>
         </div>
       </div>
 
-      <SalesProgressCard data={salesSummary} />
-
-      <LoadingSummaryCard
-        data={loadingSummary}
-        onPeriodChange={setLoadingPeriod}
-      />
-
-      <MonthlyTableCard data={monthlyTable} />
+      {/* Carte géographique des POS du partenaire (étendue & consommation) */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Carte géographique</h2>
+            <p className="text-sm text-slate-500">Étendue des points de vente du partenaire sur le territoire.</p>
+          </div>
+          <Link
+            to="/ventes"
+            className="rounded-lg border border-sky-300 px-3 py-2 text-sm font-medium text-sky-700 hover:bg-sky-50"
+          >
+            Suivi des ventes
+          </Link>
+        </div>
+        <div className="h-[420px] overflow-hidden rounded-lg border border-slate-200">
+          <POSMap pos={recentPos as never} partnerId={partnerContextId} dsmId={undefined} />
+        </div>
+      </div>
     </div>
   )
 }

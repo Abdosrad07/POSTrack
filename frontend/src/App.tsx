@@ -23,6 +23,7 @@ import UnauthorizedPage from './pages/auth/UnauthorizedPage'
 import SimsStockPage from './pages/sims/SimsStockPage'
 import RequetesListPage from './pages/requetes/RequetesListPage'
 import ImportExportPage from './pages/import-export/ImportExportPage'
+import SuiviVentesPage from './pages/ventes/SuiviVentesPage'
 import AuditLogsPage from './pages/audit/AuditLogsPage'
 import SalesTargetsPage from './pages/analytics/SalesTargetsPage'
 import PartnerRoute from './routes/PartnerRoute'
@@ -166,6 +167,7 @@ function App() {
             />
 
             <Route path="sims" element={<SimsStockPage />} />
+            <Route path="ventes" element={<SuiviVentesPage />} />
             <Route path="requetes" element={<RequetesListPage />} />
             <Route path="requetes/new" element={<RequeteCreatePage />} />
 

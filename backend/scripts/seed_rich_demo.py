@@ -95,6 +95,8 @@ def main():
             ("DSM-MC-02", "Clarisse Ngo", "Douala Ndokotti", 2),
             ("DSM-MC-03", "Yannick Talla", "Bafoussam", 2),
             ("DSM-GL-01", "Serge Ebogo", "Kribi", 3),
+            ("DSM-ODI-01", "Ibrahim Sali", "Garoua", 4),
+            ("DSM-SEV-01", "Nadège Mbarga", "Bertoua", 5),
         ]
         dsms_by_partner = {}
         for d in db.query(DSM).all():
@@ -113,6 +115,10 @@ def main():
                 (4.03, 4.12, 9.68, 9.82), (3.82, 3.93, 11.42, 11.52)),
             2: (QUARTIERS_DLA[:8], "MC", (4.04, 4.10, 9.70, 9.79), None),
             3: ([f"Quartier {i}" for i in range(1, 7)], "GL", (2.90, 3.00, 9.30, 9.45), None),
+            4: (["Poumpoumr", "Plateau Dokadjé", "Rumde Adjia", "Djarengol", "Yelwa", "Mazal"],
+                "ODI", (9.20, 9.45, 13.28, 13.52), None),
+            5: (["Nkolbikon", "Madagascar", "Dakar", "Goura", "Bitam", "Kpoumassi"],
+                "SEV", (4.50, 4.70, 13.55, 13.80), None),
         }
         today = date.today()
         counter = 0
@@ -168,6 +174,8 @@ def main():
             (1, "2026-S2", "Semestre 2 2026", date(2026, 7, 1), date(2026, 12, 31), StatutPeriode.OPEN),
             (2, "2026-T3", "Trimestre 3 2026", date(2026, 7, 1), date(2026, 9, 30), StatutPeriode.OPEN),
             (3, "2026-S2", "Semestre 2 2026", date(2026, 7, 1), date(2026, 12, 31), StatutPeriode.DRAFT),
+            (4, "2026-S2", "Semestre 2 2026", date(2026, 7, 1), date(2026, 12, 31), StatutPeriode.OPEN),
+            (5, "2026-T3", "Trimestre 3 2026", date(2026, 7, 1), date(2026, 9, 30), StatutPeriode.OPEN),
         ]
         periods = {}
         for pid, code, label, start, end, status in periods_plan:
@@ -225,12 +233,16 @@ def main():
         dla_base = [(4.055 + 0.012 * k, 9.72 + 0.017 * k) for k in range(6)]
         yde_base = [(3.85 + 0.011 * k, 11.46 + 0.013 * k) for k in range(3)]
         bts_plan = []
-        for k, (lat, lng) in enumerate(dla_base, start=2):
-            bts_plan.append((1, f"BTS-DLA-{k:02d}", lat, lng, f"Douala zone {k}"))
+        # Partenaires reels uniquement : les BTS ne sont plus rattachees au
+        # partenaire de demonstration supprime.
         for k, (lat, lng) in enumerate(yde_base, start=1):
-            bts_plan.append((1, f"BTS-YDE-{k:02d}", lat, lng, f"Yaoundé zone {k}"))
+            bts_plan.append((4, f"BTS-ODI-{k:02d}", 9.25 + 0.014 * k, 13.33 + 0.015 * k, f"Garoua zone {k}"))
+        for k, (lat, lng) in enumerate(dla_base[:4], start=1):
+            bts_plan.append((5, f"BTS-SEV-{k:02d}", 4.53 + 0.012 * k, 13.60 + 0.014 * k, f"Bertoua zone {k}"))
         for k in range(1, 4):
             bts_plan.append((2, f"BTS-MC-{k:02d}", 4.05 + 0.01 * k, 9.73 + 0.012 * k, f"Douala MC {k}"))
+        for k, (lat, lng) in enumerate([(2.92, 9.32), (2.95, 9.40)], start=1):
+            bts_plan.append((3, f"BTS-GL-{k:02d}", lat, lng, f"Kribi zone {k}"))
 
         new_bts = []
         for pid, code, lat, lng, zone in bts_plan:

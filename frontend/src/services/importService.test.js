@@ -67,10 +67,19 @@ describe('importService — Module A3', () => {
     await expect(importService.apply('batch-1')).rejects.toEqual({ code: 'ERR_NETWORK' });
   });
 
-  it('construit l URL du gabarit préfixée par le partenaire courant', () => {
+  it('télécharge le gabarit via GET authentifié (blob) sans exposer d URL non signée', async () => {
     localStorage.setItem('partner_context_id', '3');
-    const url = importService.getTemplateUrl('POS');
-    expect(url).toContain('/api/partners/3/imports/templates/POS');
+    const blob = new Blob(['x'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    api.get.mockResolvedValueOnce({
+      data: blob,
+      headers: { 'content-disposition': 'attachment; filename="gabarit-pos.xlsx"' },
+    });
+
+    const res = await importService.downloadTemplate('POS');
+
+    expect(api.get).toHaveBeenCalledWith('/imports/templates/POS', { responseType: 'blob' });
+    expect(res.blob).toBe(blob);
+    expect(res.fileName).toBe('gabarit-pos.xlsx');
   });
 
   it('normalise une réponse Backend minimale vers la forme attendue par l UI', async () => {

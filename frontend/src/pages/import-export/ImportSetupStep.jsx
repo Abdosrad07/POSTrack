@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import FileDropZone from '../../components/Import/FileDropZone';
 import importService from '../../services/importService';
 import { IMPORT_ENTITY_TYPES } from '../../utils/constants';
@@ -9,40 +9,75 @@ import { IMPORT_ENTITY_TYPES } from '../../utils/constants';
  *   2. Sélection du type d'entité.
  *   3. Dépôt du fichier & Validation.
  */
-const ImportSetupStep = ({ entityType, setEntityType, file, setFile, onValidate, validating }) => (
-  <div className="space-y-6">
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-900">Type d'entité à importer</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        L'import Excel en masse remplace les CRUDs référentiels autonomes pour le
-        partenaire actif.
-      </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {IMPORT_ENTITY_TYPES.map((type) => (
+const ImportSetupStep = ({ entityType, setEntityType, file, setFile, onValidate, validating }) => {
+  const [downloading, setDownloading] = useState(false);
+  const [templateError, setTemplateError] = useState('');
+
+  const handleDownloadTemplate = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    setTemplateError('');
+    try {
+      const { blob, fileName } = await importService.downloadTemplate(entityType);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setTemplateError(
+        err?.response?.status === 401
+          ? 'Session expirée : reconnectez-vous avant de télécharger le gabarit.'
+          : err?.message || 'Impossible de télécharger le gabarit.'
+      );
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">Type d'entité à importer</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          L'import Excel en masse remplace les CRUDs référentiels autonomes pour le
+          partenaire actif.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {IMPORT_ENTITY_TYPES.map((type) => (
+            <button
+              key={type.value}
+              type="button"
+              onClick={() => setEntityType(type.value)}
+              className={`rounded-lg border px-4 py-3 text-left text-sm font-medium transition-colors ${
+                entityType === type.value
+                  ? 'border-indigo-500 bg-indigo-50 text-indigo-900 ring-1 ring-indigo-400'
+                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              {type.label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-4">
           <button
-            key={type.value}
             type="button"
-            onClick={() => setEntityType(type.value)}
-            className={`rounded-lg border px-4 py-3 text-left text-sm font-medium transition-colors ${
-              entityType === type.value
-                ? 'border-indigo-500 bg-indigo-50 text-indigo-900 ring-1 ring-indigo-400'
-                : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'
-            }`}
+            onClick={handleDownloadTemplate}
+            disabled={downloading}
+            className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {type.label}
+            {downloading
+              ? 'Téléchargement…'
+              : `⬇️ Télécharger le gabarit Excel officiel (${entityType})`}
           </button>
-        ))}
-      </div>
-      <div className="mt-4">
-        <a
-          href={importService.getTemplateUrl(entityType)}
-          download
-          className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800"
-        >
-          ⬇️ Télécharger le gabarit Excel officiel ({entityType})
-        </a>
-      </div>
-    </section>
+          {templateError && (
+            <p className="mt-2 text-xs text-red-600">{templateError}</p>
+          )}
+        </div>
+      </section>
 
     <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-base font-semibold text-slate-900">3. Déposez votre fichier</h2>
@@ -64,6 +99,7 @@ const ImportSetupStep = ({ entityType, setEntityType, file, setFile, onValidate,
       </div>
     </section>
   </div>
-);
+  );
+};
 
 export default ImportSetupStep;

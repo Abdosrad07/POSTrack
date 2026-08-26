@@ -36,10 +36,22 @@ export const ROLE_GROUPS = {
  */
 export const NAV_ITEMS = [
   {
+    id: 'dashboard',
+    to: '/dashboard',
+    label: 'Dashboard',
+    roles: ROLE_GROUPS.ALL,
+  },
+  {
     id: 'dsm',
     to: '/dsm',
     label: 'DSM',
     roles: ROLE_GROUPS.OPERATIONS,
+  },
+  {
+    id: 'pos',
+    to: '/pos',
+    label: 'POS créés',
+    roles: ROLE_GROUPS.ALL,
   },
   {
     id: 'bts',
@@ -48,9 +60,9 @@ export const NAV_ITEMS = [
     roles: ROLE_GROUPS.OPERATIONS,
   },
   {
-    id: 'sims',
-    to: '/sims',
-    label: 'Stock de SIM',
+    id: 'ventes',
+    to: '/ventes',
+    label: 'Suivi des ventes',
     roles: ROLE_GROUPS.ALL,
   },
   {
@@ -60,16 +72,31 @@ export const NAV_ITEMS = [
     roles: ROLE_GROUPS.ALL,
   },
   {
-    id: 'pos',
-    to: '/pos',
-    label: 'POS',
-    roles: ROLE_GROUPS.ALL,
-  },
-  /* Admin-only items */ 
-  {
     id: 'primes',
     to: '/primes',
     label: 'Primes',
+    roles: ROLE_GROUPS.ADMIN_ONLY,
+  },
+  {
+    id: 'sims',
+    to: '/sims',
+    label: 'Stock SIM',
+    roles: ROLE_GROUPS.ALL,
+  },
+  {
+    /* Accueil partenaire : NavLink avec end pour ne pas rester actif
+       sur toutes les routes commençant par « / ». */
+    id: 'accueil-partenaire',
+    to: '/',
+    end: true,
+    label: 'Dashboard partenaire',
+    roles: ROLE_GROUPS.ALL,
+  },
+  /* Administration (ADMIN uniquement) */
+  {
+    id: 'partenaires',
+    to: '/partenaires',
+    label: 'Partenaires',
     roles: ROLE_GROUPS.ADMIN_ONLY,
   },
   {
@@ -81,13 +108,7 @@ export const NAV_ITEMS = [
   {
     id: 'sales-targets',
     to: '/analytics/sales-targets',
-    label: 'Objectifs de ventes',
-    roles: ROLE_GROUPS.ADMIN_ONLY,
-  },
-  {
-    id: 'partenaires',
-    to: '/partenaires',
-    label: 'Partenaires',
+    label: 'Objectifs (admin)',
     roles: ROLE_GROUPS.ADMIN_ONLY,
   },
   {

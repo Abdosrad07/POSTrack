@@ -54,7 +54,7 @@ describe('MainLayout — Module A2', () => {
 
   it('affiche la navigation latérale filtrée par rôle (ADMIN)', () => {
     renderLayout()
-    expect(screen.getByText('Stock de SIM')).toBeInTheDocument()
+    expect(screen.getByText('Stock SIM')).toBeInTheDocument()
     expect(screen.getByText('Partenaires')).toBeInTheDocument()
     expect(screen.getByText('Audit')).toBeInTheDocument()
   })

@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { queryClient } from '../lib/queryClient';
 import { STORAGE_KEYS } from '../utils/constants';
+import { partnerContextService } from '../services/partnerContextService';
+import useAuth from '../hooks/useAuth';
 
 export const PartnerContext = createContext(null);
 
@@ -28,6 +30,7 @@ export const PartnerProvider = ({ children }) => {
   const initial = readStoredPartner();
   const [partnerContextId, setPartnerContextId] = useState(initial.partnerContextId);
   const [partner, setPartnerState] = useState(initial.partner);
+  const { isAuthenticated, user } = useAuth();
 
   const clearPartner = useCallback(() => {
     localStorage.removeItem(STORAGE_KEYS.PARTNER_CONTEXT_ID);
@@ -51,6 +54,31 @@ export const PartnerProvider = ({ children }) => {
     // Invalide caches React Query pour éviter le mélange de données entre partenaires
     queryClient.clear();
   }, [clearPartner]);
+
+  // Contexte stocké potentiellement périmé (partenaire désactivé ou supprimé
+  // côté serveur, ex. après migration du référentiel) : sans cette validation,
+  // l'utilisateur resterait sur un dashboard en erreurs 404.
+  useEffect(() => {
+    if (!isAuthenticated || partnerContextId == null || partnerContextId === '') {
+      return undefined;
+    }
+    let cancelled = false;
+    partnerContextService
+      .getAvailable(user)
+      .then((list) => {
+        if (cancelled) return;
+        const exists = list.some((item) => String(item?.id) === String(partnerContextId));
+        if (!exists) {
+          clearPartner();
+        }
+      })
+      .catch(() => {
+        /* réseau indisponible : on conserve le contexte local tel quel */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, user, partnerContextId, clearPartner]);
 
   const value = useMemo(
     () => ({

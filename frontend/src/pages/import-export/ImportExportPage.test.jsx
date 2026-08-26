@@ -17,7 +17,7 @@ vi.mock('../../services/importService', () => ({
   default: {
     validate: vi.fn(),
     apply: vi.fn(),
-    getTemplateUrl: vi.fn(() => '#template'),
+    downloadTemplate: vi.fn(async () => ({ blob: new Blob(), fileName: 'gabarit.xlsx' })),
   },
 }));
 

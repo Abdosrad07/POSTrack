@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import usePartner from '../hooks/usePartner'
 import analyticsService from '../services/analyticsService'
+import partenaireService from '../services/partenaireService'
 import api from '../services/api'
 import { getRoleLabel } from '../utils/roles'
+import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 
 type Stats = {
   partner_name?: string
@@ -81,6 +83,7 @@ function Dashboard() {
   }
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentPos, setRecentPos] = useState<PosRow[]>([])
+  const [identity, setIdentity] = useState<Record<string, unknown> | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -90,23 +93,27 @@ function Dashboard() {
         if (!ignore) {
           setStats(null)
           setRecentPos([])
+          setIdentity(null)
           setLoading(false)
         }
         return
       }
       try {
-        const [statsRes, posRes] = await Promise.all([
+        const [statsRes, posRes, identityRes] = await Promise.all([
           analyticsService.getDashboard(partnerContextId),
           api.get('/pos', { params: { limit: 5, page: 1 } }),
+          partenaireService.getIdentity(partnerContextId),
         ])
         if (!ignore) {
           setStats(statsRes.data)
           setRecentPos(normalizePosRows(posRes.data))
+          setIdentity(identityRes.data?.data ?? identityRes.data ?? null)
         }
       } catch {
         if (!ignore) {
           setStats(null)
           setRecentPos([])
+          setIdentity(null)
         }
       } finally {
         if (!ignore) setLoading(false)
@@ -136,6 +143,10 @@ function Dashboard() {
           Sélectionnez un partenaire pour afficher les statistiques du dashboard.
         </div>
       ) : null}
+
+      {partnerContextId && (
+        <PartnerIdentityCard identity={identity as never} loading={loading} />
+      )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Parc POS" value={stats?.pos_total} loading={loading} />
