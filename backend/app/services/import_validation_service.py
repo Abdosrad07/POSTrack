@@ -63,6 +63,7 @@ REQUIRED_COLUMNS = {
     "PRIME_PERIOD": ["code", "label", "start_date", "end_date"],
     "PRIME": ["pos_code", "prime_period_code", "montant"],
     "REQUETE": ["external_id", "type_requete", "titre"],
+    "SALES_TARGET": ["month"],
 }
 
 VALID_TYPE_REQUETE = {t.value for t in TypeRequete}
@@ -447,6 +448,32 @@ def _apply_valid_row(db: Session, partner_id: int, user_id: int, entity_type: st
                 date_creation=datetime.now(timezone.utc),
                 demandeur_id=user_id,
             ))
+
+    elif entity_type == "SALES_TARGET":
+        from app.models.partner import PartnerSalesTarget
+
+        month = pd.to_datetime(row["month"]).date()
+        payload = {
+            "partner_id": partner_id,
+            "month": month,
+            "creation_target": _clean_optional(row.get("creation_target")),
+            "redeployment_target": _clean_optional(row.get("redeployment_target")),
+            "sell_out_target": _clean_optional(row.get("sell_out_target")),
+            "loading_target": _clean_optional(row.get("loading_target")),
+            "creation_stock_initial": _clean_optional(row.get("creation_stock_initial")),
+            "redeployment_stock_initial": _clean_optional(row.get("redeployment_stock_initial")),
+        }
+        existing = db.query(PartnerSalesTarget).filter(
+            PartnerSalesTarget.partner_id == partner_id,
+            PartnerSalesTarget.month == month,
+        ).first()
+        if existing:
+            for key, value in payload.items():
+                if key not in {"partner_id", "month"}:
+                    setattr(existing, key, value)
+            db.add(existing)
+        else:
+            db.add(PartnerSalesTarget(**payload))
 
 
 def apply_import(db: Session, *, partner_id: int, user_id: int, batch_id: int) -> dict:

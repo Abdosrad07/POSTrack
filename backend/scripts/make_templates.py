@@ -26,6 +26,8 @@ OPTIONAL = {
     "BTS_RELEVE": ["debit", "connexions", "latence", "date_releve"],
     "SIM": ["status"],
     "PRIME_PERIOD": ["statut"],
+    "SALES_TARGET": ["creation_target", "redeployment_target", "sell_out_target", "loading_target",
+                       "creation_stock_initial", "redeployment_stock_initial"],
     "REQUETE": ["description", "priorite", "entite_en_charge", "nombre_demande"],
 }
 
@@ -49,6 +51,9 @@ SAMPLES = {
     "REQUETE": {"external_id": "EXT-REQ-001", "type_requete": "AJOUT", "titre": "Ajout POS Akwa",
                  "description": "Besoin de 2 POS supplémentaires", "priorite": "NORMALE",
                  "entite_en_charge": "AC Bépanda", "nombre_demande": 2},
+    "SALES_TARGET": {"month": "2026-08-01", "creation_target": 40, "redeployment_target": 10,
+                      "sell_out_target": 60, "loading_target": 50,
+                      "creation_stock_initial": 10, "redeployment_stock_initial": 5},
 }
 
 
