@@ -62,7 +62,7 @@ export default function DSMCreatePage() {
             <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="mt-1 block w-full rounded-md border px-3 py-2" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Région</label>
+            <label className="block text-sm font-medium text-gray-700">Micro-zone</label>
             <select value={region} onChange={(e) => setRegion(e.target.value)} className="mt-1 block w-full rounded-md border px-3 py-2">
               <option value="Nord">Nord</option>
               <option value="Sud">Sud</option>

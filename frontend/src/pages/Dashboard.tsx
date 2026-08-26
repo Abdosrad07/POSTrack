@@ -138,9 +138,9 @@ function Dashboard() {
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total POS" value={stats?.pos_total} loading={loading} />
+        <StatCard label="Parc POS" value={stats?.pos_total} loading={loading} />
         <StatCard
-          label="POS Actifs"
+          label="POS actifs"
           value={(stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}
           loading={loading}
           accent="green"
@@ -161,7 +161,7 @@ function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <StatCard label="POS nouveaux" value={stats?.pos_nouveau} loading={loading} small />
+        <StatCard label="POS créés" value={stats?.pos_nouveau} loading={loading} small />
         <StatCard label="POS reconduits" value={stats?.pos_reconduit} loading={loading} small />
         <StatCard
           label="Primes validées"

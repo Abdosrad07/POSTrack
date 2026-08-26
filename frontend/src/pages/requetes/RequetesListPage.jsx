@@ -9,7 +9,7 @@ import { ENTITES_EN_CHARGE } from '../../utils/constants';
 const TYPE_LABELS = {
   AJOUT: 'Ajout',
   RECONDUCTION: 'Reconduction',
-  DELINKAGE: 'Delinkage',
+  DELINKAGE: 'Déliage',
   BASCULEMENT: 'Basculement',
   AUTRE: 'Autres',
 };
@@ -82,7 +82,7 @@ const RequetesListPage = () => {
     <div>
       <PageHeader
         title="Requêtes"
-        subtitle="Suivi des demandes : ajout, reconduction, delinkage, basculement."
+        subtitle="Suivi des demandes : ajout, reconduction, déliage, basculement."
         breadcrumbs={['Espace partenaire', 'Requêtes']}
       />
       {/* Filtres */}

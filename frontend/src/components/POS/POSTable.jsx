@@ -1,6 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '../Common/StatusBadge';
 
+const TYPE_LABELS = {
+  NOUVEAU: 'Créé',
+  RECONDUIT: 'Reconduit',
+  'LIÉ': 'Lié',
+  LIE: 'Lié',
+};
+
 export default function POSTable({ rows = [], loading = false, sort, onSort, onSelect, selectedId = null }) {
   const navigate = useNavigate();
   const safeRows = Array.isArray(rows) ? rows : [];
@@ -8,7 +15,7 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
   const toggle = (field) => onSort?.(field);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
       <table className="min-w-full divide-y divide-gray-200 text-sm">
         <thead className="bg-gray-50">
           <tr>
@@ -44,7 +51,7 @@ export default function POSTable({ rows = [], loading = false, sort, onSort, onS
                 <td className="px-4 py-3">{pos.nom}</td>
                 <td className="px-4 py-3">
                   <span className={(pos.type_pos ?? pos.type) === 'RECONDUIT' ? 'text-gray-500' : 'font-medium text-emerald-700'}>
-                    {pos.type_pos ?? pos.type}
+                    {TYPE_LABELS[pos.type_pos ?? pos.type] ?? (pos.type_pos ?? pos.type) ?? '—'}
                   </span>
                 </td>
                 <td className="px-4 py-3">{pos.partenaire?.nom ?? '—'}</td>

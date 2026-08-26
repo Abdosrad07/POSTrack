@@ -163,7 +163,7 @@ export default function PartnerHomePage() {
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Aperçu analytique</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg bg-sky-50 p-4"><div className="text-sm text-slate-500">POS</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.pos_total ?? 0}</div></div>
+            <div className="rounded-lg bg-sky-50 p-4"><div className="text-sm text-slate-500">Parc POS</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.pos_total ?? 0}</div></div>
             <div className="rounded-lg bg-emerald-50 p-4"><div className="text-sm text-slate-500">POS actifs</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : (stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}</div></div>
             <div className="rounded-lg bg-violet-50 p-4"><div className="text-sm text-slate-500">BTS saturées</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.bts_saturees ?? 0}</div></div>
             <div className="rounded-lg bg-amber-50 p-4"><div className="text-sm text-slate-500">Requêtes ouvertes</div><div className="text-2xl font-bold text-slate-900">{loading ? '…' : stats?.requetes_ouvertes ?? 0}</div></div>

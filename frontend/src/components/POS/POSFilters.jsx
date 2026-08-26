@@ -1,7 +1,15 @@
 import { useState } from 'react';
 
-const STATUTS = ['ACTIF', 'SUSPENDU', 'RENOUVELLEMENT', 'CLOTURE'];
-const TYPES = ['NOUVEAU', 'RECONDUIT'];
+const STATUTS = [
+  { value: 'ACTIF', label: 'Actif' },
+  { value: 'SUSPENDU', label: 'Suspendu' },
+  { value: 'RENOUVELLEMENT', label: 'Renouvellement' },
+  { value: 'CLOTURE', label: 'Clôturé' },
+];
+const TYPES = [
+  { value: 'NOUVEAU', label: 'Créé' },
+  { value: 'RECONDUIT', label: 'Reconduit' },
+];
 
 export default function POSFilters({ partenaires = [], dsms = [], onFilter }) {
   const safePartenaires = Array.isArray(partenaires) ? partenaires : [];
@@ -46,7 +54,7 @@ export default function POSFilters({ partenaires = [], dsms = [], onFilter }) {
           className="w-40 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
         >
           <option value="">Tous</option>
-          {STATUTS.map((s) => <option key={s} value={s}>{s}</option>)}
+          {STATUTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
       </div>
 
@@ -58,7 +66,7 @@ export default function POSFilters({ partenaires = [], dsms = [], onFilter }) {
           className="w-36 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
         >
           <option value="">Tous</option>
-          {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
       </div>
 
@@ -93,7 +101,7 @@ export default function POSFilters({ partenaires = [], dsms = [], onFilter }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-500">Région</label>
+        <label className="text-xs font-medium text-gray-500">Micro-zone</label>
         <input
           type="text"
           value={filters.region}

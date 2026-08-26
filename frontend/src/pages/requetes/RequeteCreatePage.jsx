@@ -7,8 +7,8 @@ import { ENTITES_EN_CHARGE } from '../../utils/constants';
 
 const TYPES = [
   { value: 'AJOUT', label: 'Ajout POS' },
-  { value: 'RECONDUCTION', label: 'Recondition POS' },
-  { value: 'DELINKAGE', label: 'Délinquage POS' },
+  { value: 'RECONDUCTION', label: 'Reconduction POS' },
+  { value: 'DELINKAGE', label: 'Déliage POS' },
   { value: 'BASCULEMENT', label: 'Basculement POS' },
   { value: 'AUTRE', label: 'Autres' },
 ];

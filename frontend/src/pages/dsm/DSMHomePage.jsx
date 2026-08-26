@@ -123,7 +123,7 @@ export default function DSMHomePage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Tile label="POS" value={stats?.pos_total} />
+        <Tile label="Parc POS" value={stats?.pos_total} />
         <Tile label="POS actifs" value={(stats?.pos_nouveau || 0) + (stats?.pos_reconduit || 0)} />
         <Tile label="BTS" value={stats?.bts_saturees} />
         <Tile label="Requêtes ouvertes" value={stats?.requetes_ouvertes} />
@@ -135,7 +135,7 @@ export default function DSMHomePage() {
           <Tile label="Nom" value={dsm.nom} />
           <Tile label="Matricule" value={dsm.matricule} />
           <Tile label="Email" value={dsm.email} />
-          <Tile label="Région" value={dsm.region || dsm.zone} />
+          <Tile label="Micro-zone" value={dsm.micro_zone || dsm.region || dsm.zone} />
           <Tile label="Statut" value={dsm.statut} />
           <Tile label="Téléphone" value={dsm.telephone} />
         </div>
