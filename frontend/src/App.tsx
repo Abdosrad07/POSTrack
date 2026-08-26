@@ -16,6 +16,7 @@ import DSMListPage from './pages/dsm/DSMListPage'
 import DSMCreatePage from './pages/dsm/DSMCreatePage'
 import DSMDetailPage from './pages/dsm/DSMDetailPage'
 import DSMHomePage from './pages/dsm/DSMHomePage'
+import DSMDashboardPage from './pages/dsm/DSMDashboardPage'
 import LoginPage from './pages/auth/LoginPage'
 import RequeteCreatePage from './pages/requetes/RequeteCreatePage'
 import SelectPartnerPage from './pages/auth/SelectPartnerPage'
@@ -94,6 +95,14 @@ function App() {
 
             <Route
               path="dsm"
+              element={
+                <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
+                  <DSMDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="dsm/home"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
                   <DSMHomePage />

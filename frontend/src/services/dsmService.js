@@ -37,6 +37,10 @@ export const dsmService = {
     const data = response.data ? normalizeDsm(response.data) : response.data;
     return { ...response, data };
   },
+  getDashboard: async () => {
+    const response = await api.get('/dsm/dashboard');
+    return response;
+  },
 };
 
 export default dsmService;
