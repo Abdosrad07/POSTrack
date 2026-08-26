@@ -1,0 +1,39 @@
+﻿
+app\models\pos.py:4:    Column, Integer, 
+String, ForeignKey, DateTime, Date, Enum as 
+SAEnum,
+app\models\pos.py:40:    id = 
+Column(Integer, primary_key=True, index=True)
+app\models\pos.py:41:    code_pos = 
+Column(String(50), nullable=False, 
+index=True)
+app\models\pos.py:42:    name = 
+Column(String(150), nullable=False)
+app\models\pos.py:43:    address = 
+Column(String(255), nullable=True)
+app\models\pos.py:44:    zone = 
+Column(String(150), nullable=True)
+app\models\pos.py:45:    latitude = 
+Column(Integer, nullable=True)
+app\models\pos.py:46:    longitude = 
+Column(Integer, nullable=True)
+app\models\pos.py:48:    partner_id = 
+Column(Integer, ForeignKey("partners.id"), 
+nullable=False, index=True)
+app\models\pos.py:49:    dsm_id = 
+Column(Integer, ForeignKey("dsm.id"), 
+nullable=False, index=True)
+app\models\pos.py:50:    holder_user_id = 
+Column(Integer, ForeignKey("users.id"), 
+nullable=True)
+app\models\pos.py:52:    type_pos = 
+Column(SAEnum(TypePos), nullable=False, 
+default=TypePos.NOUVEAU)
+app\models\pos.py:53:    status = 
+Column(SAEnum(StatutPos), nullable=False, 
+default=StatutPos.ACTIF)
+app\models\pos.py:58:    stock_initial = 
+Column(Integer, nullable=False, default=0, 
+server_default="0")
+
+

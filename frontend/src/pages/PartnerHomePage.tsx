@@ -6,6 +6,7 @@ import partenaireService from '../services/partenaireService'
 import posService from '../services/posService'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 import POSMap from '../components/POS/POSMap'
+import TerritoryMap from '../components/TerritoryMap'
 
 type Stats = {
   partner_name?: string
@@ -174,7 +175,7 @@ export default function PartnerHomePage() {
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Carte géographique</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Carte géographique POS</h2>
             <p className="text-sm text-slate-500">Étendue des points de vente du partenaire sur le territoire.</p>
           </div>
           <Link
@@ -187,6 +188,25 @@ export default function PartnerHomePage() {
         <div className="h-[420px] overflow-hidden rounded-lg border border-slate-200">
           <POSMap pos={recentPos as never} partnerId={partnerContextId} dsmId={undefined} />
         </div>
+      </div>
+
+      {/* Carte territoriale du partenaire (BTS, micro-zones, zones) */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Territoire partenaire</h2>
+            <p className="text-sm text-slate-500">Représentation géographique du territoire commercial : BTS, micro-zones et quartiers couverts.</p>
+          </div>
+          <Link
+            to="/bts"
+            className="rounded-lg border border-sky-300 px-3 py-2 text-sm font-medium text-sky-700 hover:bg-sky-50"
+          >
+            Gestion BTS
+          </Link>
+        </div>
+        {partnerContextId && (
+          <TerritoryMap partnerId={partnerContextId} onSelect={(bts) => console.log('BTS sélectionné:', bts)} />
+        )}
       </div>
     </div>
   )

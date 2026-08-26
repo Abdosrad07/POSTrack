@@ -5,7 +5,7 @@ client (responsable, commercial, numero MasterSIM) et pointe vers ses
 micro-zones geographiques (table `micro_zones`).
 """
 from sqlalchemy import (
-    Column, Integer, String, DateTime, Boolean, Float, ForeignKey, Date,
+    Column, Integer, String, DateTime, Boolean, Float, ForeignKey, Date, JSON,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -43,6 +43,10 @@ class Partner(Base):
     # Le contenu brut ne doit pas être exposé ni journalisé.
     bts_import_file_path = Column(String(500), nullable=True)
 
+    # Perimetre global du partenaire (polygone GeoJSON) fourni par le client.
+    # NULL tant qu'aucune geometrie n'est communiquee.
+    territory_geojson = Column(JSON, nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relations
@@ -73,6 +77,10 @@ class MicroZone(Base):
     code = Column(String(50), nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    # Perimetre reel de la micro-zone (polygone GeoJSON) fourni par le client.
+    # NULL tant qu'aucune geometrie n'est communiquee ; aucune forme n'est
+    # estimee cote serveur.
+    boundaries = Column(JSON, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
