@@ -1,6 +1,6 @@
 """Service pour le calcul des statistiques de linkage POS."""
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import case, func
 
 from app.models.pos import POS, LinkageStatus, StatutPos
 
@@ -9,9 +9,9 @@ def get_pos_linkage_stats(db: Session, partner_id: int, dsm_id: int = None) -> d
     """Calcule les statistiques de linkage POS pour un partenaire ou un DSM."""
     query = db.query(
         func.count(POS.id).label('total'),
-        func.sum(func.case((POS.holder_user_id.isnot(None), 1), else_=0)).label('linked'),
-        func.sum(func.case((POS.holder_user_id.is_(None), 1), else_=0)).label('unlinked'),
-        func.sum(func.case((POS.status == StatutPos.ACTIF, 1), else_=0)).label('actifs'),
+        func.sum(case((POS.holder_user_id.isnot(None), 1), else_=0)).label('linked'),
+        func.sum(case((POS.holder_user_id.is_(None), 1), else_=0)).label('unlinked'),
+        func.sum(case((POS.status == StatutPos.ACTIF, 1), else_=0)).label('actifs'),
     ).filter(POS.partner_id == partner_id)
     
     if dsm_id:

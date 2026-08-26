@@ -135,8 +135,15 @@ def _calculate_delay(requete: Requete) -> int | None:
     """Calcule le délai d'attente en jours entre création et fin."""
     if not requete.date_creation:
         return None
+
+    def _as_utc(value: datetime) -> datetime:
+        """Normalise naive/aware en UTC (SQLite relit des datetimes naive)."""
+        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None \
+            else value.astimezone(timezone.utc)
+
     end_date = requete.date_finalisation or datetime.now(timezone.utc)
-    return (end_date - requete.date_creation).days
+    return (_as_utc(end_date) - _as_utc(requete.date_creation)).days
+
 
 
 def _is_late(requete: Requete) -> bool:
