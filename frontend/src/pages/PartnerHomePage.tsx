@@ -53,6 +53,9 @@ type Identity = {
   nb_bts?: number
 }
 
+/** Charge utile brute des endpoints analytics ; le détail est consommé par les cartes enfants. */
+type AnalyticsPayload = Record<string, unknown>
+
 const features = [
   { label: 'DSM', to: '/dsm' },
   { label: 'POS', to: '/pos' },
@@ -70,9 +73,9 @@ export default function PartnerHomePage() {
   }
   const [stats, setStats] = useState<Stats | null>(null)
   const [identity, setIdentity] = useState<Identity | null>(null)
-  const [salesSummary, setSalesSummary] = useState<any | null>(null)
-  const [loadingSummary, setLoadingSummary] = useState<any | null>(null)
-  const [monthlyTable, setMonthlyTable] = useState<any | null>(null)
+  const [salesSummary, setSalesSummary] = useState<AnalyticsPayload | null>(null)
+  const [loadingSummary, setLoadingSummary] = useState<AnalyticsPayload | null>(null)
+  const [monthlyTable, setMonthlyTable] = useState<AnalyticsPayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingPeriod, setLoadingPeriod] = useState<{ period_start?: string; period_end?: string }>({})
 

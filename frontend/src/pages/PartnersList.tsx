@@ -8,15 +8,42 @@ type Partenaire = {
   code_partenaire?: string
   type_partenaire?: string
   raison_sociale?: string
-  ville?: string
-  region?: string
-  adresse?: string
+  ville?: string | null
+  region?: string | null
+  adresse?: string | null
   email: string
   telephone: string
   responsable?: string
   pos_count: number
   statut: 'actif' | 'inactif' | string
   date_debut_contrat?: string | Date | null
+}
+
+/** Forme brute renvoyée par l'API avant normalisation (libellés FR et EN acceptés). */
+type PartenairePayload = {
+  id?: number
+  nom?: string
+  name?: string
+  raison_sociale?: string
+  code_partenaire?: string
+  code?: string
+  type_partenaire?: string
+  type?: string
+  partner_type?: string
+  ville?: string | null
+  region?: string | null
+  adresse?: string | null
+  email?: string
+  email_contact?: string
+  telephone?: string
+  contact?: string
+  responsable?: string
+  contact_principal?: string
+  full_name?: string
+  pos_count?: number
+  statut?: string
+  date_debut_contrat?: string | Date | null
+  contract_start_date?: string | Date | null
 }
 
 export default function PartenairesListPage() {
@@ -34,10 +61,10 @@ export default function PartenairesListPage() {
         setLoading(true)
         const response = await partenaireService.getAll({ limit: 500 })
         const raw = response.data?.items || response.data?.data || response.data || []
-        const list = Array.isArray(raw) ? raw : []
+        const list = Array.isArray(raw) ? (raw as PartenairePayload[]) : []
         const data = list
-          .filter((p): p is Partenaire & Record<string, any> => !!p && typeof p.id === 'number')
-          .map((p: Partial<Partenaire> & Record<string, any>) => ({
+          .filter((p): p is PartenairePayload & { id: number } => !!p && typeof p.id === 'number')
+          .map((p) => ({
             id: p.id,
             nom: p.nom || p.name || p.raison_sociale || `Partenaire #${p.id}`,
             code_partenaire: p.code_partenaire || p.code,
@@ -50,7 +77,7 @@ export default function PartenairesListPage() {
             telephone: p.telephone || p.contact || '',
             responsable: p.responsable || p.contact_principal || p.full_name,
             pos_count: p.pos_count ?? 0,
-            statut: ((p.statut || 'ACTIF') as string).toLowerCase(),
+            statut: (p.statut || 'ACTIF').toLowerCase(),
             date_debut_contrat: p.date_debut_contrat ?? p.contract_start_date ?? null,
           })) as Partenaire[]
         if (!ignore) {

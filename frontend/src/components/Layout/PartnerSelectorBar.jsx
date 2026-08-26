@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import usePartner from '../../hooks/usePartner';
 import Button from '../Common/Button/Button';
 import DemoDataBanner from '../Common/DemoDataBanner/DemoDataBanner';
+import { envFlag } from '../../utils/envFlags';
 
 /**
  * Barre de contexte partenaire actif.
@@ -39,7 +40,7 @@ const PartnerSelectorBar = () => {
           Changer de partenaire
         </Button>
       </div>
-      {partner?.__mock && !import.meta.env.VITE_DISABLE_DEMO_BANNER ? (
+      {partner?.__mock && !envFlag(import.meta.env.VITE_DISABLE_DEMO_BANNER) ? (
         <DemoDataBanner
           compact
           message="Le backend est indisponible : le contexte partenaire actif utilise des données de démonstration."

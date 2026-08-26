@@ -27,19 +27,42 @@ type PosRow = {
   partenaire?: { nom: string }
 }
 
-const normalizePosRows = (payload: any): PosRow[] => {
-  const rows = Array.isArray(payload?.items)
-    ? payload.items
-    : Array.isArray(payload?.data)
-      ? payload.data
-      : Array.isArray(payload?.results)
-        ? payload.results
+type PartnerContext = {
+  nom?: string
+  name?: string
+  code_partenaire?: string
+  code?: string
+}
+
+type PosApiRow = {
+  id?: number
+  code_pos?: string
+  code?: string
+  nom?: string
+  name?: string
+  statut?: string
+  status?: string
+  type_pos?: string
+  type?: string
+  partenaire?: { nom?: string; name?: string; code_partenaire?: string }
+}
+
+type ListEnvelope = { items?: PosApiRow[]; data?: PosApiRow[]; results?: PosApiRow[] }
+
+const normalizePosRows = (payload: unknown): PosRow[] => {
+  const envelope = (typeof payload === 'object' && payload !== null ? payload : {}) as ListEnvelope
+  const rows = Array.isArray(envelope.items)
+    ? envelope.items
+    : Array.isArray(envelope.data)
+      ? envelope.data
+      : Array.isArray(envelope.results)
+        ? envelope.results
         : Array.isArray(payload)
-          ? payload
+          ? (payload as PosApiRow[])
           : []
 
-  return rows.map((row: any) => ({
-    id: row?.id,
+  return rows.map((row) => ({
+    id: row?.id ?? 0,
     code_pos: row?.code_pos || row?.code || '',
     nom: row?.nom || row?.name || '',
     statut: row?.statut || row?.status || '',
@@ -51,7 +74,11 @@ const normalizePosRows = (payload: any): PosRow[] => {
 }
 
 function Dashboard() {
-  const { partnerContextId, partner, user } = usePartner() as any
+  const { partnerContextId, partner, user } = usePartner() as {
+    partnerContextId: number | null
+    partner: PartnerContext | null
+    user: { role?: string } | null
+  }
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentPos, setRecentPos] = useState<PosRow[]>([])
   const [loading, setLoading] = useState(true)

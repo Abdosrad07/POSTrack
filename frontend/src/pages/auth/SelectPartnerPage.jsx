@@ -7,6 +7,8 @@ import { ROLE_LABELS } from '../../utils/constants';
 import Button from '../../components/Common/Button/Button';
 import Alert from '../../components/Common/Alert/Alert';
 import DemoDataBanner from '../../components/Common/DemoDataBanner/DemoDataBanner';
+import Logo from '../../assets/logos/LOGO.jpeg';
+import { envFlag } from '../../utils/envFlags';
 
 const SelectPartnerPage = () => {
   const { user, logout, loading: authLoading, isAuthenticated } = useAuth();
@@ -94,7 +96,7 @@ const SelectPartnerPage = () => {
       <div className="w-full max-w-2xl space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold tracking-wide text-sky-700">POSTrack</p>
+            <img src={Logo} alt="POSTrack logo" className="h-8 w-auto" />
             <h1 className="mt-1 text-2xl font-bold text-slate-900">Sélection du partenaire</h1>
             <p className="mt-2 text-sm text-slate-600">
               Choisissez le contexte partenaire avant d&apos;accéder aux modules métier.
@@ -127,7 +129,7 @@ const SelectPartnerPage = () => {
 
         {error && <Alert type="error" message={error} />}
 
-        {(partners.some((p) => p.__mock) || partner?.__mock) && !import.meta.env.VITE_DISABLE_DEMO_BANNER && (
+        {(partners.some((p) => p.__mock) || partner?.__mock) && !envFlag(import.meta.env.VITE_DISABLE_DEMO_BANNER) && (
           <DemoDataBanner message="Mode de démonstration activé : les partenaires affichés sont des exemples temporaires." />
         )}
 
@@ -147,26 +149,26 @@ const SelectPartnerPage = () => {
                   const partnerCode = item.code_partenaire || item.code || '';
 
                   return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(item)}
-                    disabled={selectingId === item.id}
-                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-4 text-left transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${selectedId === item.id ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white hover:border-sky-400 hover:bg-sky-50'}`}
-                  >
-                    <div>
-                      <p className="font-semibold text-slate-900">{partnerName}</p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {partnerCode}
-                        {item.ville ? ` · ${item.ville}` : ''}
-                        {item.region ? ` · ${item.region}` : ''}
-                      </p>
-                    </div>
-                    <span className="text-sm font-medium text-sky-700">
-                      {selectedId === item.id ? 'Sélectionné' : 'Sélectionner'}
-                    </span>
-                  </button>
-                </li>
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(item)}
+                        disabled={selectingId === item.id}
+                        className={`flex w-full items-center justify-between rounded-xl border px-4 py-4 text-left transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${selectedId === item.id ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white hover:border-sky-400 hover:bg-sky-50'}`}
+                      >
+                        <div>
+                          <p className="font-semibold text-slate-900">{partnerName}</p>
+                          <p className="mt-1 text-sm text-slate-500">
+                            {partnerCode}
+                            {item.ville ? ` · ${item.ville}` : ''}
+                            {item.region ? ` · ${item.region}` : ''}
+                          </p>
+                        </div>
+                        <span className="text-sm font-medium text-sky-700">
+                          {selectedId === item.id ? 'Sélectionné' : 'Sélectionner'}
+                        </span>
+                      </button>
+                    </li>
                   );
                 })}
             </ul>

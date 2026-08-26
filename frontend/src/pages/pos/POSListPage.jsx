@@ -173,7 +173,7 @@ export default function POSListPage() {
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-gray-900">Liste des POS</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Résultats</h2>
           <span className="text-sm text-gray-500">{rows.length} POS affiché(s)</span>
         </div>
 
