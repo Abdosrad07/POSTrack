@@ -7,7 +7,7 @@ const SIZE_CLASSES = {
 };
 
 /**
- * Indicateur de chargement réutilisable (Module A2).
+ * Indicateur de chargement réutilisable — design system polish.
  */
 const LoadingSpinner = ({
   size = 'md',
@@ -17,18 +17,24 @@ const LoadingSpinner = ({
 }) => {
   const spinner = (
     <div className={`flex flex-col items-center justify-center gap-3 ${className}`}>
-      <div
-        className={`${SIZE_CLASSES[size] || SIZE_CLASSES.md} animate-spin rounded-full border-sky-600 border-t-transparent`}
-        role="status"
-        aria-label={label}
-      />
-      {label ? <p className="text-sm font-medium text-slate-600">{label}</p> : null}
+      <div className="relative">
+        <div
+          className={`${SIZE_CLASSES[size] || SIZE_CLASSES.md} animate-spin rounded-full border-brand-200 border-t-brand-600`}
+          role="status"
+          aria-label={label}
+        />
+      </div>
+      {label ? (
+        <p className="text-sm font-medium text-slate-500 animate-pulse-soft">{label}</p>
+      ) : null}
     </div>
   );
 
   if (fullScreen) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100">{spinner}</div>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 bg-mesh-pattern">
+        {spinner}
+      </div>
     );
   }
 

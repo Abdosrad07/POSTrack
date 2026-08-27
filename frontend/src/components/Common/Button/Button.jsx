@@ -1,10 +1,44 @@
 import React from 'react';
 
-const Button = ({ children, onClick, variant = 'primary', type = 'button', className = '', ...props }) => {
+const VARIANT_CLASSES = {
+  primary: 'btn-primary',
+  indigo: 'btn-indigo',
+  success: 'btn-success',
+  green: 'btn-success',
+  danger: 'btn-danger',
+  red: 'btn-danger',
+  warning: 'btn-warning',
+  amber: 'btn-warning',
+  secondary: 'btn-secondary',
+  gray: 'btn-gray',
+  ghost: 'btn-ghost',
+};
+
+const SIZE_CLASSES = {
+  sm: 'btn-sm',
+  md: '',
+  lg: 'btn-lg',
+};
+
+/**
+ * Bouton réutilisable avec variantes et tailles.
+ */
+const Button = ({
+  children,
+  onClick,
+  variant = 'primary',
+  type = 'button',
+  className = '',
+  size = 'md',
+  ...props
+}) => {
+  const variantClass = VARIANT_CLASSES[variant] || VARIANT_CLASSES.primary;
+  const sizeClass = SIZE_CLASSES[size] || '';
+
   return (
     <button
       type={type}
-      className={`bg-${variant}-500 text-white px-4 py-2 rounded-md hover:bg-${variant}-700 ${className}`}
+      className={`btn ${variantClass} ${sizeClass} ${className}`}
       onClick={onClick}
       {...props}
     >

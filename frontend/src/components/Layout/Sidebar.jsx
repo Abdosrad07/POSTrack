@@ -25,7 +25,7 @@ const Sidebar = ({ open = false, onClose }) => {
     <>
       {/* Overlay mobile */}
       <div
-        className={`fixed inset-0 z-30 bg-slate-900/40 transition-opacity md:hidden ${
+        className={`fixed inset-0 z-30 bg-slate-900/30 backdrop-blur-sm transition-all md:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
@@ -33,8 +33,8 @@ const Sidebar = ({ open = false, onClose }) => {
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white pt-16 transition-transform duration-200 md:translate-x-0 ${
-          open ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200/80 bg-white/95 pt-16 backdrop-blur-xl transition-transform duration-300 ease-out md:translate-x-0 ${
+          open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         }`}
         aria-label="Navigation principale"
       >
@@ -46,14 +46,15 @@ const Sidebar = ({ open = false, onClose }) => {
           {partner ? (
             <button
               type="button"
-              className="mb-3 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm font-semibold text-slate-900"
+              className="mb-4 w-full rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 px-3 py-2.5 text-left text-sm transition-all hover:from-indigo-100 hover:to-sky-100"
               onClick={() => {
                 clearPartner();
                 navigate('/');
                 onClose?.();
               }}
             >
-              Contexte actif : {partner.nom || partner.code_partenaire || `Partenaire #${partner.id}`}
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">Contexte actif</span>
+              <p className="mt-0.5 truncate font-semibold text-slate-900">{partner.nom || partner.code_partenaire || `Partenaire #${partner.id}`}</p>
             </button>
           ) : null}
           {items.map((item) => (
@@ -63,29 +64,33 @@ const Sidebar = ({ open = false, onClose }) => {
               end={item.end}
               onClick={onClose}
               className={({ isActive }) =>
-                `block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-sky-600 text-white shadow-sm'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                    ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`
               }
             >
+              {item.icon && (
+                <span className={`text-base ${item.icon}`} aria-hidden="true" />
+              )}
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="border-t border-slate-100 px-4 py-3 text-xs text-slate-400">
-          <div className="space-y-3">
-            <div>POSTrack · v3.1-R7</div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex w-full items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
-            >
-              Déconnexion
-            </button>
+        <div className="border-t border-slate-100 px-4 py-4">
+          <div className="mb-3 text-center">
+            <span className="section-label text-slate-400">POSTrack · v3.1-R7</span>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="group flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 transition-all hover:border-red-200 hover:bg-red-100 hover:text-red-700 hover:shadow-sm"
+          >
+            <span className="transition-transform group-hover:-translate-x-0.5">←</span>
+            Déconnexion
+          </button>
         </div>
       </aside>
     </>
