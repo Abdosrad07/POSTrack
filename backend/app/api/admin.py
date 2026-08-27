@@ -9,13 +9,17 @@ from app.models.user import User
 from app.models.audit import AuditLog
 from app.security.permissions import Role, ADMIN_SCREEN_ROLES
 from app.schemas.partner import PartnerCreate, PartnerOut, DSMCreate, DSMOut
+from app.services.dsm_identity_service import enrich_dsm_rows
 
 router = APIRouter(prefix="/api/admin", tags=["Administration"])
 
 
 @router.get("/partners", response_model=list[PartnerOut])
 def list_partners(db: Session = Depends(get_db), _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
-    return partner_crud.list(db, limit=500)
+    from app.api.partenaires import _attach_pos_counts
+
+    partners = partner_crud.list(db, limit=500)
+    return _attach_pos_counts(db, partners)
 
 
 @router.post("/partners", response_model=PartnerOut, status_code=201)
@@ -27,13 +31,14 @@ def create_partner(payload: PartnerCreate, db: Session = Depends(get_db),
 @router.get("/dsm", response_model=list[DSMOut])
 def list_dsm(partner_id: int | None = None, db: Session = Depends(get_db),
              _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
-    return dsm_crud.list(db, partner_id=partner_id, limit=500)
+    return enrich_dsm_rows(db, dsm_crud.list(db, partner_id=partner_id, limit=500))
 
 
 @router.post("/dsm", response_model=DSMOut, status_code=201)
 def create_dsm(payload: DSMCreate, db: Session = Depends(get_db),
                 _admin: User = Depends(require_roles(*ADMIN_SCREEN_ROLES))):
-    return dsm_crud.create(db, payload.model_dump())
+    dsm = dsm_crud.create(db, payload.model_dump())
+    return enrich_dsm_rows(db, [dsm])[0]
 
 
 @router.patch("/dsm/{dsm_id}/deactivate")

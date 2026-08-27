@@ -267,6 +267,16 @@ PARTNER_POS_PLAN = {
     2: ("POS-MC-", 27, DSMS[2], [z[0] for z in ZONE_DEFS[2]]),
     3: ("POS-GL-", 11, DSMS[3], [z[0] for z in ZONE_DEFS[3]]),
 }
+
+# Centre GPS (WGS84) de chaque micro-zone : chaque POS recoit une
+# position biaisee autour du centre de sa zone (~+/-900 m) afin que la
+# carte Leaflet et les tableaux affichent des coordonnees realistes.
+ZONE_COORDS = {
+    zname: (lat, lon)
+    for zones in ZONE_DEFS.values()
+    for (zname, _zcode, lat, lon) in zones
+}
+
 for pid, (prefix, total, dsms, zone_names) in PARTNER_POS_PLAN.items():
     first_num = 2 if pid == 2 else 1  # MC-000001 existe deja (id 201)
     for i in range(total):
@@ -311,9 +321,13 @@ for pid, (prefix, total, dsms, zone_names) in PARTNER_POS_PLAN.items():
             holder_id = hu.id
             holders_created.append((uname, hu))
 
+        base_lat, base_lon = ZONE_COORDS.get(zone, (0.0, 0.0))
         p = POS(code_pos=f"{prefix}{first_num + i:06d}", name=pos_name(zone),
                 address=f"{zone}, {rng.choice(LIEUX).lower()} proche {rng.choice(LIEUX).lower()}",
-                zone=zone, partner_id=pid, dsm_id=dsm.id,
+                zone=zone,
+                latitude=round(base_lat + rng.uniform(-0.008, 0.008), 6),
+                longitude=round(base_lon + rng.uniform(-0.008, 0.008), 6),
+                partner_id=pid, dsm_id=dsm.id,
                 holder_user_id=holder_id,
                 type_pos=type_pos, status=status,
                 stock_initial=stock_initial, stock_actuel=stock_actuel,

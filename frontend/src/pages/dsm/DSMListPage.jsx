@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import dsmService from '../../services/dsmService'
+import ExportButtons from '../../components/Common/ExportButtons/ExportButtons'
+
+/** Colonnes du tableau / export DSM — alignées sur DSMOut (backend). */
+const EXPORT_COLUMNS = [
+  { label: 'Matricule', value: 'matricule' },
+  { label: 'Nom complet', value: 'nom' },
+  { label: 'Zone / Micro-zone', value: 'micro_zone' },
+  { label: 'Partenaire', value: 'partner_name' },
+  { label: 'POS créés', value: 'nb_pos_crees' },
+  { label: 'Statut', value: 'statut' },
+  {
+    label: 'Créé le',
+    value: (d) => (d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : ''),
+  },
+]
 export default function DSMListPage() {
   const [dsms, setDsms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -95,32 +110,44 @@ export default function DSMListPage() {
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {/* List view des DSMs */}
         <div>
-          <h2 className="mb-2 text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Liste des DSMs</h2>
+          <div className="mb-2 flex items-center justify-between gap-3 border-b border-gray-200 pb-2">
+            <h2 className="text-lg font-semibold text-gray-900">Liste des DSMs</h2>
+            <ExportButtons
+              rows={filteredDsms}
+              columns={EXPORT_COLUMNS}
+              fileName="dsm"
+              title="Liste des DSM"
+              disabled={loading}
+            />
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nom</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Micro-zone</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Matricule</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nom complet</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Zone / Micro-zone</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Partenaire</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">POS créés</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Créé le</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                    <td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-500">
                       Chargement...
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-sm text-red-600">{error}</td>
+                    <td colSpan={8} className="px-6 py-8 text-center text-sm text-red-600">{error}</td>
                   </tr>
                 ) : filteredDsms.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                    <td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-500">
                       Aucun DSM ne correspond à vos critères.
                     </td>
                   </tr>
@@ -128,18 +155,27 @@ export default function DSMListPage() {
                   filteredDsms.map((dsm) => (
                     <tr key={dsm.id}>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                        {dsm.matricule || '—'}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                         {dsm.nom}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         {dsm.micro_zone || 'Non renseigné'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {dsm.email}
+                        {dsm.partner_name || 'Non renseigné'}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-700">
+                        {dsm.nb_pos_crees ?? 0}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${dsm.statut === 'actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                           {dsm.statut}
                         </span>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        {dsm.created_at ? new Date(dsm.created_at).toLocaleDateString('fr-FR') : '—'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                         <Link to={`/dsm/${dsm.id}`} className="text-indigo-600 hover:text-indigo-900 mr-3">

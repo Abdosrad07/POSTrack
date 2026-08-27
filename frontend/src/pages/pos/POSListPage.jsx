@@ -6,6 +6,24 @@ import dsmService from '../../services/dsmService';
 import POSFilters from '../../components/POS/POSFilters';
 import POSTable from '../../components/POS/POSTable';
 import POSMap from '../../components/POS/POSMap';
+import ExportButtons from '../../components/Common/ExportButtons/ExportButtons';
+
+/** Colonnes d'export POS — alignées sur le tableau (POSTable). */
+const EXPORT_COLUMNS = [
+  { label: 'Code POS', value: 'code_pos' },
+  { label: 'Nom', value: 'nom' },
+  { label: 'Type', value: 'type_pos' },
+  { label: 'Partenaire', value: 'partenaire.nom' },
+  { label: 'DSM', value: 'dsm.nom_complet' },
+  { label: 'Adresse / Zone', value: 'zone' },
+  { label: 'Latitude GPS', value: 'latitude' },
+  { label: 'Longitude GPS', value: 'longitude' },
+  { label: 'Statut', value: 'statut' },
+  { label: 'Linkage', value: 'linkage_status' },
+  { label: 'Loading', value: 'loading' },
+  { label: 'Sell-out', value: 'sell_out' },
+  { label: 'Expiration', value: 'date_expiration' },
+];
 
 const PAGE_SIZE = 20;
 
@@ -174,7 +192,16 @@ export default function POSListPage() {
 
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-gray-900">Résultats</h2>
-          <span className="text-sm text-gray-500">{rows.length} POS affiché(s)</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-sm text-gray-500">{rows.length} POS affiché(s)</span>
+            <ExportButtons
+              rows={normalizedRows}
+              columns={EXPORT_COLUMNS}
+              fileName="pos"
+              title="Points de vente"
+              disabled={status === 'loading'}
+            />
+          </div>
         </div>
 
         {status === 'empty' ? (

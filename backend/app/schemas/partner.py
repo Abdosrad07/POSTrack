@@ -31,6 +31,9 @@ class PartnerOut(PartnerBase):
     commercial_user_id: int | None = None
     master_sim_number: str | None = None
     created_at: datetime
+    # Compteur POS calcule cote API (une requete GROUP BY) pour les
+    # tableaux frontend ; None si l'endpoint n'a pas enrichi la ligne.
+    pos_count: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -103,5 +106,10 @@ class DSMOut(DSMBase):
     id: int
     partner_id: int
     created_at: datetime
+    # Champs d'affichage calcules cote API pour les tableaux frontend :
+    # nom du partenaire porteur et nombre de POS supervises. None si non
+    # enrichi par l'endpoint appelant.
+    partner_name: str | None = None
+    nb_pos_crees: int | None = None
 
     model_config = ConfigDict(from_attributes=True)

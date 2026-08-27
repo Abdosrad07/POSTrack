@@ -4,7 +4,39 @@ import EmptyState from '../../components/Common/EmptyState/EmptyState';
 import ErrorState from '../../components/Common/ErrorState/ErrorState';
 import LoadingSpinner from '../../components/Common/LoadingSpinner/LoadingSpinner';
 import requeteService from '../../services/requeteService';
+import dsmService from '../../services/dsmService';
 import { ENTITES_EN_CHARGE } from '../../utils/constants';
+import ExportButtons from '../../components/Common/ExportButtons/ExportButtons';
+
+const EXPORT_COLUMNS = [
+  {
+    label: 'Date d\'ouverture',
+    value: (r) => (r.date_creation ? new Date(r.date_creation).toLocaleDateString('fr-FR') : ''),
+  },
+  { label: 'Titre / Cas', value: (r) => r.titre ?? r.cas ?? '' },
+  { label: 'Demandeur', value: 'demandeur_name' },
+  { label: 'DSM demandeur', value: 'dsm_name' },
+  { label: 'Type', value: (r) => TYPE_LABELS[r.type_requete] ?? r.type_requete ?? '' },
+  {
+    label: 'Statut',
+    value: (r) =>
+      r.statut ??
+      (r.nombre_effectue + r.nombre_rejete >= r.nombre_demande && r.nombre_demande > 0 ? 'Terminée' : 'En cours'),
+  },
+  { label: 'Entité en charge', value: 'entite_en_charge' },
+  { label: 'Délai (jours)', value: 'delai' },
+  { label: 'Nombre demandé', value: 'nombre_demande' },
+  { label: 'Nombre effectué', value: 'nombre_effectue' },
+  { label: 'Nombre rejeté', value: 'nombre_rejete' },
+  { label: 'En retard', value: (r) => (r.en_retard ? 'Oui' : 'Non') },
+  {
+    label: 'Date de fin',
+    value: (r) =>
+      r.date_finalisation || r.closed_at
+        ? new Date(r.date_finalisation || r.closed_at).toLocaleDateString('fr-FR')
+        : '',
+  },
+];
 
 const TYPE_LABELS = {
   AJOUT: 'Ajout',
@@ -54,10 +86,18 @@ const RequetesListPage = () => {
     }
   }, [filters.dsm_id]);
 
-  const fetchDSMs = useCallback(async () => {
+    const fetchDSMs = useCallback(async () => {
     try {
-      const response = await dsmService.list();
-      setDsms(response.data || []);
+      const response = await dsmService.getAll();
+      const payload = response.data ?? {};
+      const list = Array.isArray(payload.items)
+        ? payload.items
+        : Array.isArray(payload.data)
+          ? payload.data
+          : Array.isArray(payload)
+            ? payload
+            : [];
+      setDsms(list);
     } catch (err) {
       console.error('Impossible de charger les DSM:', err);
       setDsms([]);
@@ -157,20 +197,30 @@ const RequetesListPage = () => {
         <EmptyState title="Aucune requête"
           message="Aucune requête n'a encore été enregistrée pour ce partenaire." icon="🧭" />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 bg-slate-50/50">
+            <span className="text-sm text-slate-600">{rows.length} requête(s)</span>
+            <ExportButtons
+              rows={rows}
+              columns={EXPORT_COLUMNS}
+              fileName="requetes"
+              title="Suivi des requêtes"
+              disabled={loading}
+            />
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Titre / Cas</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date d'ouverture</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Demandeur</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">DSM demandeur</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Statut</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Type de requête</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Statut</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Entité en charge</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Délai d'attente</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date de fin</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Cas / anomalie</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
@@ -179,12 +229,14 @@ const RequetesListPage = () => {
                   const fin = dayOf(item.date_finalisation || item.closed_at);
                   const statut = item.statut || (item.nombre_effectue + item.nombre_rejete >= item.nombre_demande && item.nombre_demande > 0 ? 'Terminée' : 'En cours');
                   const delaiAttente = item.delai_attente != null ? `${item.delai_attente} jour(s)` : '—';
-                  
+
                   return (
                     <tr key={item.id} className={item.en_retard ? 'bg-amber-50' : ''}>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{item.titre || '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{created}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{item.demandeur_name || '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{item.dsm_name || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{TYPE_LABELS[item.type_requete] ?? item.type_requete}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
                           statut === 'Terminée' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
@@ -197,11 +249,9 @@ const RequetesListPage = () => {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{TYPE_LABELS[item.type_requete] ?? item.type_requete}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{item.entite_en_charge || '—'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{delaiAttente}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{fin || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{item.titre || '—'}</td>
                     </tr>
                   );
                 })}

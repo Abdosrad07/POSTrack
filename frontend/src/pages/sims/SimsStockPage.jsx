@@ -3,8 +3,22 @@ import PageHeader from '../../components/Common/PageHeader/PageHeader';
 import EmptyState from '../../components/Common/EmptyState/EmptyState';
 import ErrorState from '../../components/Common/ErrorState/ErrorState';
 import LoadingSpinner from '../../components/Common/LoadingSpinner/LoadingSpinner';
+import ExportButtons from '../../components/Common/ExportButtons/ExportButtons';
 import { simService } from '../../services/simService';
 import api from '../../services/api';
+
+/** Colonnes du tableau / export Stock SIM — alignées sur SIMOut (backend). */
+const EXPORT_COLUMNS = [
+  { label: 'ICCID', value: 'iccid' },
+  { label: 'Numéro MSISDN', value: 'numero_msisdn' },
+  { label: 'ID POS', value: 'pos_id' },
+  { label: 'POS (code)', value: 'pos.code_pos' },
+  { label: 'POS (nom)', value: 'pos.name' },
+  { label: 'Partenaire', value: 'partner_id' },
+  { label: 'Statut', value: 'status' },
+  { label: 'Créée le', value: (r) => (r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR') : '') },
+  { label: 'Mise à jour', value: (r) => (r.updated_at ? new Date(r.updated_at).toLocaleDateString('fr-FR') : '') },
+];
 
 const VUES = [
   { key: 'creation', label: 'Création' },
@@ -252,6 +266,13 @@ const SimsStockPage = () => {
                 ))}
               </select>
             </label>
+            <ExportButtons
+              rows={items}
+              columns={EXPORT_COLUMNS}
+              fileName="stock-sim"
+              title="Inventaire Stock SIM"
+              disabled={loading}
+            />
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">

@@ -5,9 +5,10 @@ import BTSInfoPanel from '../../components/BTS/BTSInfoPanel'
 import Logo from '../../assets/logos/LOGO.jpeg'
 import btsDebug from '../../utils/btsDebug'
 import { STORAGE_KEYS } from '../../utils/constants'
-import api from '../../services/api'
+import api from '../../services/api';
+import ExportButtons from '../../components/Common/ExportButtons/ExportButtons';
 
-const BTS_IMPORT_STORAGE_KEY = 'bts_internal_import_ref'
+const BTS_IMPORT_STORAGE_KEY = 'bts_internal_import_ref';
 
 /**
  * Lien cartographique présentant TOUTES les BTS filtrées :
@@ -41,6 +42,20 @@ const getStatusStyle = (status) => {
   }
   return styles[normalized] || 'bg-gray-100 text-gray-800'
 }
+
+/** Colonnes du tableau / export BTS — alignées sur BTSOut (backend). */
+const EXPORT_COLUMNS = [
+  { label: 'Code', value: 'code' },
+  { label: 'Nom', value: 'nom' },
+  { label: 'Localisation', value: 'localisation' },
+  { label: 'Quartier', value: 'quartier' },
+  { label: 'Micro-zone', value: 'micro_zone' },
+  { label: 'Partenaire', value: 'partenaire' },
+  { label: 'Saturation (%)', value: 'saturation' },
+  { label: 'Statut', value: (b) => STATUS_LABEL[b.statut?.toUpperCase()] ?? b.statut ?? '—' },
+  { label: 'Latitude', value: 'latitude' },
+  { label: 'Longitude', value: 'longitude' },
+];
 
 const STATUS_LABEL = {
   ACTIF: 'Actif',
@@ -260,7 +275,16 @@ export default function BTSListPage() {
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-2">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-slate-900">Tableau de saturation</h2>
-            <span className="text-sm text-slate-500">{totalFiltered} résultat(s)</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm text-slate-500">{totalFiltered} résultat(s)</span>
+              <ExportButtons
+                rows={filteredBts}
+                columns={EXPORT_COLUMNS}
+                fileName="bts"
+                title="BTS - Saturation"
+                disabled={loading}
+              />
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">

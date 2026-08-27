@@ -4,6 +4,7 @@ import PageHeader from '../../components/Common/PageHeader/PageHeader';
 import EmptyState from '../../components/Common/EmptyState/EmptyState';
 import LoadingSpinner from '../../components/Common/LoadingSpinner/LoadingSpinner';
 import ErrorState from '../../components/Common/ErrorState/ErrorState';
+import ExportButtons from '../../components/Common/ExportButtons/ExportButtons';
 import api from '../../services/api';
 
 const formatDate = (value) => {
@@ -32,6 +33,17 @@ const normalizeAuditRows = (payload) => {
     createdAt: row?.created_at || row?.createdAt || null,
   }));
 };
+
+/** Colonnes du tableau / export Audit — alignées sur AuditEntryOut (backend). */
+const EXPORT_COLUMNS = [
+  { label: 'Date', value: (r) => (r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : '') },
+  { label: 'Action', value: 'action' },
+  { label: 'Entité', value: 'entityType' },
+  { label: 'ID entité', value: 'entityId' },
+  { label: 'Partenaire', value: 'partnerId' },
+  { label: 'Utilisateur', value: 'userId' },
+  { label: 'Détails', value: 'details' },
+];
 
 const AuditLogsPage = () => {
   const [logs, setLogs] = useState([]);
@@ -87,10 +99,22 @@ const AuditLogsPage = () => {
           message="Aucune trace d’audit disponible pour le moment."
           icon="📝"
         />
-      ) : null}
+            ) : null}
 
       {!loading && !error && hasRows ? (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+            <span className="text-sm font-semibold text-slate-600">
+              {logs.length} événement{logs.length > 1 ? 's' : ''} chargé{logs.length > 1 ? 's' : ''}.
+            </span>
+            <ExportButtons
+              rows={logs}
+              columns={EXPORT_COLUMNS}
+              fileName="audit"
+              title="Journal d'audit"
+              disabled={loading}
+            />
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">

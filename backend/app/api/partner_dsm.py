@@ -15,7 +15,7 @@ from app.models.requete import Requete, RequeteEntite
 from app.models.prime import Prime, StatutPrime
 from app.models.dsm_commission import DSMCommission, StatutCommission
 from app.schemas.partner import DSMBase, DSMOut
-from app.services.dsm_identity_service import get_dsm_identity
+from app.services.dsm_identity_service import get_dsm_identity, enrich_dsm_rows
 from app.services.pos_linkage_service import get_pos_linkage_stats
 
 router = APIRouter(prefix="/api/partners/{partner_id}/dsm", tags=["DSM"])
@@ -25,7 +25,8 @@ router = APIRouter(prefix="/api/partners/{partner_id}/dsm", tags=["DSM"])
 def list_dsm(partner_id: int = Depends(get_partner_context),
              db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     """Liste des DSM du Partenaire courant (contexte verifie via X-Partner-Context-Id)."""
-    return dsm_crud.list(db, partner_id=partner_id, limit=500)
+    dsms = dsm_crud.list(db, partner_id=partner_id, limit=500)
+    return enrich_dsm_rows(db, dsms)
 
 
 @router.get("/dashboard")
@@ -184,7 +185,8 @@ def dsm_identity(dsm_id: int, partner_id: int = Depends(get_partner_context),
 def create_dsm(payload: DSMBase, partner_id: int = Depends(get_partner_context),
                db: Session = Depends(get_db), _user: User = Depends(get_current_user)):
     """Creation d'un DSM rattache au Partenaire courant (partner_id force serveur)."""
-    return dsm_crud.create(db, {**payload.model_dump(), "partner_id": partner_id})
+    dsm = dsm_crud.create(db, {**payload.model_dump(), "partner_id": partner_id})
+    return enrich_dsm_rows(db, [dsm])[0]
 
 
 @router.get("/{dsm_id}/dashboard")
@@ -358,4 +360,4 @@ def get_dsm(dsm_id: int, partner_id: int = Depends(get_partner_context),
     dsm = dsm_crud.get(db, dsm_id)
     if not dsm or getattr(dsm, "partner_id", None) != partner_id:
         raise NotFoundError("DSM introuvable dans ce Partenaire.")
-    return dsm
+    return enrich_dsm_rows(db, [dsm])[0]

@@ -2,7 +2,7 @@
 import enum
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, DateTime, Date, Enum as SAEnum,
-    UniqueConstraint, Index, JSON,
+    UniqueConstraint, Index, JSON, Float,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -48,8 +48,11 @@ class POS(Base):
     name = Column(String(150), nullable=False)
     address = Column(String(255), nullable=True)
     zone = Column(String(150), nullable=True)
-    latitude = Column(Integer, nullable=True)
-    longitude = Column(Integer, nullable=True)
+    # Coordonnees GPS decimales (WGS84) : Float pour conserver les
+    # decimales essentielles a la cartographie (un Integer arrondirait
+    # 4.0512 -> 4 soit ~110 km d'erreur).
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
 
     partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False, index=True)
     dsm_id = Column(Integer, ForeignKey("dsm.id"), nullable=False, index=True)
