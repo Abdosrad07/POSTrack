@@ -3,15 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import partenaireService from '../services/partenaireService'
 import ExportButtons from '../components/Common/ExportButtons/ExportButtons'
 
-/**
- * Onglet « Partenaires » de la sidebar (ADMIN).
- *
- * Le tableau présente TOUTES les données renvoyées par GET /api/partenaires
- * (PartnerOut) : identité, responsable, commercial (nom / contact / ID),
- * MasterSIM, contrat, compteur POS et statut. La barre d'export permet de
- * télécharger ces données en PDF, Excel ou JSON.
- */
-
 type Partenaire = {
   id: number
   code: string | null
@@ -30,7 +21,6 @@ type Partenaire = {
   statut: 'actif' | 'inactif' | string
 }
 
-/** Forme brute renvoyée par l'API (PartnerOut FastAPI). */
 type PartenairePayload = {
   id?: number
   name?: string
@@ -51,7 +41,6 @@ type PartenairePayload = {
   pos_count?: number | null
 }
 
-/** Colonnes affichées — même descriptif pour l'affichage et l'export. */
 const EXPORT_COLUMNS = [
   { label: 'Code', value: 'code' },
   { label: 'Nom', value: 'nom' },
@@ -113,7 +102,6 @@ export default function PartenairesListPage() {
         }
       } catch (err) {
         if (!ignore) {
-          // Source de vérité unique : erreur affichée, aucun référentiel simulé.
           const apiError = err as {
             response?: { data?: { detail?: string } }
             message?: string
@@ -157,57 +145,67 @@ export default function PartenairesListPage() {
     [partenaires, searchTerm, statusFilter]
   )
 
-  const tdBase = 'whitespace-nowrap px-4 py-3 text-sm text-gray-500'
+  const tdBase = 'whitespace-nowrap px-4 py-3 text-sm text-slate-500'
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Page header */}
+      <div className="animate-fade-in flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion des Partenaires</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Gestion des Partenaires</h1>
+          <p className="mt-1 text-sm text-slate-500">
             Identité, encadrement (responsable / commercial), contrats et portefeuille POS.
           </p>
         </div>
         <button
           type="button"
           onClick={() => navigate('/partenaires/new')}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="btn btn-primary"
         >
           + Nouveau Partenaire
         </button>
       </div>
 
-      {/* Filtres */}
-      <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Rechercher (nom, code, responsable, commercial...)"
-          className="flex-1 min-w-48 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          <option value="">Tous les statuts</option>
-          <option value="actif">Actif</option>
-          <option value="inactif">Inactif</option>
-        </select>
+      {/* Filters */}
+      <div className="card animate-fade-in stagger-1">
+        <div className="card-body flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-48">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Rechercher (nom, code, responsable, commercial...)"
+              className="input pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="select w-auto"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+          </select>
+        </div>
       </div>
 
+      {/* Error */}
       {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+        <div className="rounded-xl border border-red-200/60 bg-red-50/50 px-5 py-4 text-sm font-medium text-red-700 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-base">❌</span>
+            {error}
+          </div>
         </div>
       ) : null}
 
-      {/* Tableau des partenaires — toutes les colonnes renseignées */}
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
-          <span className="text-sm font-semibold text-gray-900">
-            {filteredPartenaires.length} partenaire(s) affiché(s)
+      {/* Table */}
+      <div className="card overflow-hidden animate-fade-in stagger-2">
+        <div className="card-header flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm font-semibold text-slate-700">
+            {loading ? 'Chargement…' : `${filteredPartenaires.length} partenaire(s)`}
           </span>
           <ExportButtons
             rows={filteredPartenaires}
@@ -218,42 +216,42 @@ export default function PartenairesListPage() {
           />
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50/80">
               <tr>
                 {['Code', 'Nom', 'Adresse', 'Responsable', 'ID resp.', 'Tél. responsable',
                   'Commercial', 'ID comm.', 'Tél. commercial', 'MasterSIM', 'Début du contrat',
-                  'Nombre de POS', 'Statut', 'Créé le'].map((label) => (
+                  'POS', 'Statut', 'Créé le', 'Actions'].map((label) => (
                   <th
                     key={label}
-                    className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
                   >
                     {label}
                   </th>
                 ))}
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Actions
-                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={15} className="px-6 py-8 text-center text-sm text-gray-500">
-                    Chargement...
+                  <td colSpan={15} className="px-6 py-10 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+                      <span className="text-sm text-slate-400">Chargement…</span>
+                    </div>
                   </td>
                 </tr>
               ) : filteredPartenaires.length === 0 ? (
                 <tr>
-                  <td colSpan={15} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={15} className="px-6 py-10 text-center text-sm text-slate-400">
                     Aucun partenaire enregistré pour le moment
                   </td>
                 </tr>
               ) : (
                 filteredPartenaires.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className={`${tdBase} font-medium text-gray-900`}>{p.code || '—'}</td>
-                    <td className={`${tdBase} font-medium text-gray-900`}>{p.nom}</td>
+                  <tr key={p.id} className="table-row-hover">
+                    <td className={`${tdBase} font-semibold text-brand-600`}>{p.code || '—'}</td>
+                    <td className={`${tdBase} font-semibold text-slate-900`}>{p.nom}</td>
                     <td className={tdBase}>{p.adresse || '—'}</td>
                     <td className={tdBase}>{p.responsable || 'Non renseigné'}</td>
                     <td className={tdBase}>
@@ -271,28 +269,31 @@ export default function PartenairesListPage() {
                         ? new Date(p.contract_start_date).toLocaleDateString('fr-FR')
                         : '—'}
                     </td>
-                    <td className={`${tdBase} font-medium`}>{p.pos_count}</td>
+                    <td className={`${tdBase} font-semibold`}>{p.pos_count}</td>
                     <td className={tdBase}>
                       <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold leading-5 ${
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
                           p.statut === 'actif'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-emerald-100 text-emerald-800'
                             : 'bg-red-100 text-red-800'
                         }`}
                       >
+                        <span className={`h-1.5 w-1.5 rounded-full ${
+                          p.statut === 'actif' ? 'bg-emerald-500' : 'bg-red-500'
+                        }`} />
                         {p.statut}
                       </span>
                     </td>
                     <td className={tdBase}>
                       {p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-sm font-medium">
+                    <td className="whitespace-nowrap px-4 py-3 text-sm">
                       <button
                         type="button"
                         onClick={() => navigate('/partenaires/new')}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="font-medium text-brand-600 transition-colors hover:text-brand-800"
                       >
-                        Modifier / Créer
+                        Modifier
                       </button>
                     </td>
                   </tr>

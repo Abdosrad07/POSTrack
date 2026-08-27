@@ -23,7 +23,7 @@ const Header = ({ onToggleSidebar }) => {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm">
+    <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 shadow-sm backdrop-blur-xl">
       <div className="flex items-center gap-3 sm:gap-4">
         <button
           type="button"
@@ -35,14 +35,14 @@ const Header = ({ onToggleSidebar }) => {
         </button>
         <Link to="/" className="flex items-center gap-2">
           <img src={Logo} alt="POSTrack" className="h-9 w-9 rounded-lg object-cover" />
-          <span className="text-xl font-bold tracking-tight text-slate-900">POSTrack</span>
+          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-sky-600 bg-clip-text text-transparent">POSTrack</span>
         </Link>
         <div className="hidden sm:block h-6 w-px bg-slate-200" />
         <HierarchyNavDropdown />
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        <div className="hidden max-w-[18rem] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right sm:block">
+        <div className="hidden max-w-[18rem] rounded-xl border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-right sm:block backdrop-blur-sm">
           <p className="truncate text-sm font-semibold text-slate-900">{displayName}</p>
           <p className="truncate text-xs text-slate-500">{roleLabel}</p>
         </div>

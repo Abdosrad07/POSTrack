@@ -6,6 +6,7 @@ import api from '../services/api'
 import { getRoleLabel } from '../utils/roles'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 import POSLinkageStatsCard from '../components/POS/POSLinkageStatsCard'
+import StatCard from '../components/Dashboard/StatCard'
 
 type Stats = {
   partner_name?: string
@@ -130,108 +131,207 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Vue d'ensemble de l'activité des terminaux de paiement.
+      {/* Page header */}
+      <div className="animate-fade-in">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Vue d&apos;ensemble de l&apos;activité des terminaux de paiement.
         </p>
-        <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-600">
-          <span className="rounded-full bg-gray-100 px-3 py-1">Rôle : {getRoleLabel(user?.role)}</span>
-          <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
-            Contexte : {partner?.nom ?? partner?.code_partenaire ?? (partnerContextId ? `Partenaire #${partnerContextId}` : '—')}
+        <div className="mt-2.5 flex flex-wrap gap-2 text-xs font-semibold">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 shadow-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+            Rôle : {getRoleLabel(user?.role)}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200/60 bg-indigo-50 px-3 py-1 text-indigo-700 shadow-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+            {partner?.nom ?? partner?.code_partenaire ?? (partnerContextId ? `Partenaire #${partnerContextId}` : '—')}
           </span>
         </div>
       </div>
 
+      {/* No partner selected */}
       {!loading && !partnerContextId ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Sélectionnez un partenaire pour afficher les statistiques du dashboard.
+        <div className="glass rounded-2xl border border-amber-200/60 bg-amber-50/50 px-5 py-4 text-sm text-amber-900 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-base">
+              ⚠️
+            </span>
+            <p className="font-medium">Sélectionnez un partenaire pour afficher les statistiques du dashboard.</p>
+          </div>
         </div>
       ) : null}
 
+      {/* Partner identity card */}
       {partnerContextId && (
-        <PartnerIdentityCard identity={identity as never} loading={loading} />
+        <div className="animate-fade-in stagger-1">
+          <PartnerIdentityCard identity={identity as never} loading={loading} />
+        </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Parc POS" value={stats?.pos_total} loading={loading} />
+      {/* Primary stat cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-in stagger-2">
+        <StatCard
+          label="Parc POS"
+          value={loading ? undefined : stats?.pos_total ?? 0}
+          loading={loading}
+          icon="📍"
+        />
         <StatCard
           label="POS actifs"
-          value={(stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}
+          value={loading ? undefined : (stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}
           loading={loading}
           accent="green"
+          icon="✅"
         />
-        <StatCard label="SIM en stock" value={stats?.sim_en_stock} loading={loading} />
-        <StatCard label="Requêtes ouvertes" value={stats?.requetes_ouvertes} loading={loading} accent="indigo" />
+        <StatCard
+          label="SIM en stock"
+          value={loading ? undefined : stats?.sim_en_stock ?? 0}
+          loading={loading}
+          accent="sky"
+          icon="📱"
+        />
+        <StatCard
+          label="Requêtes ouvertes"
+          value={loading ? undefined : stats?.requetes_ouvertes ?? 0}
+          loading={loading}
+          accent="amber"
+          icon="📋"
+        />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <StatCard label="BTS saturées" value={stats?.bts_saturees} loading={loading} small />
-        <StatCard label="SIM assignées" value={stats?.sim_assignees} loading={loading} small />
+      {/* Secondary stat cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-in stagger-3">
+        <StatCard
+          label="BTS saturées"
+          value={loading ? undefined : stats?.bts_saturees ?? 0}
+          loading={loading}
+          accent="red"
+          icon="📶"
+          small
+        />
+        <StatCard
+          label="SIM assignées"
+          value={loading ? undefined : stats?.sim_assignees ?? 0}
+          loading={loading}
+          accent="indigo"
+          icon="🔗"
+          small
+        />
         <StatCard
           label="Montant primes période"
-          value={stats?.montant_primes_periode ? `${Number(stats.montant_primes_periode).toLocaleString('fr-FR')} FCFA` : undefined}
+          value={loading ? undefined : stats?.montant_primes_periode ? `${Number(stats.montant_primes_periode).toLocaleString('fr-FR')} FCFA` : '0 FCFA'}
           loading={loading}
+          accent="green"
+          icon="💰"
           small
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <StatCard label="POS créés" value={stats?.pos_nouveau} loading={loading} small />
-        <StatCard label="POS reconduits" value={stats?.pos_reconduit} loading={loading} small />
+      {/* Tertiary stat cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-in stagger-4">
+        <StatCard
+          label="POS créés"
+          value={loading ? undefined : stats?.pos_nouveau ?? 0}
+          loading={loading}
+          icon="🆕"
+          small
+        />
+        <StatCard
+          label="POS reconduits"
+          value={loading ? undefined : stats?.pos_reconduit ?? 0}
+          loading={loading}
+          icon="🔄"
+          small
+        />
         <StatCard
           label="Primes validées"
-          value={stats?.primes_validees}
+          value={loading ? undefined : stats?.primes_validees ?? 0}
           loading={loading}
-          small
           accent="green"
+          icon="✔️"
+          small
         />
       </div>
 
-      {/* Statistiques de linkage POS - Niveau partenaire */}
+      {/* POS Linkage stats */}
       {partnerContextId && (
-        <POSLinkageStatsCard />
+        <div className="animate-fade-in stagger-5">
+          <POSLinkageStatsCard />
+        </div>
       )}
 
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">POS récents</h2>
+      {/* Recent POS table */}
+      <div className="card overflow-hidden animate-fade-in stagger-6">
+        <div className="card-header flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">POS récents</h2>
+            <p className="text-xs text-slate-500">Derniers points de vente enregistrés</p>
+          </div>
+          <span className="section-label text-slate-400">
+            {loading ? '…' : `${recentPos.length} entrée(s)`}
+          </span>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50/80">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Code</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nom</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Partenaire</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Linkage</th>
+                {['Code', 'Nom', 'Partenaire', 'Type', 'Statut', 'Linkage'].map((col) => (
+                  <th
+                    key={col}
+                    className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
+                  >
+                    {col}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">Chargement...</td>
+                  <td colSpan={6} className="px-5 py-10 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+                      <span className="text-sm text-slate-400">Chargement…</span>
+                    </div>
+                  </td>
                 </tr>
               ) : recentPos.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">Aucun POS enregistré</td>
+                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-400">
+                    Aucun POS enregistré
+                  </td>
                 </tr>
               ) : (
                 recentPos.map((p) => (
-                  <tr key={p.id}>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-indigo-600">{p.code_pos}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{p.nom}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.partenaire?.nom ?? '—'}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.type_pos}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{p.statut}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                        p.linkage_status === 'LINKED' 
-                          ? 'bg-emerald-100 text-emerald-800' 
-                          : 'bg-amber-100 text-amber-800'
-                      }`}>
+                  <tr key={p.id} className="table-row-hover transition-colors">
+                    <td className="whitespace-nowrap px-5 py-3.5 text-sm font-semibold text-brand-600">
+                      {p.code_pos}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-sm font-medium text-slate-900">
+                      {p.nom}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-sm text-slate-500">
+                      {p.partenaire?.nom ?? '—'}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-sm text-slate-500">
+                      {p.type_pos}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-sm text-slate-500">
+                      {p.statut}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-sm">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          p.linkage_status === 'LINKED'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            p.linkage_status === 'LINKED' ? 'bg-emerald-500' : 'bg-amber-500'
+                          }`}
+                        />
                         {p.linkage_status === 'LINKED' ? 'Linké' : 'Délinké'}
                       </span>
                     </td>
@@ -242,30 +342,6 @@ function Dashboard() {
           </table>
         </div>
       </div>
-    </div>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  loading,
-  accent,
-  small,
-}: {
-  label: string
-  value?: number | string
-  loading: boolean
-  accent?: 'green' | 'indigo'
-  small?: boolean
-}) {
-  const color = accent === 'green' ? 'text-green-600' : accent === 'indigo' ? 'text-indigo-600' : 'text-gray-900'
-  return (
-    <div className={`rounded-lg border border-gray-200 bg-white shadow-sm ${small ? 'p-4' : 'p-6'}`}>
-      <p className="text-sm font-medium text-gray-500">{label}</p>
-      <p className={`mt-2 ${small ? 'text-2xl' : 'text-3xl'} font-bold ${color}`}>
-        {loading ? '…' : (value ?? 0)}
-      </p>
     </div>
   )
 }
