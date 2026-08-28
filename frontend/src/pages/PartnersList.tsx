@@ -1,8 +1,13 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MagnifyingGlassIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import partenaireService from '../services/partenaireService'
+import PageHeader from '../components/Common/PageHeader/PageHeader'
+import SearchFilterBar from '../components/Common/SearchFilterBar/SearchFilterBar'
+import DataTable from '../components/Common/DataTable/DataTable'
+import Pagination from '../components/Common/Pagination/Pagination'
+import StatusPill from '../components/Common/StatusPill/StatusPill'
 import ExportButtons from '../components/Common/ExportButtons/ExportButtons'
+import Button from '../components/Common/Button/Button'
 
 type Partenaire = {
   id: number
@@ -42,268 +47,275 @@ type PartenairePayload = {
   pos_count?: number | null
 }
 
-const EXPORT_COLUMNS = [
-  { label: 'Code', value: 'code' },
-  { label: 'Nom', value: 'nom' },
-  { label: 'Adresse', value: 'adresse' },
-  { label: 'Responsable', value: 'responsable' },
-  { label: 'ID responsable', value: 'responsable_user_id' },
-  { label: 'Contact responsable', value: 'responsable_contact' },
-  { label: 'Commercial', value: 'commercial' },
-  { label: 'ID commercial', value: 'commercial_user_id' },
-  { label: 'Contact commercial', value: 'commercial_contact' },
-  { label: 'MasterSIM', value: 'master_sim_number' },
-  {
-    label: 'Début du contrat',
-    value: (p: Partenaire) =>
-      p.contract_start_date ? new Date(p.contract_start_date).toLocaleDateString('fr-FR') : '',
-  },
-  { label: 'Nombre de POS', value: 'pos_count' },
-  { label: 'Statut', value: 'statut' },
-]
+const PAGE_SIZE = 20
+
+const frDate = (value: string | Date | null) =>
+  value ? new Date(value).toLocaleDateString('fr-FR') : '—'
+
+const toSafeLower = (value: unknown) =>
+  typeof value === 'string' ? value.toLowerCase() : String(value ?? '').toLowerCase()
+
+/** Cellule « contact » : nom + téléphone en sous-ligne. */
+const contactCell = (name: string | null, contact: string | null) => (
+  <div className="min-w-0">
+    <div className="font-medium text-slate-800">{name || 'Non renseigné'}</div>
+    {contact ? <div className="text-xs text-slate-400">{contact}</div> : null}
+  </div>
+)
 
 export default function PartenairesListPage() {
+  const navigate = useNavigate()
   const [partenaires, setPartenaires] = useState<Partenaire[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const navigate = useNavigate()
+  const [page, setPage] = useState(1)
 
-  useEffect(() => {
-    let ignore = false
-
-    const fetchPartenaires = async () => {
-      try {
-        setLoading(true)
-        const response = await partenaireService.getAll({ limit: 500 })
-        const raw = response.data?.items || response.data?.data || response.data || []
-        const list = Array.isArray(raw) ? (raw as PartenairePayload[]) : []
-        const data = list
-          .filter((p): p is PartenairePayload & { id: number } => !!p && typeof p.id === 'number')
-          .map((p) => ({
-            id: p.id,
-            code: p.code ?? null,
-            nom: p.nom || p.name || `Partenaire #${p.id}`,
-            adresse: p.adresse ?? p.address ?? null,
-            responsable: p.responsable_name ?? null,
-            responsable_contact: p.responsable_contact ?? null,
-            responsable_user_id: p.responsable_user_id ?? null,
-            commercial: p.commercial_name ?? null,
-            commercial_contact: p.commercial_contact ?? null,
-            commercial_user_id: p.commercial_user_id ?? null,
-            master_sim_number: p.master_sim_number ?? null,
-            contract_start_date: p.contract_start_date ?? null,
-            created_at: p.created_at ?? null,
-            pos_count: p.pos_count ?? 0,
-            statut: p.is_active === false ? ('inactif' as const) : ('actif' as const),
-          }))
-        if (!ignore) {
-          setPartenaires(data)
-        }
-      } catch (err) {
-        if (!ignore) {
-          const apiError = err as {
-            response?: { data?: { detail?: string } }
-            message?: string
-          }
-          setError(
-            apiError?.response?.data?.detail ||
-              apiError?.message ||
-              'Impossible de charger les partenaires.'
-          )
-          setPartenaires([])
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void fetchPartenaires()
-
-    return () => {
-      ignore = true
+  const fetchPartenaires = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError('')
+      const response = await partenaireService.getAll({ limit: 500 })
+      const raw = response.data?.items || response.data?.data || response.data || []
+      const list = Array.isArray(raw) ? (raw as PartenairePayload[]) : []
+      const data = list
+        .filter((p): p is PartenairePayload & { id: number } => !!p && typeof p.id === 'number')
+        .map((p) => ({
+          id: p.id,
+          code: p.code ?? null,
+          nom: p.nom || p.name || `Partenaire #${p.id}`,
+          adresse: p.adresse ?? p.address ?? null,
+          responsable: p.responsable_name ?? null,
+          responsable_contact: p.responsable_contact ?? null,
+          responsable_user_id: p.responsable_user_id ?? null,
+          commercial: p.commercial_name ?? null,
+          commercial_contact: p.commercial_contact ?? null,
+          commercial_user_id: p.commercial_user_id ?? null,
+          master_sim_number: p.master_sim_number ?? null,
+          contract_start_date: p.contract_start_date ?? null,
+          created_at: p.created_at ?? null,
+          pos_count: p.pos_count ?? 0,
+          statut: p.is_active === false ? 'inactif' : 'actif',
+        }))
+      setPartenaires(data)
+    } catch (err) {
+      const apiError = err as { response?: { data?: { detail?: string } }; message?: string }
+      setError(
+        apiError?.response?.data?.detail ||
+          apiError?.message ||
+          'Impossible de charger les partenaires.',
+      )
+      setPartenaires([])
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  const toSafeLower = (value: unknown) =>
-    typeof value === 'string' ? value.toLowerCase() : String(value ?? '').toLowerCase()
+  useEffect(() => {
+    void fetchPartenaires()
+  }, [fetchPartenaires])
 
-  const filteredPartenaires = useMemo(
-    () =>
-      partenaires.filter((p: Partenaire) => {
-        const needle = toSafeLower(searchTerm)
-        const matchesSearch =
-          toSafeLower(p.nom).includes(needle) ||
-          toSafeLower(p.code).includes(needle) ||
-          toSafeLower(p.responsable).includes(needle) ||
-          toSafeLower(p.commercial).includes(needle)
-        const matchesStatus = statusFilter ? p.statut === statusFilter : true
-        return matchesSearch && matchesStatus
-      }),
-    [partenaires, searchTerm, statusFilter]
+  const filtered = useMemo(() => {
+    const needle = toSafeLower(searchTerm)
+    return partenaires.filter((p) => {
+      const matchesSearch =
+        !needle ||
+        toSafeLower(p.nom).includes(needle) ||
+        toSafeLower(p.code).includes(needle) ||
+        toSafeLower(p.responsable).includes(needle) ||
+        toSafeLower(p.commercial).includes(needle)
+      const matchesStatus = statusFilter ? p.statut === statusFilter : true
+      return matchesSearch && matchesStatus
+    })
+  }, [partenaires, searchTerm, statusFilter])
+
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
   )
 
-  const tdBase = 'whitespace-nowrap px-4 py-3 text-sm text-slate-500'
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, statusFilter])
 
-  return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="animate-fade-in flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Gestion des Partenaires</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Identité, encadrement (responsable / commercial), contrats et portefeuille POS.
-          </p>
-        </div>
+  const resetFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('')
+    setPage(1)
+  }
+
+  const activeFilters = [
+    ...(searchTerm
+      ? [{ label: `Recherche : « ${searchTerm} »`, onRemove: () => setSearchTerm('') }]
+      : []),
+    ...(statusFilter
+      ? [{ label: `Statut : ${statusFilter}`, onRemove: () => setStatusFilter('') }]
+      : []),
+  ]
+
+  const EXPORT_COLUMNS = [
+    { label: 'Code', value: 'code' },
+    { label: 'Nom', value: 'nom' },
+    { label: 'Adresse', value: 'adresse' },
+    { label: 'Responsable', value: 'responsable' },
+    { label: 'Contact responsable', value: 'responsable_contact' },
+    { label: 'Commercial', value: 'commercial' },
+    { label: 'Contact commercial', value: 'commercial_contact' },
+    { label: 'MasterSIM', value: 'master_sim_number' },
+    {
+      label: 'Début du contrat',
+      value: (p: Partenaire) =>
+        p.contract_start_date ? new Date(p.contract_start_date).toLocaleDateString('fr-FR') : '',
+    },
+    { label: 'Nombre de POS', value: 'pos_count' },
+    { label: 'Statut', value: 'statut' },
+  ]
+
+  /** Colonnes affichées — métadonnées administratives masquées < xl (export détaillé). */
+  const columns = [
+    {
+      key: 'code',
+      header: 'Code',
+      sortValue: (p: Partenaire) => p.code ?? '',
+      render: (p: Partenaire) => (
+        <span className="font-mono font-semibold text-brand-600">{p.code || '—'}</span>
+      ),
+    },
+    {
+      key: 'nom',
+      header: 'Nom',
+      sortValue: (p: Partenaire) => p.nom,
+      render: (p: Partenaire) => <span className="font-semibold text-slate-900">{p.nom}</span>,
+    },
+    {
+      key: 'responsable',
+      header: 'Responsable',
+      responsive: 'hidden lg:table-cell',
+      sortValue: (p: Partenaire) => p.responsable ?? '',
+      render: (p: Partenaire) => contactCell(p.responsable, p.responsable_contact),
+    },
+    {
+      key: 'commercial',
+      header: 'Commercial',
+      responsive: 'hidden lg:table-cell',
+      sortValue: (p: Partenaire) => p.commercial ?? '',
+      render: (p: Partenaire) => contactCell(p.commercial, p.commercial_contact),
+    },
+    {
+      key: 'adresse',
+      header: 'Adresse',
+      responsive: 'hidden xl:table-cell',
+      render: (p: Partenaire) => p.adresse || '—',
+    },
+    {
+      key: 'master_sim_number',
+      header: 'MasterSIM',
+      responsive: 'hidden xl:table-cell',
+      render: (p: Partenaire) => <span className="font-mono text-xs">{p.master_sim_number || '—'}</span>,
+    },
+    {
+      key: 'contract_start_date',
+      header: 'Contrat',
+      responsive: 'hidden xl:table-cell',
+      sortValue: (p: Partenaire) => (p.contract_start_date ? String(p.contract_start_date) : ''),
+      render: (p: Partenaire) => frDate(p.contract_start_date),
+    },
+    {
+      key: 'pos_count',
+      header: 'POS',
+      align: 'right' as const,
+      sortValue: (p: Partenaire) => p.pos_count ?? 0,
+      render: (p: Partenaire) => <span className="font-semibold tabular-nums">{p.pos_count}</span>,
+    },
+    {
+      key: 'statut',
+      header: 'Statut',
+      render: (p: Partenaire) => <StatusPill status={p.statut} />,
+    },
+    {
+      key: 'created_at',
+      header: 'Créé le',
+      responsive: 'hidden xl:table-cell',
+      render: (p: Partenaire) => frDate(p.created_at),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: () => (
         <button
           type="button"
           onClick={() => navigate('/partenaires/new')}
-          className="btn btn-primary"
+          className="font-medium text-brand-600 transition-colors hover:text-brand-800"
         >
-          + Nouveau Partenaire
+          Modifier
         </button>
-      </div>
+      ),
+    },
+  ]
 
-      {/* Filters */}
-      <div className="card animate-fade-in stagger-1">
-        <div className="card-body flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-48">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Rechercher (nom, code, responsable, commercial...)"
-              className="input pl-9"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="select w-auto"
-          >
-            <option value="">Tous les statuts</option>
-            <option value="actif">Actif</option>
-            <option value="inactif">Inactif</option>
-          </select>
-        </div>
-      </div>
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Liste des Partenaires"
+        subtitle="Identité, encadrement (responsable / commercial), contrats et portefeuille POS."
+        actions={
+          <Button variant="primary" onClick={() => navigate('/partenaires/new')}>
+            + Nouveau Partenaire
+          </Button>
+        }
+      />
 
-      {/* Error */}
-      {error ? (
-        <div className="rounded-xl border border-red-200/60 bg-red-50/50 px-5 py-4 text-sm font-medium text-red-700 backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100">
-              <XCircleIcon className="h-5 w-5 text-red-600" aria-hidden="true" />
-            </span>
-            {error}
-          </div>
-        </div>
-      ) : null}
-
-      {/* Table */}
-      <div className="card overflow-hidden animate-fade-in stagger-2">
-        <div className="card-header flex flex-wrap items-center justify-between gap-3">
-          <span className="text-sm font-semibold text-slate-700">
-            {loading ? 'Chargement…' : `${filteredPartenaires.length} partenaire(s)`}
-          </span>
+      <SearchFilterBar
+        search={searchTerm}
+        onSearchChange={(v) => setSearchTerm(v)}
+        searchPlaceholder="Rechercher (nom, code, responsable, commercial)…"
+        filters={[
+          {
+            key: 'statut',
+            label: 'Statut : tous',
+            value: statusFilter,
+            options: [
+              { value: 'actif', label: 'Actif' },
+              { value: 'inactif', label: 'Inactif' },
+            ],
+            onChange: (v: string) => setStatusFilter(v),
+          },
+        ]}
+        activeFilters={activeFilters}
+        onReset={resetFilters}
+        resultCount={filtered.length}
+        actions={
           <ExportButtons
-            rows={filteredPartenaires}
+            rows={filtered}
             columns={EXPORT_COLUMNS}
             fileName="partenaires"
             title="Gestion des Partenaires"
             disabled={loading}
           />
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100">
-            <thead className="bg-slate-50/80">
-              <tr>
-                {['Code', 'Nom', 'Adresse', 'Responsable', 'ID resp.', 'Tél. responsable',
-                  'Commercial', 'ID comm.', 'Tél. commercial', 'MasterSIM', 'Début du contrat',
-                  'POS', 'Statut', 'Créé le', 'Actions'].map((label) => (
-                  <th
-                    key={label}
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
-                  >
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {loading ? (
-                <tr>
-                  <td colSpan={15} className="px-6 py-10 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
-                      <span className="text-sm text-slate-400">Chargement…</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredPartenaires.length === 0 ? (
-                <tr>
-                  <td colSpan={15} className="px-6 py-10 text-center text-sm text-slate-400">
-                    Aucun partenaire enregistré pour le moment
-                  </td>
-                </tr>
-              ) : (
-                filteredPartenaires.map((p) => (
-                  <tr key={p.id} className="table-row-hover">
-                    <td className={`${tdBase} font-semibold text-brand-600`}>{p.code || '—'}</td>
-                    <td className={`${tdBase} font-semibold text-slate-900`}>{p.nom}</td>
-                    <td className={tdBase}>{p.adresse || '—'}</td>
-                    <td className={tdBase}>{p.responsable || 'Non renseigné'}</td>
-                    <td className={tdBase}>
-                      {p.responsable_user_id != null ? `#${p.responsable_user_id}` : '—'}
-                    </td>
-                    <td className={tdBase}>{p.responsable_contact || '—'}</td>
-                    <td className={tdBase}>{p.commercial || 'Non renseigné'}</td>
-                    <td className={tdBase}>
-                      {p.commercial_user_id != null ? `#${p.commercial_user_id}` : '—'}
-                    </td>
-                    <td className={tdBase}>{p.commercial_contact || '—'}</td>
-                    <td className={tdBase}>{p.master_sim_number || '—'}</td>
-                    <td className={tdBase}>
-                      {p.contract_start_date
-                        ? new Date(p.contract_start_date).toLocaleDateString('fr-FR')
-                        : '—'}
-                    </td>
-                    <td className={`${tdBase} font-semibold`}>{p.pos_count}</td>
-                    <td className={tdBase}>
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          p.statut === 'actif'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${
-                          p.statut === 'actif' ? 'bg-emerald-500' : 'bg-red-500'
-                        }`} />
-                        {p.statut}
-                      </span>
-                    </td>
-                    <td className={tdBase}>
-                      {p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-sm">
-                      <button
-                        type="button"
-                        onClick={() => navigate('/partenaires/new')}
-                        className="font-medium text-brand-600 transition-colors hover:text-brand-800"
-                      >
-                        Modifier
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        }
+      />
+
+      <div className="card overflow-hidden">
+        <DataTable
+          columns={columns}
+          rows={paged}
+          loading={loading}
+          error={error || null}
+          onRetry={() => fetchPartenaires()}
+          rowKey="id"
+          emptyTitle="Aucun partenaire"
+          emptyMessage="Aucun partenaire enregistré pour le moment."
+          emptyActionLabel="+ Nouveau Partenaire"
+          onEmptyAction={() => navigate('/partenaires/new')}
+        />
+        <div className="card-footer">
+          <Pagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={filtered.length}
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </div>

@@ -5,6 +5,39 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // Vendor chunks for large libraries
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'react-vendor'
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'query-vendor'
+            }
+            if (id.includes('leaflet') || id.includes('react-leaflet')) {
+              return 'leaflet-vendor'
+            }
+            if (id.includes('recharts')) {
+              return 'charts-vendor'
+            }
+            if (id.includes('jspdf')) {
+              return 'pdf-vendor'
+            }
+            if (id.includes('xlsx')) {
+              return 'excel-vendor'
+            }
+            if (id.includes('@heroicons/react')) {
+              return 'icons-vendor'
+            }
+          }
+        },
+      },
+    },
+  },
   server: {
     /**
      * Proxy de développement : toutes les requêtes "/api" du navigateur sont

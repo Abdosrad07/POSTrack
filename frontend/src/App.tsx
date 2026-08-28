@@ -1,42 +1,46 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import MainLayout from './components/Layout/MainLayout'
 import RoleGuard from './components/Layout/RoleGuard'
-import Dashboard from './pages/Dashboard'
-import PartnerHomePage from './pages/PartnerHomePage'
-import POSListPage from './pages/pos/POSListPage'
-import POSDetailPage from './pages/pos/POSDetailPage'
-import POSEditPage from './pages/pos/POSEditPage'
-import PartnersList from './pages/PartnersList'
-import PrimesListPage from './pages/PrimesListPage'
-import BTSListPage from './pages/bts/BTSListPage'
-import BTSCreatePage from './pages/bts/BTSCreatePage'
-import BTSDetailPage from './pages/bts/BTSDetailPage'
-import BTSRelevesPage from './pages/bts/BTSRelevesPage'
-import DSMListPage from './pages/dsm/DSMListPage'
-import DSMCreatePage from './pages/dsm/DSMCreatePage'
-import DSMDetailPage from './pages/dsm/DSMDetailPage'
-import DSMHomePage from './pages/dsm/DSMHomePage'
-import DSMDashboardPage from './pages/dsm/DSMDashboardPage'
-import DSMPOSPage from './pages/dsm/DSMPOSPage'
-import LoginPage from './pages/auth/LoginPage'
-import RequeteCreatePage from './pages/requetes/RequeteCreatePage'
-import SelectPartnerPage from './pages/auth/SelectPartnerPage'
-import UnauthorizedPage from './pages/auth/UnauthorizedPage'
-import SimsStockPage from './pages/sims/SimsStockPage'
-import RequetesListPage from './pages/requetes/RequetesListPage'
-import ImportExportPage from './pages/import-export/ImportExportPage'
-import SuiviVentesPage from './pages/ventes/SuiviVentesPage'
-import AuditLogsPage from './pages/audit/AuditLogsPage'
-import SalesTargetsPage from './pages/analytics/SalesTargetsPage'
+import LoadingSpinner from './components/Common/LoadingSpinner/LoadingSpinner'
 import PartnerRoute from './routes/PartnerRoute'
 import { AuthProvider } from './context/AuthContext'
 import { PartnerProvider } from './context/PartnerContext'
 import { NavLevelProvider } from './context/NavLevelContext'
-import PartenaireCreatePage from './pages/partenaires/PartenaireCreatePage'
-import POSCreatePage from './pages/pos/POSCreatePage'
-import PrimeCreatePage from './pages/primes/PrimeCreatePage'
-import PartnerPOSPage from './pages/partners/PartnerPOSPage'
 import { ROLE_GROUPS } from './utils/constants'
+
+// Lazy load all pages for code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const PartnerHomePage = lazy(() => import('./pages/PartnerHomePage'))
+const POSListPage = lazy(() => import('./pages/pos/POSListPage'))
+const POSDetailPage = lazy(() => import('./pages/pos/POSDetailPage'))
+const POSEditPage = lazy(() => import('./pages/pos/POSEditPage'))
+const POSCreatePage = lazy(() => import('./pages/pos/POSCreatePage'))
+const PartnersList = lazy(() => import('./pages/PartnersList'))
+const PrimesListPage = lazy(() => import('./pages/PrimesListPage'))
+const BTSListPage = lazy(() => import('./pages/bts/BTSListPage'))
+const BTSCreatePage = lazy(() => import('./pages/bts/BTSCreatePage'))
+const BTSDetailPage = lazy(() => import('./pages/bts/BTSDetailPage'))
+const BTSRelevesPage = lazy(() => import('./pages/bts/BTSRelevesPage'))
+const DSMListPage = lazy(() => import('./pages/dsm/DSMListPage'))
+const DSMCreatePage = lazy(() => import('./pages/dsm/DSMCreatePage'))
+const DSMDetailPage = lazy(() => import('./pages/dsm/DSMDetailPage'))
+const DSMHomePage = lazy(() => import('./pages/dsm/DSMHomePage'))
+const DSMDashboardPage = lazy(() => import('./pages/dsm/DSMDashboardPage'))
+const DSMPOSPage = lazy(() => import('./pages/dsm/DSMPOSPage'))
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
+const RequeteCreatePage = lazy(() => import('./pages/requetes/RequeteCreatePage'))
+const SelectPartnerPage = lazy(() => import('./pages/auth/SelectPartnerPage'))
+const UnauthorizedPage = lazy(() => import('./pages/auth/UnauthorizedPage'))
+const SimsStockPage = lazy(() => import('./pages/sims/SimsStockPage'))
+const RequetesListPage = lazy(() => import('./pages/requetes/RequetesListPage'))
+const ImportExportPage = lazy(() => import('./pages/import-export/ImportExportPage'))
+const SuiviVentesPage = lazy(() => import('./pages/ventes/SuiviVentesPage'))
+const AuditLogsPage = lazy(() => import('./pages/audit/AuditLogsPage'))
+const SalesTargetsPage = lazy(() => import('./pages/analytics/SalesTargetsPage'))
+const PartenaireCreatePage = lazy(() => import('./pages/partenaires/PartenaireCreatePage'))
+const PrimeCreatePage = lazy(() => import('./pages/primes/PrimeCreatePage'))
+const PartnerPOSPage = lazy(() => import('./pages/partners/PartnerPOSPage'))
 
 function App() {
   return (
@@ -44,8 +48,16 @@ function App() {
       <NavLevelProvider>
         <PartnerProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/select-partner" element={<SelectPartnerPage />} />
+          <Route path="/login" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <LoginPage />
+            </Suspense>
+          } />
+          <Route path="/select-partner" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <SelectPartnerPage />
+            </Suspense>
+          } />
           <Route
             element={
               <PartnerRoute>
@@ -53,22 +65,60 @@ function App() {
               </PartnerRoute>
             }
           >
-            <Route index element={<PartnerHomePage />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="unauthorized" element={<UnauthorizedPage />} />
+            <Route index element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <PartnerHomePage />
+              </Suspense>
+            } />
+            <Route path="dashboard" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <Dashboard />
+              </Suspense>
+            } />
+            <Route path="unauthorized" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <UnauthorizedPage />
+              </Suspense>
+            } />
 
-            <Route path="partenaires/pos" element={<PartnerPOSPage />} />
-            <Route path="pos" element={<POSListPage />} />
-            <Route path="pos/new" element={<POSCreatePage />} />
-            <Route path="pos/nouveau" element={<POSCreatePage />} />
-            <Route path="pos/:id/edit" element={<POSEditPage />} />
-            <Route path="pos/:id" element={<POSDetailPage />} />
+            <Route path="partenaires/pos" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <PartnerPOSPage />
+              </Suspense>
+            } />
+            <Route path="pos" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <POSListPage />
+              </Suspense>
+            } />
+            <Route path="pos/new" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <POSCreatePage />
+              </Suspense>
+            } />
+            <Route path="pos/nouveau" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <POSCreatePage />
+              </Suspense>
+            } />
+            <Route path="pos/:id/edit" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <POSEditPage />
+              </Suspense>
+            } />
+            <Route path="pos/:id" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <POSDetailPage />
+              </Suspense>
+            } />
 
             <Route
               path="partenaires"
               element={
                 <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
-                  <PartnersList />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <PartnersList />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -76,7 +126,9 @@ function App() {
               path="partenaires/new"
               element={
                 <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
-                  <PartenaireCreatePage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <PartenaireCreatePage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -85,7 +137,9 @@ function App() {
               path="primes"
               element={
                 <RoleGuard roles={ROLE_GROUPS.PARTNER_PORTFOLIO}>
-                  <PrimesListPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <PrimesListPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -93,7 +147,9 @@ function App() {
               path="primes/new"
               element={
                 <RoleGuard roles={ROLE_GROUPS.PARTNER_PORTFOLIO}>
-                  <PrimeCreatePage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <PrimeCreatePage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -102,7 +158,9 @@ function App() {
               path="dsm"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <DSMDashboardPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <DSMDashboardPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -110,7 +168,9 @@ function App() {
               path="dsm/home"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <DSMHomePage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <DSMHomePage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -118,7 +178,9 @@ function App() {
               path="dsm/list"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <DSMListPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <DSMListPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -126,7 +188,9 @@ function App() {
               path="dsm/new"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <DSMCreatePage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <DSMCreatePage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -134,7 +198,9 @@ function App() {
               path="dsm/:id"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <DSMDetailPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <DSMDetailPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -142,7 +208,9 @@ function App() {
               path="dsm/:id/pos"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <DSMPOSPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <DSMPOSPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -151,7 +219,9 @@ function App() {
               path="bts"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <BTSListPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <BTSListPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -159,7 +229,9 @@ function App() {
               path="bts/new"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <BTSCreatePage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <BTSCreatePage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -167,7 +239,9 @@ function App() {
               path="bts/releves"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <BTSRelevesPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <BTSRelevesPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -175,7 +249,9 @@ function App() {
               path="bts/:id/modifier"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <BTSCreatePage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <BTSCreatePage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -183,21 +259,41 @@ function App() {
               path="bts/:id"
               element={
                 <RoleGuard roles={ROLE_GROUPS.OPERATIONS}>
-                  <BTSDetailPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <BTSDetailPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
 
-            <Route path="sims" element={<SimsStockPage />} />
-            <Route path="ventes" element={<SuiviVentesPage />} />
-            <Route path="requetes" element={<RequetesListPage />} />
-            <Route path="requetes/new" element={<RequeteCreatePage />} />
+            <Route path="sims" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <SimsStockPage />
+              </Suspense>
+            } />
+            <Route path="ventes" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <SuiviVentesPage />
+              </Suspense>
+            } />
+            <Route path="requetes" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <RequetesListPage />
+              </Suspense>
+            } />
+            <Route path="requetes/new" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <RequeteCreatePage />
+              </Suspense>
+            } />
 
             <Route
               path="import-export"
               element={
                 <RoleGuard roles={ROLE_GROUPS.PARTNER_PORTFOLIO}>
-                  <ImportExportPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <ImportExportPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -205,7 +301,9 @@ function App() {
               path="analytics/sales-targets"
               element={
                 <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
-                  <SalesTargetsPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <SalesTargetsPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />
@@ -213,7 +311,9 @@ function App() {
               path="audit"
               element={
                 <RoleGuard roles={ROLE_GROUPS.ADMIN_ONLY}>
-                  <AuditLogsPage />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <AuditLogsPage />
+                  </Suspense>
                 </RoleGuard>
               }
             />

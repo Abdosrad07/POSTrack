@@ -10,8 +10,8 @@ import { exportExcel, exportJSON, exportPDF } from '../../../utils/exportData';
  * Barre d'export d'une page de données : PDF / Excel / JSON.
  *
  * @param {object}   props
- * @param {Array}    props.rows      Lignes affichées sur la page (données API normalisées).
- * @param {Array}    props.columns   Descriptif des colonnes { label, value } (voir utils/exportData).
+ * @param {Array<object>}    props.rows      Lignes affichées sur la page (données API normalisées).
+ * @param {Array<{label: string, value: string | ((row: object) => unknown)>}} props.columns Descriptif des colonnes { label, value } (voir utils/exportData).
  * @param {string}   props.fileName  Base du nom de fichier généré (ex. 'partenaires').
  * @param {string}  [props.title]    Titre imprimé dans l'en-tête du PDF.
  * @param {string}  [props.subtitle] Sous-titre du PDF (ex. nom du partenaire actif).
@@ -24,11 +24,11 @@ const EXPORT_BUTTONS = [
 ];
 
 export default function ExportButtons({
-  rows = [],
-  columns = [],
-  fileName,
-  title,
-  subtitle,
+  rows = /** @type {any[]} */ ([]),
+  columns = /** @type {any[]} */ ([]),
+  fileName = /** @type {string} */ (undefined),
+  title = /** @type {string} */ (undefined),
+  subtitle = /** @type {string} */ (undefined),
   disabled = false,
 }) {
   const [message, setMessage] = useState('');

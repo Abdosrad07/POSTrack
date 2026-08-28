@@ -37,7 +37,7 @@ describe('DSMRequestProgressCard', () => {
 
   it('affiche la note explicative sur les données DSM', () => {
     render(<DSMRequestProgressCard data={mockData} />);
-    expect(screen.getByText(/Note:/)).toBeInTheDocument();
+    expect(screen.getByText(/Note\s*:/)).toBeInTheDocument();
     expect(screen.getByText(/Cette vue présente uniquement les requêtes spécifiques à ce DSM/)).toBeInTheDocument();
   });
 

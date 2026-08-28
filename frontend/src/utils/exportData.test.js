@@ -7,14 +7,16 @@ import {
 } from './exportData';
 
 // Mock du moteur PDF : évite l'exécution réelle de doc.save dans jsdom.
+// Une fonction standard (et non une arrow) est nécessaire : `exportData`
+// instancie jsPDF via `new jsPDF(...)` (constructibilité).
 vi.mock('jspdf', () => ({
-  jsPDF: vi.fn(() => ({
-    setFont: vi.fn(),
-    setFontSize: vi.fn(),
-    setTextColor: vi.fn(),
-    text: vi.fn(),
-    save: vi.fn(),
-  })),
+  jsPDF: vi.fn(function MockJsPDF() {
+    this.setFont = vi.fn();
+    this.setFontSize = vi.fn();
+    this.setTextColor = vi.fn();
+    this.text = vi.fn();
+    this.save = vi.fn();
+  }),
 }));
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 

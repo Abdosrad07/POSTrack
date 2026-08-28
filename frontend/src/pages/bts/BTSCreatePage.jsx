@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../services/api'
 import BTSForm from '../../components/BTS/BTSForm'
+import PageHeader from '../../components/Common/PageHeader/PageHeader'
 import btsDebug from '../../utils/btsDebug'
 
 export default function BTSCreatePage() {
@@ -61,18 +62,17 @@ export default function BTSCreatePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {initialData ? 'Modifier la BTS' : 'Nouvelle BTS'}
-          </h1>
-          <p className="mt-1 text-sm text-gray-600">
-            {initialData ? "Modification des informations de la station de base." : "Création d'une nouvelle station de base."}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={initialData ? 'Modifier la BTS' : 'Nouvelle BTS'}
+        subtitle={
+          initialData
+            ? "Modification des informations de la station de base."
+            : "Création d'une nouvelle station de base."
+        }
+        breadcrumbs={['Espace partenaire', 'BTS', initialData ? 'Modifier' : 'Nouveau']}
+      />
 
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="card card-body">
         <BTSForm
           initialData={initialData}
           onSubmit={handleSubmit}

@@ -1,12 +1,78 @@
 @import 'tailwindcss';
 
 /* ═══════════════════════════════════════════════════════════
-   POSTrack Design System
-   Professional color palette, typography, and component tokens
+   POSTrack Design System — v2 « Horizon »
+   1. @theme     : jetons enregistrés auprès de Tailwind v4
+                   (génère les utilitaires bg-brand-*, text-brand-*,
+                   shadow-sm… — FIX : avant, --brand-* dans :root ne
+                   générait AUCUN utilitaire Tailwind)
+   2. :root      : jetons sémantiques consommés par les composants
+   3. Composants : .btn .badge .card .input .select .data-table …
+   Référence complète : docs/design-system/DESIGN_SYSTEM.md
    ═══════════════════════════════════════════════════════════ */
 
+@theme {
+  /* ── Marque — Indigo « Horizon » ───────────────────────────
+     600 = actions primaires et liens (6.3:1 sur blanc, AA ✓)
+     500 = accents KPI, icônes ; 700/800 = hover/active */
+  --color-brand-50:  #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-950: #1e1b4b;
+
+  /* ── Dataviz — ordre des séries (Recharts) ───────────────── */
+  --color-chart-1: #4f46e5;
+  --color-chart-2: #0ea5e9;
+  --color-chart-3: #10b981;
+  --color-chart-4: #f59e0b;
+  --color-chart-5: #ef4444;
+  --color-chart-6: #8b5cf6;
+  --color-chart-7: #14b8a6;
+  --color-chart-8: #64748b;
+
+  /* ── Typographie ─────────────────────────────────────────── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
+  /* ── Ombres (teintées slate, 2 couches — style SaaS) ─────── */
+  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-md: 0 2px 4px -1px rgb(15 23 42 / 0.05), 0 4px 8px -2px rgb(15 23 42 / 0.07);
+  --shadow-lg: 0 4px 8px -2px rgb(15 23 42 / 0.06), 0 12px 24px -4px rgb(15 23 42 / 0.10);
+  --shadow-xl: 0 8px 16px -4px rgb(15 23 42 / 0.08), 0 24px 48px -8px rgb(15 23 42 / 0.14);
+  --shadow-ring: 0 0 0 1px rgb(15 23 42 / 0.05);
+}
+
 :root {
-  /* Brand colors */
+  /* ── Surfaces ─────────────────────────────────────────── */
+  --surface-bg: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-sunken: #f1f5f9;
+  --surface-overlay: rgba(15, 23, 42, 0.45);
+
+  /* ── Textes ───────────────────────────────────────────── */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* ── Bordures ─────────────────────────────────────────── */
+  --border-light: #f1f5f9;
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --border-focus: #6366f1;
+
+  /* ── Focus rings ──────────────────────────────────────── */
+  --focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  --focus-ring-error: 0 0 0 3px rgba(239, 68, 68, 0.15);
+
+  /* ── Alias legacy (compatibilité surcharges existantes) ── */
   --brand-50: #eef2ff;
   --brand-100: #e0e7ff;
   --brand-200: #c7d2fe;
@@ -17,28 +83,7 @@
   --brand-700: #4338ca;
   --brand-800: #3730a3;
   --brand-900: #312e81;
-
-  /* Surface tokens */
-  --surface-bg: #f8fafc;
-  --surface-card: #ffffff;
-  --surface-elevated: #ffffff;
-  --surface-overlay: rgba(15, 23, 42, 0.5);
-
-  /* Border tokens */
-  --border-light: #e2e8f0;
-  --border-default: #cbd5e1;
-  --border-focus: #6366f1;
-
-  /* Shadow tokens */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
-
-  /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ── Global resets ──────────────────────────────────────── */
@@ -190,7 +235,7 @@ body {
 /* ── Gradient backgrounds ───────────────────────────────── */
 
 .bg-gradient-brand {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
+  background: linear-gradient(160deg, #4338ca 0%, #4f46e5 55%, #6366f1 100%);
 }
 
 .bg-gradient-subtle {
@@ -222,7 +267,9 @@ body {
   background-color: #f8fafc;
 }
 
-/* ── Button base ────────────────────────────────────────── */
+/* ── Boutons ────────────────────────────────────────────── */
+/* Style plat premium (réf. Linear/Stripe) : 1 action primaire
+   par vue, secondaire en contour, tertiaire en fantôme.      */
 
 .btn {
   display: inline-flex;
@@ -232,16 +279,22 @@ body {
   font-weight: 600;
   font-size: 0.875rem;
   line-height: 1.25rem;
+  letter-spacing: -0.01em;
   padding: 0.5rem 1rem;
   border-radius: 0.625rem;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.1s ease;
   white-space: nowrap;
   user-select: none;
 }
+.btn:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+}
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -249,28 +302,38 @@ body {
   transform: scale(0.98);
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  color: white;
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+/* Primaire — action principale de la page (1 max par vue) */
+.btn-primary,
+.btn-indigo {
+  background: var(--brand-600);
+  color: #fff;
+  box-shadow: var(--shadow-xs);
 }
-.btn-primary:hover {
-  background: linear-gradient(135deg, #4338ca, #4f46e5);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+.btn-primary:hover,
+.btn-indigo:hover {
+  background: var(--brand-700);
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:active:not(:disabled),
+.btn-indigo:active:not(:disabled) {
+  background: var(--brand-800);
 }
 
+/* Secondaire — actions alternatives */
 .btn-secondary {
-  background: white;
+  background: #fff;
   color: #475569;
-  border-color: #e2e8f0;
+  border-color: var(--border-default);
   box-shadow: var(--shadow-xs);
 }
 .btn-secondary:hover {
   background: #f8fafc;
-  border-color: #cbd5e1;
+  border-color: var(--border-strong);
+  color: #334155;
   box-shadow: var(--shadow-sm);
 }
 
+/* Fantôme — barres d'outils, actions tertiaires */
 .btn-ghost {
   background: transparent;
   color: #64748b;
@@ -280,53 +343,56 @@ body {
   color: #334155;
 }
 
+/* Sémantiques — usage restreint (confirmer, supprimer…) */
 .btn-success {
-  background: linear-gradient(135deg, #059669, #10b981);
-  color: white;
-  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  background: #059669;
+  color: #fff;
+  box-shadow: var(--shadow-xs);
 }
 .btn-success:hover {
-  background: linear-gradient(135deg, #047857, #059669);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  background: #047857;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #dc2626, #ef4444);
-  color: white;
-  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  background: #dc2626;
+  color: #fff;
+  box-shadow: var(--shadow-xs);
 }
 .btn-danger:hover {
-  background: linear-gradient(135deg, #b91c1c, #dc2626);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+  background: #b91c1c;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-warning {
-  background: linear-gradient(135deg, #d97706, #f59e0b);
-  color: white;
-  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  background: #d97706;
+  color: #fff;
+  box-shadow: var(--shadow-xs);
 }
 .btn-warning:hover {
-  background: linear-gradient(135deg, #b45309, #d97706);
-}
-
-.btn-indigo {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  color: white;
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-.btn-indigo:hover {
-  background: linear-gradient(135deg, #4338ca, #4f46e5);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  background: #b45309;
 }
 
 .btn-gray {
   background: #f1f5f9;
   color: #475569;
-  border-color: #e2e8f0;
+  border-color: var(--border-default);
 }
 .btn-gray:hover {
   background: #e2e8f0;
   color: #334155;
+}
+
+/* Spinner intégré : <button class="btn btn-primary btn-loading" aria-busy="true"> */
+.btn-loading::before {
+  content: '';
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  animation: spin-slow 0.6s linear infinite;
 }
 
 .btn-sm {
@@ -341,119 +407,220 @@ body {
   border-radius: 0.75rem;
 }
 
-/* ── Input base ─────────────────────────────────────────── */
+.btn-icon {
+  padding: 0.5rem;
+}
 
-.input {
+/* ── Contrôles de formulaire ────────────────────────────── */
+
+.input,
+.select,
+.textarea {
   display: block;
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: #1e293b;
-  background: white;
-  border: 1px solid #e2e8f0;
+  line-height: 1.375rem;
+  color: var(--text-primary);
+  background: #fff;
+  border: 1px solid var(--border-default);
   border-radius: 0.625rem;
-  transition: all 0.2s ease;
   box-shadow: var(--shadow-xs);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
-.input::placeholder {
+.input::placeholder,
+.textarea::placeholder {
   color: #94a3b8;
 }
-.input:hover {
-  border-color: #cbd5e1;
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: var(--border-strong);
 }
-.input:focus {
+.input:focus,
+.select:focus,
+.textarea:focus {
   outline: none;
-  border-color: var(--brand-400);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  border-color: var(--brand-500);
+  box-shadow: var(--focus-ring);
+}
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  background: var(--surface-sunken);
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* État erreur — à combiner avec aria-invalid="true" sur le champ */
+.input[aria-invalid='true'],
+.select[aria-invalid='true'],
+.textarea[aria-invalid='true'] {
+  border-color: #f87171;
+}
+.input[aria-invalid='true']:focus,
+.select[aria-invalid='true']:focus,
+.textarea[aria-invalid='true']:focus {
+  border-color: #ef4444;
+  box-shadow: var(--focus-ring-error);
+}
+
+.textarea {
+  min-height: 5.5rem;
+  resize: vertical;
 }
 
 .select {
-  display: block;
-  width: 100%;
-  padding: 0.625rem 2.25rem 0.625rem 0.875rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: #1e293b;
-  background: white url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") right 0.5rem center/1.5em 1.5em no-repeat;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.625rem;
+  padding-right: 2.25rem;
   appearance: none;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-xs);
-}
-.select:hover {
-  border-color: #cbd5e1;
-}
-.select:focus {
-  outline: none;
-  border-color: var(--brand-400);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-size: 1.25em 1.25em;
+  background-repeat: no-repeat;
 }
 
-/* ── Badge base ─────────────────────────────────────────── */
+.checkbox,
+.radio {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--brand-600);
+  cursor: pointer;
+}
+.checkbox:disabled,
+.radio:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Libellés et textes d'aide (voir composant FormField) */
+.label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+.field-help {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #64748b;
+}
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #dc2626;
+}
+
+/* ── Badges ─────────────────────────────────────────────── */
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.175rem 0.625rem;
+  gap: 0.375rem;
+  padding: 0.2rem 0.625rem;
   font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1.25;
   border-radius: 9999px;
-  line-height: 1.4;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+/* Point de statut : <span class="badge badge-success badge-dot"> */
+.badge-dot::before {
+  content: '';
+  width: 0.375rem;
+  height: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: currentColor;
 }
 
 .badge-success {
-  background: #dcfce7;
-  color: #166534;
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
 }
 .badge-warning {
-  background: #fef3c7;
+  background: #fffbeb;
   color: #92400e;
+  border-color: #fde68a;
 }
 .badge-danger {
-  background: #fee2e2;
+  background: #fef2f2;
   color: #991b1b;
+  border-color: #fecaca;
 }
 .badge-info {
-  background: #dbeafe;
+  background: #eff6ff;
   color: #1e40af;
+  border-color: #bfdbfe;
 }
 .badge-indigo {
-  background: #e0e7ff;
+  background: #eef2ff;
   color: #3730a3;
+  border-color: #c7d2fe;
 }
 .badge-gray {
-  background: #f1f5f9;
+  background: #f8fafc;
   color: #475569;
+  border-color: #e2e8f0;
 }
 .badge-sky {
-  background: #e0f2fe;
+  background: #f0f9ff;
   color: #075985;
+  border-color: #bae6fd;
 }
 
-/* ── Card base ──────────────────────────────────────────── */
+.badge-sm {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+}
+
+/* ── Cartes ─────────────────────────────────────────────── */
 
 .card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
   border-radius: 0.875rem;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s ease;
 }
 
 .card-elevated {
   box-shadow: var(--shadow-md);
 }
 
+/* Carte cliquable (navigation, sélection d'entité) */
+.card-interactive {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.card-interactive:hover {
+  border-color: var(--brand-200);
+  box-shadow: var(--shadow-md);
+}
+.card-interactive:active {
+  transform: scale(0.995);
+}
+
 .card-header {
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .card-body {
   padding: 1.25rem;
+}
+
+.card-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border-light);
+  background: #f8fafc;
+  border-radius: 0 0 0.875rem 0.875rem;
 }
 
 /* ── Section title ──────────────────────────────────────── */
@@ -464,6 +631,107 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #64748b;
+}
+
+/* ── Tableaux de données (voir composant DataTable) ─────── */
+
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.data-table thead th {
+  padding: 0.625rem 1rem;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border-default);
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  white-space: nowrap;
+  user-select: none;
+}
+.data-table thead th.sortable {
+  cursor: pointer;
+}
+.data-table thead th.sortable:hover {
+  color: #334155;
+  background: #f1f5f9;
+}
+.data-table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.875rem;
+  color: #334155;
+  vertical-align: middle;
+}
+.data-table tbody tr {
+  transition: background-color 0.12s ease;
+}
+.data-table tbody tr:hover {
+  background: #f8fafc;
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tr.row-selected,
+.data-table tr.row-selected:hover {
+  background: #eef2ff;
+}
+.data-table.dense thead th {
+  padding: 0.5rem 0.75rem;
+}
+.data-table.dense tbody td {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+}
+/* En-tête collant : classe à poser sur le conteneur scrollable (max-height requise) */
+.data-table-container.sticky-header thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* ── Chips de filtres actifs ────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4338ca;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+.chip button {
+  display: inline-flex;
+  border-radius: 9999px;
+  color: #6366f1;
+  transition: color 0.15s ease;
+}
+.chip button:hover {
+  color: #312e81;
+}
+
+/* ── Accessibilité — mouvement réduit (WCAG 2.3.3) ──────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* ── Print styles ───────────────────────────────────────── */

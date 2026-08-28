@@ -11,6 +11,7 @@ vi.mock('../../services/analyticsService', () => ({
     getLoadingSummary: vi.fn(),
     getMonthlyTable: vi.fn(),
     getDashboard: vi.fn(),
+    getDSMSummary: vi.fn(async () => ({ data: null })),
   },
 }));
 
@@ -63,7 +64,7 @@ describe('SuiviVentesPage', () => {
     await waitFor(() => expect(screen.getByText('Objectifs de vente')).toBeInTheDocument());
 
     // En-têtes de sections présentes
-    expect(screen.getByText('Recettes')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Recettes' })).toBeInTheDocument();
     expect(screen.getByText('Tableau mensuel')).toBeInTheDocument();
     // Recette en FCFA (fichier formaté fr-FR)
     expect(screen.getByText('250 000 FCFA')).toBeInTheDocument();

@@ -85,6 +85,9 @@ vi.mock('./services/posService', () => ({
     getAll: vi.fn(async () => ({
       data: { data: [], pagination: { page: 1, pages: 1, total: 0 } },
     })),
+    getEnriched: vi.fn(async () => ({
+      data: { items: [], page: 1, pages: 1, total: 0 },
+    })),
   },
 }))
 

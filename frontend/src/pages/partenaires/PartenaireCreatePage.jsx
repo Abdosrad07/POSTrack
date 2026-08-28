@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import Alert from '../../components/Common/Alert/Alert'
+import Button from '../../components/Common/Button/Button'
+import PageHeader from '../../components/Common/PageHeader/PageHeader'
+import FormField from '../../components/Common/FormField/FormField'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function PartenaireCreatePage() {
   const navigate = useNavigate()
@@ -11,61 +16,93 @@ export default function PartenaireCreatePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({ nom: '', email: '' })
+
+  const validate = () => {
+    const errs = { nom: '', email: '' }
+    if (!nom.trim()) errs.nom = 'Le nom est obligatoire.'
+    if (!email.trim()) errs.email = "L'email est obligatoire."
+    else if (!EMAIL_REGEX.test(email)) errs.email = 'Adresse email invalide.'
+    setFieldErrors(errs)
+    return !errs.nom && !errs.email
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!validate()) return
     setLoading(true)
+    setError('')
     try {
-      if (!nom.trim() || !email.trim()) {
-        setLoading(false)
-        setError('Le nom et l\'email sont requis.')
-        return
-      }
-      // simple email regex
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(email)) {
-        setLoading(false)
-        setError('Adresse email invalide.')
-        return
-      }
-
       await api.post('/partenaires', { nom, email, telephone })
       setSuccess('Partenaire créé avec succès')
       setTimeout(() => navigate('/partenaires'), 700)
     } catch (err) {
       console.error(err)
       setError('Erreur lors de la création. Veuillez réessayer.')
-      setTimeout(() => navigate('/partenaires'), 700)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Nouveau Partenaire</h1>
-        <p className="mt-1 text-sm text-gray-600">Créez un nouveau partenaire.</p>
-      </div>
-      <form onSubmit={handleSubmit} className="rounded-lg bg-white p-6 shadow-sm">
-        {error && <div className="mb-4"><Alert type="error" message={error} onClose={() => setError('')} /></div>}
-        {success && <div className="mb-4"><Alert type="success" message={success} /></div>}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nom</label>
-            <input value={nom} onChange={(e)=>setNom(e.target.value)} required className="mt-1 block w-full rounded-md border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" required className="mt-1 block w-full rounded-md border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Téléphone</label>
-            <input value={telephone} onChange={(e)=>setTelephone(e.target.value)} className="mt-1 block w-full rounded-md border px-3 py-2" />
-          </div>
-        </div>
-        <div className="mt-4">
-          <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-white">{loading ? 'Enregistrement...' : 'Créer'}</button>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <PageHeader
+        title="Nouveau Partenaire"
+        subtitle="Créez un nouveau partenaire commercial."
+        breadcrumbs={['Espace partenaire', 'Partenaires', 'Nouveau']}
+      />
+
+      {error && <Alert type="error" message={error} onClose={() => setError('')} />}
+      {success && <Alert type="success" message={success} />}
+
+      <form onSubmit={handleSubmit} className="card card-body space-y-5" noValidate>
+        <FormField label="Nom" htmlFor="partner-nom" required error={fieldErrors.nom || undefined}>
+          <input
+            id="partner-nom"
+            value={nom}
+            onChange={(e) => setNom(e.target.value)}
+            aria-invalid={Boolean(fieldErrors.nom)}
+            className="input"
+            placeholder="Ex. ORANGE-CI"
+          />
+        </FormField>
+
+        <FormField label="Email" htmlFor="partner-email" required error={fieldErrors.email || undefined}>
+          <input
+            id="partner-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={Boolean(fieldErrors.email)}
+            className="input"
+            placeholder="contact@partenaire.ci"
+          />
+        </FormField>
+
+        <FormField label="Téléphone" htmlFor="partner-tel">
+          <input
+            id="partner-tel"
+            type="tel"
+            value={telephone}
+            onChange={(e) => setTelephone(e.target.value)}
+            className="input"
+            placeholder="+225 07 00 00 00 00"
+          />
+        </FormField>
+
+        <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-5">
+          <Button variant="secondary" type="button" onClick={() => navigate('/partenaires')}>
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            type="submit"
+            className={loading ? 'btn-loading' : undefined}
+            aria-busy={loading}
+            disabled={loading}
+          >
+            {loading ? 'Enregistrement…' : 'Créer le partenaire'}
+          </Button>
         </div>
       </form>
     </div>

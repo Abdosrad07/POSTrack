@@ -7,6 +7,11 @@ import POSFilters from '../../components/POS/POSFilters';
 import POSTable from '../../components/POS/POSTable';
 import POSMap from '../../components/POS/POSMap';
 import ExportButtons from '../../components/Common/ExportButtons/ExportButtons';
+import PageHeader from '../../components/Common/PageHeader/PageHeader';
+import Button from '../../components/Common/Button/Button';
+import EmptyState from '../../components/Common/EmptyState/EmptyState';
+import ErrorState from '../../components/Common/ErrorState/ErrorState';
+import Pagination from '../../components/Common/Pagination/Pagination';
 
 /** Colonnes d'export POS — alignées sur le tableau (POSTable). */
 const EXPORT_COLUMNS = [
@@ -135,36 +140,37 @@ export default function POSListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Liste des POS</h1>
-        <button
-          onClick={() => navigate('/pos/new')}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Nouveau POS
-        </button>
-      </div>
+      <PageHeader
+        title="Liste des POS"
+        subtitle="Parc de points de vente du partenaire actif — carte, filtres et suivi."
+        actions={
+          <Button variant="primary" onClick={() => navigate('/pos/new')}>
+            + Nouveau POS
+          </Button>
+        }
+      />
 
       {/* Onglets de catégories v3.4 : Tous | Créés | Reconduits | Liés */}
-      <div className="flex flex-wrap gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+      <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1">
         {categoryCounts.map((cat) => (
           <button
             key={cat.id}
             type="button"
+            aria-pressed={activeCategory === cat.id}
             onClick={() => {
               setActiveCategory(cat.id);
               setSelectedPOS(null);
             }}
-            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
               activeCategory === cat.id
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                ? 'bg-brand-600 text-white shadow-sm'
+                : 'text-slate-500 hover:bg-white hover:text-slate-900'
             }`}
           >
             {cat.label}
             <span
-              className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                activeCategory === cat.id ? 'bg-white/20' : 'bg-gray-200'
+              className={`ml-2 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                activeCategory === cat.id ? 'bg-white/20' : 'bg-slate-200 text-slate-600'
               }`}
             >
               {cat.count}
@@ -176,12 +182,11 @@ export default function POSListPage() {
       <POSFilters partenaires={partenaires} dsms={dsms} onFilter={setFilters} />
 
       {status === 'error' && (
-        <div className="flex items-center justify-between rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
-          <span>{error}</span>
-          <button onClick={() => fetchPOS(pagination.page)} className="font-medium underline">
-            Réessayer
-          </button>
-        </div>
+        <ErrorState
+          title="Erreur de chargement"
+          message={error}
+          onRetry={() => fetchPOS(pagination.page)}
+        />
       )}
 
       {/* Layout responsive : carte au-dessus, tableau en dessous */}
@@ -205,9 +210,12 @@ export default function POSListPage() {
         </div>
 
         {status === 'empty' ? (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500">
-            Aucun POS ne correspond à ces critères.
-          </div>
+          <EmptyState
+            title="Aucun POS trouvé"
+            message="Aucun POS ne correspond à ces critères. Ajustez les filtres ou créez un nouveau point de vente."
+            actionLabel="+ Nouveau POS"
+            onAction={() => navigate('/pos/new')}
+          />
         ) : (
           <POSTable
             rows={rows}
@@ -220,27 +228,12 @@ export default function POSListPage() {
         )}
       </div>
 
-      <Pagination pagination={pagination} onPageChange={fetchPOS} />
-    </div>
-  );
-}
-
-function Pagination({ pagination, onPageChange }) {
-  const { page, pages, total } = pagination;
-  if (pages <= 1) return null;
-
-  return (
-    <div className="flex items-center justify-between text-sm text-gray-500">
-      <span>{total} POS au total</span>
-      <div className="flex gap-1">
-        <button disabled={page <= 1} onClick={() => onPageChange(page - 1)} className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-40">
-          Précédent
-        </button>
-        <span className="px-3 py-1">{page} / {pages}</span>
-        <button disabled={page >= pages} onClick={() => onPageChange(page + 1)} className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-40">
-          Suivant
-        </button>
-      </div>
+      <Pagination
+        page={pagination.page}
+        pageSize={PAGE_SIZE}
+        total={pagination.total}
+        onPageChange={fetchPOS}
+      />
     </div>
   );
 }

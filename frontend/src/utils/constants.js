@@ -48,7 +48,8 @@ export const NAV_ITEMS = [
     id: 'dashboard',
     to: '/dashboard',
     label: 'Dashboard',
-    roles: ROLE_GROUPS.ALL,
+    // Analytique partenaire : pas accessible aux opérationnels (détention POS).
+    roles: ROLE_GROUPS.PARTNER_PORTFOLIO,
     level: NAV_LEVELS.PARTNER,
   },
   {

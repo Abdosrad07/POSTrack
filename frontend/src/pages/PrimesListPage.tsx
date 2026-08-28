@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import ExportButtons from '../components/Common/ExportButtons/ExportButtons'
+import PageHeader from '../components/Common/PageHeader/PageHeader'
+import DataTable from '../components/Common/DataTable/DataTable'
+import StatusPill from '../components/Common/StatusPill/StatusPill'
+import Button from '../components/Common/Button/Button'
 
 type Prime = {
   id: number
@@ -20,6 +24,7 @@ type Prime = {
   pos_nom?: string
   partner_name?: string
   period_code?: string
+  commentaire?: string | null
 }
 
 function PrimesListPage() {
@@ -63,27 +68,85 @@ const EXPORT_COLUMNS = [
   { label: 'Commentaire', value: 'commentaire' },
 ]
 
+/** Colonnes affichées — métadonnées masquées sous les breakpoints. */
+const PRIME_COLUMNS = [
+  {
+    key: 'id',
+    header: 'Réf.',
+    sortValue: (p: Prime) => p.id,
+    render: (p: Prime) => <span className="font-medium text-slate-500">#{p.id}</span>,
+  },
+  {
+    key: 'pos',
+    header: 'POS',
+    render: (p: Prime) => (
+      <div className="min-w-0">
+        <div className="font-medium text-slate-900">
+          {p.pos_nom ?? p.pos?.nom ?? (p.pos_id ? `POS #${p.pos_id}` : `POS #${p.id}`)}
+        </div>
+        {(p.pos_code ?? p.pos?.code_pos) && (
+          <div className="text-xs text-slate-400">{p.pos_code ?? p.pos?.code_pos}</div>
+        )}
+      </div>
+    ),
+  },
+  {
+    key: 'partner',
+    header: 'Partenaire',
+    responsive: 'hidden md:table-cell',
+    render: (p: Prime) => p.partner_name ?? p.partenaire?.nom ?? p.pos?.partenaire?.nom ?? '—',
+  },
+  {
+    key: 'montant',
+    header: 'Montant',
+    align: 'right' as const,
+    sortValue: (p: Prime) => Number(p.montant) || 0,
+    render: (p: Prime) => (
+      <span className="font-semibold tabular-nums">
+        {Number(p.montant).toLocaleString('fr-FR')} FCFA
+      </span>
+    ),
+  },
+  {
+    key: 'date',
+    header: 'Date / Période',
+    render: (p: Prime) => (
+      <div>
+        {(p.created_at ?? p.date_attribution ?? '').slice(0, 10) || '—'}
+        {p.period_code && <div className="text-xs text-slate-400">{p.period_code}</div>}
+      </div>
+    ),
+  },
+  {
+    key: 'statut',
+    header: 'Statut',
+    render: (p: Prime) => <StatusPill status={statutLabel(p.status ?? p.statut)} />,
+  },
+  {
+    key: 'commentaire',
+    header: 'Commentaire',
+    responsive: 'hidden xl:table-cell',
+    render: (p: Prime) => p.commentaire ?? '—',
+  },
+]
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Primes</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Suivi des primes attribuées aux nouveaux POS.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => navigate('/primes/new')}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          + Nouvelle prime
-        </button>
-      </div>
+      <PageHeader
+        title="Primes"
+        subtitle="Suivi des primes attribuées aux nouveaux POS."
+        actions={
+          <Button variant="primary" onClick={() => navigate('/primes/new')}>
+            + Nouvelle prime
+          </Button>
+        }
+      />
 
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
-          <span className="text-sm font-semibold text-gray-900">{primes.length} prime(s)</span>
+      <div className="card overflow-hidden">
+        <div className="card-header flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm font-semibold text-slate-700">
+            {loading ? 'Chargement…' : `${primes.length} prime(s)`}
+          </span>
           <ExportButtons
             rows={primes}
             columns={EXPORT_COLUMNS}
@@ -92,64 +155,15 @@ const EXPORT_COLUMNS = [
             disabled={loading}
           />
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Réf.</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">POS</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Partenaire</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Montant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date / Période</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Commentaire</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">Chargement...</td>
-                </tr>
-              ) : primes.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
-                    Aucune prime enregistrée pour le moment
-                  </td>
-                </tr>
-              ) : (
-                                primes.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-500">#{p.id}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                      {p.pos_nom ?? p.pos?.nom ?? (p.pos_id ? `POS #${p.pos_id}` : `POS #${p.id}`)}
-                      {(p.pos_code ?? p.pos?.code_pos) && (
-                        <div className="text-xs text-gray-500">{p.pos_code ?? p.pos?.code_pos}</div>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {p.partner_name ?? p.partenaire?.nom ?? p.pos?.partenaire?.nom ?? '—'}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {Number(p.montant).toLocaleString('fr-FR')} FCFA
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {(p.created_at ?? p.date_attribution ?? '').slice(0, 10) || '—'}
-                      {p.period_code && (
-                        <div className="text-xs text-gray-400">{p.period_code}</div>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      <span className="inline-flex rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-800">
-                        {statutLabel(p.status ?? p.statut)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{p.commentaire ?? '—'}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={PRIME_COLUMNS}
+          rows={primes}
+          loading={loading}
+          rowKey="id"
+          dense
+          emptyTitle="Aucune prime"
+          emptyMessage="Aucune prime enregistrée pour le moment."
+        />
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import StatusBadge from '../Common/StatusBadge';
+import StatusPill from '../Common/StatusPill/StatusPill';
 
 const TYPE_LABELS = {
   NOUVEAU: 'Créé',
@@ -8,101 +8,123 @@ const TYPE_LABELS = {
   LIE: 'Lié',
 };
 
+const COLS = 12;
+
+/**
+ * Tableau des POS — tri côté serveur (sort_by/order), synchronisé avec la
+ * carte (sélection) et la fiche détail (clic sur la ligne).
+ */
 export default function POSTable({ rows = [], loading = false, sort, onSort, onSelect, selectedId = null }) {
   const navigate = useNavigate();
   const safeRows = Array.isArray(rows) ? rows : [];
 
-  const toggle = (field) => onSort?.(field);
+  /** En-tête triable : clic → bascule serveur asc/desc. */
+  const th = (label, field) => {
+    const active = field && sort?.sort_by === field;
+    return (
+      <th
+        key={label}
+        scope="col"
+        aria-sort={active ? (sort.order === 'asc' ? 'ascending' : 'descending') : undefined}
+        className={field ? 'sortable' : undefined}
+        onClick={field ? () => onSort?.(field) : undefined}
+      >
+        <span className="inline-flex items-center gap-1">
+          {label}
+          {active ? <span aria-hidden="true">{sort.order === 'asc' ? '↑' : '↓'}</span> : null}
+        </span>
+      </th>
+    );
+  };
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-      <table className="min-w-full divide-y divide-gray-200 text-sm">
-        <thead className="bg-gray-50">
+    <div className="data-table-container overflow-x-auto">
+      <table className="data-table">
+        <thead>
           <tr>
-            <Th onClick={() => toggle('code_pos')}>Code POS</Th>
-            <Th onClick={() => toggle('nom')}>Nom</Th>
-            <Th>Type</Th>
-            <Th>Partenaire</Th>
-            <Th>DSM</Th>
-            <Th>Coordonnées</Th>
-            <Th onClick={() => toggle('statut')}>Statut</Th>
-            <Th>Linkage</Th>
-            <Th>Loading</Th>
-            <Th>Sell-out</Th>
-            <Th onClick={() => toggle('date_expiration')}>Expiration</Th>
-            <Th>Actions</Th>
+            {th('Code POS', 'code_pos')}
+            {th('Nom', 'nom')}
+            {th('Type')}
+            {th('Partenaire')}
+            {th('DSM')}
+            {th('Coordonnées')}
+            {th('Statut', 'statut')}
+            {th('Linkage')}
+            {th('Loading')}
+            {th('Sell-out')}
+            {th('Expiration', 'date_expiration')}
+            {th('Actions')}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody>
           {loading ? (
-            <tr><td colSpan={12} className="px-4 py-6 text-center text-gray-400">Chargement...</td></tr>
-          ) : safeRows.length === 0 ? (
-            <tr><td colSpan={12} className="px-4 py-6 text-center text-gray-400">Aucun POS trouvé.</td></tr>
-          ) : (
-            safeRows.map((pos) => (
-              <tr
-                key={pos.id}
-                className={`cursor-pointer transition-colors ${
-                  pos.id === selectedId ? 'bg-sky-50 ring-1 ring-inset ring-sky-300' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  onSelect?.(pos);
-                  navigate(`/pos/${pos.id}`);
-                }}
-              >
-                <td className="px-4 py-3 font-medium text-blue-600">{pos.code_pos}</td>
-                <td className="px-4 py-3">{pos.nom}</td>
-                <td className="px-4 py-3">
-                  <span className={(pos.type_pos ?? pos.type) === 'RECONDUIT' ? 'text-gray-500' : 'font-medium text-emerald-700'}>
-                    {TYPE_LABELS[pos.type_pos ?? pos.type] ?? (pos.type_pos ?? pos.type) ?? '—'}
-                  </span>
-                </td>
-                <td className="px-4 py-3">{pos.partenaire?.nom ?? '—'}</td>
-                <td className="px-4 py-3">{pos.dsm?.nom_complet ?? '—'}</td>
-                <td className="px-4 py-3 text-gray-600">
-                  {pos.latitude != null && pos.longitude != null
-                    ? `${pos.latitude}, ${pos.longitude}`
-                    : pos.coordonnees && pos.coordonnees.latitude != null && pos.coordonnees.longitude != null
-                      ? `${pos.coordonnees.latitude}, ${pos.coordonnees.longitude}`
-                      : 'Aucune'}
-                </td>
-                <td className="px-4 py-3"><StatusBadge statut={pos.statut} /></td>
-                <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                    (pos.linkage_status === 'LINKED' || pos.holder_user_id) 
-                      ? 'bg-emerald-100 text-emerald-800' 
-                      : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {(pos.linkage_status === 'LINKED' || pos.holder_user_id) ? 'Linké' : 'Délinké'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 font-medium text-blue-600">{pos.loading ?? 0}</td>
-                <td className="px-4 py-3 font-medium text-green-600">{pos.sell_out ?? 0}</td>
-                <td className="px-4 py-3">{pos.date_expiration}</td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate(`/pos/${pos.id}/edit`); }}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Modifier
-                  </button>
-                </td>
+            Array.from({ length: 6 }, (_, r) => (
+              <tr key={`skeleton-${r}`} aria-hidden="true">
+                {Array.from({ length: COLS }, (_, c) => (
+                  <td key={c}>
+                    <div
+                      className="skeleton h-3.5 rounded"
+                      style={{ width: `${45 + ((r + c) * 13) % 40}%` }}
+                    />
+                  </td>
+                ))}
               </tr>
             ))
+          ) : safeRows.length === 0 ? (
+            <tr>
+              <td colSpan={COLS} className="text-center text-slate-400">
+                Aucun POS trouvé.
+              </td>
+            </tr>
+          ) : (
+            safeRows.map((pos) => {
+              const linked = pos.linkage_status === 'LINKED' || pos.holder_user_id;
+              const coords =
+                pos.latitude != null && pos.longitude != null
+                  ? `${pos.latitude}, ${pos.longitude}`
+                  : pos.coordonnees?.latitude != null && pos.coordonnees?.longitude != null
+                    ? `${pos.coordonnees.latitude}, ${pos.coordonnees.longitude}`
+                    : 'Aucune';
+              return (
+                <tr
+                  key={pos.id}
+                  className={`${pos.id === selectedId ? 'row-selected' : ''} cursor-pointer`}
+                  onClick={() => {
+                    onSelect?.(pos);
+                    navigate(`/pos/${pos.id}`);
+                  }}
+                >
+                  <td className="whitespace-nowrap font-mono font-semibold text-brand-600">
+                    {pos.code_pos}
+                  </td>
+                  <td className="font-medium text-slate-900">{pos.nom}</td>
+                  <td>{TYPE_LABELS[pos.type_pos ?? pos.type] ?? (pos.type_pos ?? pos.type) ?? '—'}</td>
+                  <td>{pos.partenaire?.nom ?? '—'}</td>
+                  <td>{pos.dsm?.nom_complet ?? '—'}</td>
+                  <td className="whitespace-nowrap text-slate-500">{coords}</td>
+                  <td><StatusPill status={pos.statut} /></td>
+                  <td><StatusPill status={linked ? 'Linké' : 'Délinké'} /></td>
+                  <td className="font-semibold tabular-nums text-brand-600">{pos.loading ?? 0}</td>
+                  <td className="font-semibold tabular-nums text-emerald-600">{pos.sell_out ?? 0}</td>
+                  <td className="whitespace-nowrap">{pos.date_expiration ?? '—'}</td>
+                  <td className="whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/pos/${pos.id}/edit`);
+                      }}
+                      className="font-medium text-brand-600 transition-colors hover:text-brand-800"
+                    >
+                      Modifier
+                    </button>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>
     </div>
-  );
-}
-
-function Th({ children, onClick }) {
-  return (
-    <th
-      onClick={onClick}
-      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 ${onClick ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
-    >
-      {children}
-    </th>
   );
 }

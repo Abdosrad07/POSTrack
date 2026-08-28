@@ -3,7 +3,12 @@ import React from 'react';
 /**
  * En-tête de page standardisé (Module A2).
  */
-const PageHeader = ({ title, subtitle, actions, breadcrumbs }) => {
+const PageHeader = ({
+  title = '',
+  subtitle = '',
+  actions = /** @type {any} */ (null),
+  breadcrumbs = /** @type {any[]} */ ([]),
+}) => {
   return (
     <div className="mb-6">
       {breadcrumbs?.length ? (

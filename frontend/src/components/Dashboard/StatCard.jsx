@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowDownRightIcon, ArrowUpRightIcon } from '@heroicons/react/24/outline';
 
 const ACCENT_CONFIG = {
   default: {
@@ -45,6 +46,12 @@ const ACCENT_CONFIG = {
   },
 };
 
+/**
+ * Carte KPI — design system POSTrack v2.
+ * `trend` : { value: '+12 %', direction: 'up'|'down', positive?: boolean, label?: string }
+ * `positive` (défaut : up=positif, down=négatif) inverse la couleur pour les
+ * indicateurs où une hausse est mauvaise (ex. requêtes ouvertes).
+ */
 const StatCard = ({
   label,
   value,
@@ -53,9 +60,11 @@ const StatCard = ({
   icon = undefined,
   subtitle = '',
   small = false,
+  trend = undefined,
   className = '',
 }) => {
   const config = ACCENT_CONFIG[accent] || ACCENT_CONFIG.default;
+  const trendPositive = trend ? trend.positive ?? trend.direction !== 'down' : true;
 
   if (loading) {
     return (
@@ -93,6 +102,21 @@ const StatCard = ({
             >
               {value ?? '—'}
             </p>
+            {trend && !loading ? (
+              <p
+                className={`mt-1 inline-flex items-center gap-0.5 text-xs font-semibold ${
+                  trendPositive ? 'text-emerald-600' : 'text-red-600'
+                }`}
+              >
+                {trend.direction === 'down' ? (
+                  <ArrowDownRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <ArrowUpRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+                {trend.value}
+                {trend.label ? <span className="ml-0.5 font-medium text-slate-400">{trend.label}</span> : null}
+              </p>
+            ) : null}
             {subtitle && (
               <p className="mt-1 text-xs font-medium text-slate-500">{subtitle}</p>
             )}
