@@ -50,7 +50,7 @@ const StatCard = ({
   value,
   loading = false,
   accent = 'default',
-  icon,
+  icon = undefined,
   subtitle = '',
   small = false,
   className = '',
