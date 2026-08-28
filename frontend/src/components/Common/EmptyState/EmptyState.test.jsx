@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { FunnelIcon } from '@heroicons/react/24/outline'
 import EmptyState from './EmptyState'
 
 describe('EmptyState — Module A2', () => {
@@ -12,7 +13,13 @@ describe('EmptyState — Module A2', () => {
   })
 
   it('affiche les valeurs personnalisées title / message / icon', () => {
-    render(<EmptyState title="Aucun POS" message="Aucun point de vente trouvé." icon="📡" />)
+    render(
+      <EmptyState
+        title="Aucun POS"
+        message="Aucun point de vente trouvé."
+        icon={<FunnelIcon className="h-8 w-8 text-slate-400" aria-hidden="true" />}
+      />
+    )
     expect(screen.getByText('Aucun POS')).toBeInTheDocument()
     expect(screen.getByText('Aucun point de vente trouvé.')).toBeInTheDocument()
   })

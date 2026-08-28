@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { CheckIcon } from '@heroicons/react/24/outline';
 import useAuth from '../../hooks/useAuth';
 import usePartner from '../../hooks/usePartner';
 import { partnerContextService } from '../../services/partnerContextService';
@@ -219,7 +220,14 @@ const SelectPartnerPage = () => {
                                 isSelected ? 'text-brand-600' : 'text-slate-400 group-hover:text-brand-500'
                               }`}
                             >
-                              {isSelected ? '✓ Sélectionné' : 'Sélectionner'}
+                              {isSelected ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <CheckIcon className="h-3 w-3" aria-hidden="true" />
+                                  Sélectionné
+                                </span>
+                              ) : (
+                                'Sélectionner'
+                              )}
                             </span>
                           </button>
                         </li>

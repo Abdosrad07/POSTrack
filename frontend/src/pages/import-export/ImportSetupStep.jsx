@@ -71,7 +71,7 @@ const ImportSetupStep = ({ entityType, setEntityType, file, setFile, onValidate,
           >
             {downloading
               ? 'Téléchargement…'
-              : `⬇️ Télécharger le gabarit Excel officiel (${entityType})`}
+              : `Télécharger le gabarit Excel officiel (${entityType})`}
           </button>
           {templateError && (
             <p className="mt-2 text-xs text-red-600">{templateError}</p>

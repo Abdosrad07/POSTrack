@@ -97,7 +97,6 @@ const AuditLogsPage = () => {
         <EmptyState
           title="Journal d'audit"
           message="Aucune trace d’audit disponible pour le moment."
-          icon="📝"
         />
             ) : null}
 

@@ -7,10 +7,10 @@ import { clearAuthSession } from '../../services/api';
 import Logo from '../../assets/logos/LOGO.jpeg';
 
 const mockAccounts = [
-  { label: 'Admin', username: 'admin', password: 'admin123', icon: '👑' },
-  { label: 'Manager', username: 'manager', password: 'manager123', icon: '📊' },
-  { label: 'Chef opérationnel', username: 'chef', password: 'chef123', icon: '🔧' },
-  { label: 'Opérationnel', username: 'oper', password: 'oper123', icon: '⚙️' },
+  { label: 'Admin', username: 'admin', password: 'admin123' },
+  { label: 'Manager', username: 'manager', password: 'manager123' },
+  { label: 'Chef opérationnel', username: 'chef', password: 'chef123' },
+  { label: 'Opérationnel', username: 'oper', password: 'oper123' },
 ];
 
 const LoginPage = () => {
@@ -175,7 +175,6 @@ const LoginPage = () => {
                         : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-200 hover:bg-brand-50/50 hover:text-brand-600 hover:shadow-sm'
                     }`}
                   >
-                    <span className="text-base">{account.icon}</span>
                     <span>{account.label}</span>
                   </button>
                 ))}

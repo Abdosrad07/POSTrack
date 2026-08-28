@@ -111,7 +111,7 @@ export default function CarteBTS({ btsList = [], selectedId = null, onSelect = (
                         rel="noreferrer"
                         className="mt-2 inline-block text-xs font-medium text-emerald-700 hover:underline"
                       >
-                        📍 Ouvrir dans le planificateur cartographique
+                        Ouvrir dans le planificateur cartographique
                       </a>
                     </div>
                   </Popup>

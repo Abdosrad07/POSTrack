@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import useAuth from '../../hooks/useAuth';
 import usePartner from '../../hooks/usePartner';
 import useNavigationLevel from '../../hooks/useNavigationLevel';
-import { NAV_ITEMS } from '../../utils/constants';
+import { NAV_ITEMS, NAV_LEVELS } from '../../utils/constants';
 import { filterNavByRole } from '../../utils/roles';
 
 /**
@@ -18,7 +19,7 @@ const Sidebar = ({ open = false, onClose }) => {
   const { partner, clearPartner } = usePartner();
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const { level, isPartner, isDsm, isPos } = useNavigationLevel();
+  const { level, isPartner, isDsm, isPos, setLevel } = useNavigationLevel();
 
   const items = useMemo(() => {
     // Filtrer par niveau hiérarchique
@@ -34,8 +35,17 @@ const Sidebar = ({ open = false, onClose }) => {
   };
 
   const handleClearContext = () => {
+    // Quitter le contexte partenaire ramène aussi à la navigation Partenaire.
+    setLevel?.(NAV_LEVELS.PARTNER);
     clearPartner();
     navigate('/');
+    onClose?.();
+  };
+
+  // Retour explicite au niveau Partenaire (bouton « Retour » de la sidebar).
+  const handleBackToPartner = () => {
+    setLevel?.(NAV_LEVELS.PARTNER);
+    navigate('/dashboard');
     onClose?.();
   };
 
@@ -72,6 +82,22 @@ const Sidebar = ({ open = false, onClose }) => {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          {/* Bouton de retour au niveau Partenaire (navigation DSM / POS) */}
+          {!isPartner && (
+            <button
+              type="button"
+              onClick={handleBackToPartner}
+              className={`mb-4 flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+                isDsm
+                  ? 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'
+                  : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+              }`}
+            >
+              <ArrowLeftIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Retour au niveau Partenaire</span>
+            </button>
+          )}
+
           {/* Contexte partenaire actif */}
           {partner && (
             <button
@@ -92,7 +118,14 @@ const Sidebar = ({ open = false, onClose }) => {
               key={item.id}
               to={item.to}
               end={item.end}
-              onClick={onClose}
+              onClick={() => {
+                // Entrée explicite dans un niveau (DSM / POS) : le niveau reste
+                // ensuite actif jusqu'au clic sur le bouton de retour.
+                if (item.enterLevel && setLevel) {
+                  setLevel(item.enterLevel);
+                }
+                onClose?.();
+              }}
               className={({ isActive }) =>
                 `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                   isActive
@@ -122,7 +155,7 @@ const Sidebar = ({ open = false, onClose }) => {
             onClick={handleLogout}
             className="group flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 transition-all hover:border-red-200 hover:bg-red-100 hover:text-red-700 hover:shadow-sm"
           >
-            <span className="transition-transform group-hover:-translate-x-0.5">←</span>
+            <ArrowLeftIcon className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
             Déconnexion
           </button>
         </div>

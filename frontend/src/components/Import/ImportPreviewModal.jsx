@@ -1,4 +1,5 @@
 import React from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import ImportBatchTable from './ImportBatchTable';
 import ErrorReportViewer from './ErrorReportViewer';
 import LoadingSpinner from '../Common/LoadingSpinner/LoadingSpinner';
@@ -69,7 +70,7 @@ const ImportPreviewModal = ({ batch, open, onClose, onConfirm, confirming = fals
             disabled={confirming}
             className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
           >
-            ✕
+            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

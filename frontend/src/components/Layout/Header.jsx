@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 import useAuth from '../../hooks/useAuth';
 import { getRoleLabel } from '../../utils/roles';
 import Button from '../Common/Button/Button';
@@ -31,7 +32,7 @@ const Header = ({ onToggleSidebar }) => {
           onClick={onToggleSidebar}
           aria-label="Ouvrir le menu"
         >
-          <span className="text-lg leading-none">☰</span>
+          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
         </button>
         <Link to="/" className="flex items-center gap-2">
           <img src={Logo} alt="POSTrack" className="h-9 w-9 rounded-lg object-cover" />

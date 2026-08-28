@@ -104,7 +104,7 @@ describe('POSMap', () => {
         <POSMap pos={mockPosList} />
       </MemoryRouter>
     );
-    expect(screen.getByText('⚠️ POS sans coordonnées')).toBeInTheDocument();
+    expect(screen.getByText('POS sans coordonnées')).toBeInTheDocument();
     expect(screen.getByText('POS-004 — POS Invalide')).toBeInTheDocument();
   });
 

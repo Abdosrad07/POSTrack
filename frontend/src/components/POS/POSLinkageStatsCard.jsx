@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import posService from '../../services/posService';
 import usePartner from '../../hooks/usePartner';
+import { CheckBadgeIcon, LinkIcon, LockOpenIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
 const formatInt = (value) => {
   if (value === null || value === undefined) return '0';
@@ -8,10 +9,10 @@ const formatInt = (value) => {
 };
 
 const STAT_CONFIGS = [
-  { key: 'total', label: 'POS créés', bg: 'bg-sky-50/80', border: 'border-sky-100', accent: 'text-sky-600', icon: '📍', sub: (n, r) => `${n} nouveaux + ${r} reconduits` },
-  { key: 'linked', label: 'POS linkés', bg: 'bg-emerald-50/80', border: 'border-emerald-100', accent: 'text-emerald-600', icon: '🔗', sub: () => 'Avec détenteur assigné' },
-  { key: 'unlinked', label: 'POS délinkés', bg: 'bg-amber-50/80', border: 'border-amber-100', accent: 'text-amber-600', icon: '🔓', sub: () => 'Sans détenteur assigné' },
-  { key: 'actifs', label: 'POS actifs', bg: 'bg-indigo-50/80', border: 'border-indigo-100', accent: 'text-indigo-600', icon: '✅', sub: () => 'Statut ACTIF' },
+  { key: 'total', label: 'POS créés', bg: 'bg-sky-50/80', border: 'border-sky-100', accent: 'text-sky-600', Icon: MapPinIcon, sub: (n, r) => `${n} nouveaux + ${r} reconduits` },
+  { key: 'linked', label: 'POS linkés', bg: 'bg-emerald-50/80', border: 'border-emerald-100', accent: 'text-emerald-600', Icon: LinkIcon, sub: () => 'Avec détenteur assigné' },
+  { key: 'unlinked', label: 'POS délinkés', bg: 'bg-amber-50/80', border: 'border-amber-100', accent: 'text-amber-600', Icon: LockOpenIcon, sub: () => 'Sans détenteur assigné' },
+  { key: 'actifs', label: 'POS actifs', bg: 'bg-indigo-50/80', border: 'border-indigo-100', accent: 'text-indigo-600', Icon: CheckBadgeIcon, sub: () => 'Statut ACTIF' },
 ];
 
 const POSLinkageStatsCard = ({ dsmId = null }) => {
@@ -91,7 +92,7 @@ const POSLinkageStatsCard = ({ dsmId = null }) => {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{cfg.label}</span>
-              <span className="text-lg">{cfg.icon}</span>
+              <cfg.Icon className={`h-5 w-5 ${cfg.accent}`} aria-hidden="true" />
             </div>
             <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatInt(values[i])}</div>
             <div className="mt-1 text-xs font-medium text-slate-600">{subs[i]}</div>
@@ -101,7 +102,7 @@ const POSLinkageStatsCard = ({ dsmId = null }) => {
 
       <div className="border-t border-slate-100 px-5 py-3">
         <p className="text-xs text-slate-500">
-          <span className="font-semibold text-slate-600">ℹ️ Distinction linkage :</span>{' '}
+          <span className="font-semibold text-slate-600">Distinction linkage :</span>{' '}
           POS linké = avec détenteur (holder_user_id), POS délinké = sans détenteur.
         </p>
       </div>

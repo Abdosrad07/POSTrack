@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { MagnifyingGlassIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import partenaireService from '../services/partenaireService'
 import ExportButtons from '../components/Common/ExportButtons/ExportButtons'
 
@@ -170,7 +171,7 @@ export default function PartenairesListPage() {
       <div className="card animate-fade-in stagger-1">
         <div className="card-body flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-48">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input
               type="text"
               value={searchTerm}
@@ -195,7 +196,9 @@ export default function PartenairesListPage() {
       {error ? (
         <div className="rounded-xl border border-red-200/60 bg-red-50/50 px-5 py-4 text-sm font-medium text-red-700 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-base">❌</span>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100">
+              <XCircleIcon className="h-5 w-5 text-red-600" aria-hidden="true" />
+            </span>
             {error}
           </div>
         </div>

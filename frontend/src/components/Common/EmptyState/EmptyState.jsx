@@ -1,4 +1,5 @@
 import React from 'react';
+import { InboxIcon } from '@heroicons/react/24/outline';
 import Button from '../Button/Button';
 
 /**
@@ -21,8 +22,8 @@ const EmptyState = ({
           {icon}
         </div>
       ) : (
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-400">
-          📭
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+          <InboxIcon className="h-8 w-8" aria-hidden="true" />
         </div>
       )}
       <h3 className="text-lg font-bold text-slate-800">{title}</h3>

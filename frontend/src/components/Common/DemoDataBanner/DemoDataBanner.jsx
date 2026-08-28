@@ -1,4 +1,5 @@
 import React from 'react';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 /**
  * Bandeau indiquant que les données affichées proviennent du mode démo
@@ -13,7 +14,7 @@ const DemoDataBanner = ({ message, compact = false, className = '' }) => {
       <div
         className={`flex flex-wrap items-center gap-x-2 gap-y-0.5 border-t border-slate-200 bg-slate-50 px-4 py-1.5 text-xs text-slate-600 ${className}`}
       >
-        <span aria-hidden="true">ℹ️</span>
+        <InformationCircleIcon className="h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />
         <span className="font-semibold text-slate-700">Données de démo</span>
         <span>{message || defaultMessage}</span>
       </div>
@@ -23,7 +24,7 @@ const DemoDataBanner = ({ message, compact = false, className = '' }) => {
   return (
     <div className={`rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 ${className}`}>
       <div className="flex items-start gap-3">
-        <span aria-hidden="true" className="text-lg text-slate-500">ℹ️</span>
+        <InformationCircleIcon className="h-5 w-5 shrink-0 text-slate-500" aria-hidden="true" />
         <div className="text-sm text-slate-700">
           <p className="font-semibold">Données de démo</p>
           <p className="mt-0.5 text-xs text-slate-500">{message || defaultMessage}</p>

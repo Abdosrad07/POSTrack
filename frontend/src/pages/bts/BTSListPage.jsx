@@ -246,7 +246,7 @@ export default function BTSListPage() {
                       : 'pointer-events-none bg-slate-200 text-slate-400'
                   }`}
                 >
-                  📍 Ouvrir toutes les BTS dans le planificateur cartographique
+                  Ouvrir toutes les BTS dans le planificateur cartographique
                 </a>
               )
             })()}

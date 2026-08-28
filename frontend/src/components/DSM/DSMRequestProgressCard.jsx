@@ -58,7 +58,7 @@ const DSMRequestProgressCard = ({ data }) => {
 
       {/* Note explicative */}
       <div className="mt-4 rounded-lg bg-blue-50 p-3 text-xs text-blue-800">
-        <strong>ℹ️ Note :</strong> Cette vue présente uniquement les requêtes spécifiques à ce DSM, 
+        <strong>Note :</strong> Cette vue présente uniquement les requêtes spécifiques à ce DSM,
         pas les chiffres globaux du partenaire. La progression est calculée comme : 
         (terminées / total) × 100.
       </div>

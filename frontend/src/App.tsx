@@ -31,6 +31,7 @@ import SalesTargetsPage from './pages/analytics/SalesTargetsPage'
 import PartnerRoute from './routes/PartnerRoute'
 import { AuthProvider } from './context/AuthContext'
 import { PartnerProvider } from './context/PartnerContext'
+import { NavLevelProvider } from './context/NavLevelContext'
 import PartenaireCreatePage from './pages/partenaires/PartenaireCreatePage'
 import POSCreatePage from './pages/pos/POSCreatePage'
 import PrimeCreatePage from './pages/primes/PrimeCreatePage'
@@ -40,7 +41,8 @@ import { ROLE_GROUPS } from './utils/constants'
 function App() {
   return (
     <AuthProvider>
-      <PartnerProvider>
+      <NavLevelProvider>
+        <PartnerProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/select-partner" element={<SelectPartnerPage />} />
@@ -217,7 +219,8 @@ function App() {
             />
           </Route>
         </Routes>
-      </PartnerProvider>
+        </PartnerProvider>
+      </NavLevelProvider>
     </AuthProvider>
   )
 }

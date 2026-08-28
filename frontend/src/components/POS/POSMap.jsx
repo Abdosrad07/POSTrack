@@ -161,7 +161,7 @@ export default function POSMap({ pos = [], selectedId = null, onSelect = () => {
           <div className="absolute top-3 right-3 z-[1000] max-w-xs rounded bg-white/95 border border-red-200 p-3 text-xs shadow-sm">
             <div className="flex items-start space-x-2 mb-1">
               <div className="h-3 w-3 rounded-full bg-red-500" />
-              <div className="font-medium text-red-700">⚠️ POS sans coordonnées</div>
+              <div className="font-medium text-red-700">POS sans coordonnées</div>
             </div>
             <ul className="list-disc list-inside space-y-0.5 text-red-600">
               {invalidPos.slice(0, 5).map((p) => (

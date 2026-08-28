@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   USER: 'user',
   PARTNER_CONTEXT_ID: 'partner_context_id',
   PARTNER_CONTEXT: 'partner_context',
+  NAV_LEVEL: 'nav_level',
 };
 
 /** Rôles applicatifs cible (ADMIN / MANAGER / CHEF_OPERATIONNEL / OPERATIONNEL). */
@@ -56,6 +57,9 @@ export const NAV_ITEMS = [
     label: 'DSM',
     roles: ROLE_GROUPS.OPERATIONS,
     level: NAV_LEVELS.PARTNER,
+    // Entrée explicite dans la navigation DSM : le niveau reste actif
+    // (sidebar DSM) jusqu'au clic sur le bouton de retour.
+    enterLevel: NAV_LEVELS.DSM,
   },
   {
     id: 'pos',
@@ -63,6 +67,8 @@ export const NAV_ITEMS = [
     label: 'Points de vente',
     roles: ROLE_GROUPS.ALL,
     level: NAV_LEVELS.PARTNER,
+    // Entrée explicite dans la navigation POS (même logique que DSM).
+    enterLevel: NAV_LEVELS.POS,
   },
   {
     id: 'bts',

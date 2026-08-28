@@ -251,7 +251,6 @@ const SimsStockPage = () => {
         <EmptyState
           title="Aucune SIM dans l'inventaire"
           message="Aucune carte SIM ne correspond au filtre de statut pour ce partenaire."
-          icon="📶"
         />
       ) : view === 'inventaire' ? (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

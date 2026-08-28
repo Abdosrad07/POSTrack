@@ -74,7 +74,7 @@ export default function DSMPerformanceCard({ performance, loading }) {
       </div>
       <div className="px-5 py-4">
         <div className="mb-3 rounded-lg bg-blue-50 p-2 text-xs text-blue-800">
-          <strong>ℹ️ Note :</strong> Ces indicateurs sont spécifiques à ce DSM, 
+          <strong>Note :</strong> Ces indicateurs sont spécifiques à ce DSM,
           pas les chiffres globaux du partenaire.
         </div>
         
