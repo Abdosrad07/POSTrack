@@ -69,7 +69,7 @@ const LoadingSummaryCard = ({ data, onPeriodChange }) => {
       </div>
 
       <div className="mt-4 text-xs text-slate-500">
-        💡 Pour une analyse détaillée par DSM (incluant sell-out, recettes et objectifs de création/redéploiement), consultez la section "Performances par DSM" ci-dessous.
+        Pour une analyse détaillée par DSM (incluant sell-out, recettes et objectifs de création/redéploiement), consultez la section "Performances par DSM" ci-dessous.
       </div>
     </section>
   );

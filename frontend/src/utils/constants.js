@@ -31,8 +31,16 @@ export const ROLE_GROUPS = {
 };
 
 /**
- * Navigation principale — filtrée par RoleGuard / Sidebar selon le rôle R7.
- * Accès métier (TEAM_DEVELOPMENT §6 + NEW_VERSION).
+ * Types de niveau hiérarchique dans la sidebar.
+ */
+export const NAV_LEVELS = {
+  PARTNER: 'partner',
+  DSM: 'dsm',
+  POS: 'pos',
+};
+
+/**
+ * Navigation principale — filtrée par rôle selon le niveau hiérarchique.
  */
 export const NAV_ITEMS = [
   {
@@ -40,82 +48,172 @@ export const NAV_ITEMS = [
     to: '/dashboard',
     label: 'Dashboard',
     roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'dsm',
     to: '/dsm',
     label: 'DSM',
     roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'pos',
     to: '/pos',
-    label: 'POS créés',
+    label: 'Points de vente',
     roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'bts',
     to: '/bts',
     label: 'BTS',
     roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'ventes',
     to: '/ventes',
     label: 'Suivi des ventes',
     roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'requetes',
     to: '/requetes',
     label: 'Requêtes',
     roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'primes',
     to: '/primes',
     label: 'Primes',
     roles: ROLE_GROUPS.ADMIN_ONLY,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'sims',
     to: '/sims',
     label: 'Stock SIM',
     roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.PARTNER,
   },
   {
-    /* Accueil partenaire : NavLink avec end pour ne pas rester actif
-       sur toutes les routes commençant par « / ». */
     id: 'accueil-partenaire',
     to: '/',
     end: true,
-    label: 'Dashboard partenaire',
+    label: 'Accueil partenaire',
     roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.PARTNER,
   },
-  /* Administration (ADMIN uniquement) */
   {
     id: 'partenaires',
     to: '/partenaires',
     label: 'Partenaires',
     roles: ROLE_GROUPS.ADMIN_ONLY,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'import-export',
     to: '/import-export',
     label: 'Import Excel',
     roles: ROLE_GROUPS.ADMIN_ONLY,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'sales-targets',
     to: '/analytics/sales-targets',
     label: 'Objectifs (admin)',
     roles: ROLE_GROUPS.ADMIN_ONLY,
+    level: NAV_LEVELS.PARTNER,
   },
   {
     id: 'audit',
     to: '/audit',
     label: 'Audit',
     roles: ROLE_GROUPS.ADMIN_ONLY,
+    level: NAV_LEVELS.PARTNER,
+  },
+  /* ── Navigation DSM ── */
+  {
+    id: 'dsm-dashboard',
+    to: '/dsm',
+    label: 'Tableau de bord DSM',
+    roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.DSM,
+    end: true,
+  },
+  {
+    id: 'dsm-pos',
+    to: '/pos',
+    label: 'Points de vente',
+    roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.DSM,
+  },
+  {
+    id: 'dsm-bts',
+    to: '/bts',
+    label: 'BTS',
+    roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.DSM,
+  },
+  {
+    id: 'dsm-ventes',
+    to: '/ventes',
+    label: 'Suivi des ventes',
+    roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.DSM,
+  },
+  {
+    id: 'dsm-requetes',
+    to: '/requetes',
+    label: 'Requêtes',
+    roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.DSM,
+  },
+  {
+    id: 'dsm-sims',
+    to: '/sims',
+    label: 'Stock SIM',
+    roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.DSM,
+  },
+  /* ── Navigation POS ── */
+  {
+    id: 'pos-list',
+    to: '/pos',
+    label: 'Liste POS',
+    roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.POS,
+  },
+  {
+    id: 'pos-bts',
+    to: '/bts',
+    label: 'BTS',
+    roles: ROLE_GROUPS.OPERATIONS,
+    level: NAV_LEVELS.POS,
+  },
+  {
+    id: 'pos-ventes',
+    to: '/ventes',
+    label: 'Suivi des ventes',
+    roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.POS,
+  },
+  {
+    id: 'pos-requetes',
+    to: '/requetes',
+    label: 'Requêtes',
+    roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.POS,
+  },
+  {
+    id: 'pos-sims',
+    to: '/sims',
+    label: 'Stock SIM',
+    roles: ROLE_GROUPS.ALL,
+    level: NAV_LEVELS.POS,
   },
 ];
 

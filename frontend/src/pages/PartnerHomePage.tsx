@@ -7,6 +7,11 @@ import posService from '../services/posService'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 import POSMap from '../components/POS/POSMap'
 import TerritoryMap from '../components/TerritoryMap'
+import ChartCard from '../components/Dashboard/ChartCard'
+import POSDistributionChart from '../components/Dashboard/POSDistributionChart'
+import SaturationChart from '../components/Dashboard/SaturationChart'
+import PrimeChart from '../components/Dashboard/PrimeChart'
+import SIMStockChart from '../components/Dashboard/SIMStockChart'
 
 type Stats = {
   partner_name?: string
@@ -53,14 +58,14 @@ type Identity = {
 }
 
 const features = [
-  { label: 'Dashboard', to: '/dashboard', icon: '📊', desc: "Vue d'ensemble" },
-  { label: 'DSM', to: '/dsm', icon: '👥', desc: 'Directeurs terrain' },
-  { label: 'POS du partenaire', to: '/partenaires/pos', icon: '📍', desc: 'Points de vente' },
-  { label: 'BTS', to: '/bts', icon: '📶', desc: 'Stations' },
-  { label: 'Suivi des ventes', to: '/ventes', icon: '📈', desc: 'Revenus & objectifs' },
-  { label: 'Requêtes', to: '/requetes', icon: '📋', desc: 'Demandes ouvertes' },
-  { label: 'Primes', to: '/primes', icon: '💰', desc: 'Performance' },
-  { label: 'Stock SIM', to: '/sims', icon: '📱', desc: 'Inventaire' },
+  { label: 'Dashboard', to: '/dashboard', desc: "Vue d'ensemble" },
+  { label: 'DSM', to: '/dsm', desc: 'Directeurs terrain' },
+  { label: 'POS du partenaire', to: '/partenaires/pos', desc: 'Points de vente' },
+  { label: 'BTS', to: '/bts', desc: 'Stations' },
+  { label: 'Suivi des ventes', to: '/ventes', desc: 'Revenus & objectifs' },
+  { label: 'Requêtes', to: '/requetes', desc: 'Demandes ouvertes' },
+  { label: 'Primes', to: '/primes', desc: 'Performance' },
+  { label: 'Stock SIM', to: '/sims', desc: 'Inventaire' },
 ]
 
 export default function PartnerHomePage() {
@@ -146,9 +151,7 @@ export default function PartnerHomePage() {
               to={feature.to}
               className="group flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3.5 text-left transition-all duration-200 hover:border-brand-200 hover:bg-brand-50/50 hover:shadow-sm"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-lg shadow-xs transition-transform duration-200 group-hover:scale-110 group-hover:shadow-sm">
-                {feature.icon}
-              </span>
+
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-700 transition-colors">{feature.label}</p>
                 <p className="text-xs text-slate-500">{feature.desc}</p>
@@ -158,61 +161,48 @@ export default function PartnerHomePage() {
         </div>
       </div>
 
-      {/* Analytics + Primes & SIM */}
+      {/* ── Graphiques analytiques ── */}
       <div className="grid gap-6 lg:grid-cols-2 animate-fade-in stagger-3">
-        {/* Analytics overview */}
-        <div className="card overflow-hidden">
-          <div className="card-header">
-            <h2 className="text-lg font-bold text-slate-900">Aperçu analytique</h2>
-          </div>
-          <div className="card-body grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-sky-50/60">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Parc POS</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : stats?.pos_total ?? 0}</p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-emerald-50/60">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">POS actifs</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : (stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}</p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-violet-50/60">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">BTS saturées</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : stats?.bts_saturees ?? 0}</p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-amber-50/60">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Requêtes ouvertes</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : stats?.requetes_ouvertes ?? 0}</p>
-            </div>
-          </div>
-        </div>
+        <ChartCard title="Répartition des POS" subtitle="Distribution par statut">
+          <POSDistributionChart
+            loading={loading}
+            data={[
+              { name: 'Nouveaux', value: stats?.pos_nouveau ?? 0 },
+              { name: 'Reconduits', value: stats?.pos_reconduit ?? 0 },
+              { name: 'Total', value: stats?.pos_total ?? 0 },
+            ]}
+          />
+        </ChartCard>
 
-        {/* Primes & SIM */}
-        <div className="card overflow-hidden">
-          <div className="card-header">
-            <h2 className="text-lg font-bold text-slate-900">Primes &amp; SIM</h2>
-          </div>
-          <div className="card-body grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 transition-colors hover:bg-indigo-50">
-              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Primes en attente</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : stats?.primes_en_attente ?? 0}</p>
-            </div>
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 transition-colors hover:bg-emerald-50">
-              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Primes validées</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : stats?.primes_validees ?? 0}</p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-sky-50/60">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">SIM en stock</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : stats?.sim_en_stock ?? 0}</p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-slate-100">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">SIM assignées</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{loading ? '…' : stats?.sim_assignees ?? 0}</p>
-            </div>
-          </div>
-        </div>
+        <ChartCard title="Saturation BTS" subtitle="Ratio BTS normales vs saturées">
+          <SaturationChart
+            loading={loading}
+            btsTotal={stats?.pos_total ?? 0}
+            btsSaturees={stats?.bts_saturees ?? 0}
+          />
+        </ChartCard>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2 animate-fade-in stagger-4">
+        <ChartCard title="Statut des Primes" subtitle="Validation des primes">
+          <PrimeChart
+            loading={loading}
+            primesEnAttente={stats?.primes_en_attente ?? 0}
+            primesValidees={stats?.primes_validees ?? 0}
+          />
+        </ChartCard>
+
+        <ChartCard title="Stock SIM" subtitle="Inventaire et affectation">
+          <SIMStockChart
+            loading={loading}
+            simEnStock={stats?.sim_en_stock ?? 0}
+            simAssignees={stats?.sim_assignees ?? 0}
+          />
+        </ChartCard>
       </div>
 
       {/* POS Map */}
-      <div className="card overflow-hidden animate-fade-in stagger-4">
+      <div className="card overflow-hidden animate-fade-in stagger-5">
         <div className="card-header flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">Carte géographique POS</h2>
@@ -228,7 +218,7 @@ export default function PartnerHomePage() {
       </div>
 
       {/* Territory Map */}
-      <div className="card overflow-hidden animate-fade-in stagger-5">
+      <div className="card overflow-hidden animate-fade-in stagger-6">
         <div className="card-header flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">Territoire partenaire</h2>

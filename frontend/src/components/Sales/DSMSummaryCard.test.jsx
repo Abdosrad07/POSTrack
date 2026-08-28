@@ -81,7 +81,7 @@ describe('DSMSummaryCard', () => {
 
   it('affiche la note sur les données manquantes', () => {
     render(<DSMSummaryCard data={mockData} />);
-    expect(screen.getByText(/Note:/)).toBeInTheDocument();
+    expect(screen.getByText(/Note/)).toBeInTheDocument();
     expect(screen.getByText(/Les recettes de vente par DSM sont actuellement non disponibles/)).toBeInTheDocument();
   });
 

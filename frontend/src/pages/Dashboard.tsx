@@ -7,6 +7,11 @@ import { getRoleLabel } from '../utils/roles'
 import PartnerIdentityCard from '../components/Partenaires/PartnerIdentityCard'
 import POSLinkageStatsCard from '../components/POS/POSLinkageStatsCard'
 import StatCard from '../components/Dashboard/StatCard'
+import ChartCard from '../components/Dashboard/ChartCard'
+import POSDistributionChart from '../components/Dashboard/POSDistributionChart'
+import SaturationChart from '../components/Dashboard/SaturationChart'
+import PrimeChart from '../components/Dashboard/PrimeChart'
+import SIMStockChart from '../components/Dashboard/SIMStockChart'
 
 type Stats = {
   partner_name?: string
@@ -153,8 +158,8 @@ function Dashboard() {
       {!loading && !partnerContextId ? (
         <div className="glass rounded-2xl border border-amber-200/60 bg-amber-50/50 px-5 py-4 text-sm text-amber-900 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-base">
-              ⚠️
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-sm font-bold text-amber-600">
+              !
             </span>
             <p className="font-medium">Sélectionnez un partenaire pour afficher les statistiques du dashboard.</p>
           </div>
@@ -174,28 +179,28 @@ function Dashboard() {
           label="Parc POS"
           value={loading ? undefined : stats?.pos_total ?? 0}
           loading={loading}
-          icon="📍"
+
         />
         <StatCard
           label="POS actifs"
           value={loading ? undefined : (stats?.pos_nouveau ?? 0) + (stats?.pos_reconduit ?? 0)}
           loading={loading}
           accent="green"
-          icon="✅"
+
         />
         <StatCard
           label="SIM en stock"
           value={loading ? undefined : stats?.sim_en_stock ?? 0}
           loading={loading}
           accent="sky"
-          icon="📱"
+
         />
         <StatCard
           label="Requêtes ouvertes"
           value={loading ? undefined : stats?.requetes_ouvertes ?? 0}
           loading={loading}
           accent="amber"
-          icon="📋"
+
         />
       </div>
 
@@ -206,7 +211,7 @@ function Dashboard() {
           value={loading ? undefined : stats?.bts_saturees ?? 0}
           loading={loading}
           accent="red"
-          icon="📶"
+
           small
         />
         <StatCard
@@ -214,7 +219,7 @@ function Dashboard() {
           value={loading ? undefined : stats?.sim_assignees ?? 0}
           loading={loading}
           accent="indigo"
-          icon="🔗"
+
           small
         />
         <StatCard
@@ -222,7 +227,7 @@ function Dashboard() {
           value={loading ? undefined : stats?.montant_primes_periode ? `${Number(stats.montant_primes_periode).toLocaleString('fr-FR')} FCFA` : '0 FCFA'}
           loading={loading}
           accent="green"
-          icon="💰"
+
           small
         />
       </div>
@@ -233,14 +238,14 @@ function Dashboard() {
           label="POS créés"
           value={loading ? undefined : stats?.pos_nouveau ?? 0}
           loading={loading}
-          icon="🆕"
+
           small
         />
         <StatCard
           label="POS reconduits"
           value={loading ? undefined : stats?.pos_reconduit ?? 0}
           loading={loading}
-          icon="🔄"
+
           small
         />
         <StatCard
@@ -248,20 +253,64 @@ function Dashboard() {
           value={loading ? undefined : stats?.primes_validees ?? 0}
           loading={loading}
           accent="green"
-          icon="✔️"
+
           small
         />
       </div>
 
+      {/* ── Graphiques analytiques ── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 animate-fade-in stagger-5">
+        {/* POS Distribution */}
+        <ChartCard title="Répartition des POS" subtitle="Distribution par statut">
+          <POSDistributionChart
+            loading={loading}
+            data={[
+              { name: 'Nouveaux', value: stats?.pos_nouveau ?? 0 },
+              { name: 'Reconduits', value: stats?.pos_reconduit ?? 0 },
+              { name: 'Total', value: stats?.pos_total ?? 0 },
+            ]}
+          />
+        </ChartCard>
+
+        {/* Saturation BTS */}
+        <ChartCard title="Saturation BTS" subtitle="Ratio BTS normales vs saturées">
+          <SaturationChart
+            loading={loading}
+            btsTotal={(stats?.pos_total ?? 0)}
+            btsSaturees={stats?.bts_saturees ?? 0}
+          />
+        </ChartCard>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 animate-fade-in stagger-6">
+        {/* Primes Donut */}
+        <ChartCard title="Statut des Primes" subtitle="Validation des primes">
+          <PrimeChart
+            loading={loading}
+            primesEnAttente={stats?.primes_en_attente ?? 0}
+            primesValidees={stats?.primes_validees ?? 0}
+          />
+        </ChartCard>
+
+        {/* SIM Stock */}
+        <ChartCard title="Stock SIM" subtitle="Inventaire et affectation">
+          <SIMStockChart
+            loading={loading}
+            simEnStock={stats?.sim_en_stock ?? 0}
+            simAssignees={stats?.sim_assignees ?? 0}
+          />
+        </ChartCard>
+      </div>
+
       {/* POS Linkage stats */}
       {partnerContextId && (
-        <div className="animate-fade-in stagger-5">
+        <div className="animate-fade-in stagger-7">
           <POSLinkageStatsCard />
         </div>
       )}
 
       {/* Recent POS table */}
-      <div className="card overflow-hidden animate-fade-in stagger-6">
+      <div className="card overflow-hidden animate-fade-in stagger-8">
         <div className="card-header flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">POS récents</h2>

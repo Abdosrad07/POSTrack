@@ -7,7 +7,7 @@ const formatValue = (value) => {
 
 const formatPct = (value) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return 'Non renseigné';
-  return `${Math.min(100, Math.max(0, Number(value))).toFixed(1)} %`;
+  return `${new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.min(100, Math.max(0, Number(value))))} %`;
 };
 
 const formatCurrency = (value) => {
@@ -44,7 +44,7 @@ const DSMSummaryCard = ({ data }) => {
             {dsmRows.length === 0 ? (
               <tr>
                 <td colSpan={9} className="px-4 py-6 text-center text-slate-500">
-                  Aucune donnée DSM disponible.
+                  Aucune donnée DSM disponible
                 </td>
               </tr>
             ) : (
@@ -73,7 +73,7 @@ const DSMSummaryCard = ({ data }) => {
       </div>
       
       <div className="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-        <strong>⚠️ Note :</strong> Les recettes de vente par DSM sont actuellement non disponibles. 
+        <strong>Note :</strong> Les recettes de vente par DSM sont actuellement non disponibles. 
         Cette donnée devra être alimentée via import/API futur.
       </div>
     </section>

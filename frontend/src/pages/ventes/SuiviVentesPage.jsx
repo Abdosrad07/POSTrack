@@ -6,6 +6,9 @@ import SalesProgressCard from '../../components/Sales/SalesProgressCard';
 import LoadingSummaryCard from '../../components/Sales/LoadingSummaryCard';
 import MonthlyTableCard from '../../components/Sales/MonthlyTableCard';
 import DSMSummaryCard from '../../components/Sales/DSMSummaryCard';
+import MonthlyTrendChart from '../../components/Sales/MonthlyTrendChart';
+import DSMPerformanceChart from '../../components/Sales/DSMPerformanceChart';
+import ChartCard from '../../components/Dashboard/ChartCard';
 import analyticsService from '../../services/analyticsService';
 import usePartner from '../../hooks/usePartner';
 
@@ -223,16 +226,44 @@ const SuiviVentesPage = () => {
         </div>
         
         <div className="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-          <strong>⚠️ Note importante :</strong> Les recettes de vente (chiffre d'affaires) sont actuellement non disponibles. 
+          <strong>Note :</strong> Les recettes de vente (chiffre d'affaires) sont actuellement non disponibles. 
           Voir <code>RECETTES_DATA_SOURCE.md</code> pour les données source nécessaires. 
           Les primes affichées sont des récompenses, pas le chiffre d'affaires.
         </div>
       </section>
 
+      {/* ── Graphiques analytiques ── */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartCard title="Tendance Sell-out" subtitle="Prévision vs réalisation mensuelle">
+          <MonthlyTrendChart
+            rows={monthlyTable?.sell_out?.rows}
+            title="Sell-out"
+          />
+        </ChartCard>
+        <ChartCard title="Tendance Création" subtitle="Prévision vs réalisation mensuelle">
+          <MonthlyTrendChart
+            rows={monthlyTable?.creation?.rows}
+            title="Création"
+          />
+        </ChartCard>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartCard title="Performance par DSM" subtitle="Objectifs vs réalisations">
+          <DSMPerformanceChart data={dsmSummary} />
+        </ChartCard>
+        <ChartCard title="Tendance Loading" subtitle="Prévision vs réalisation mensuelle">
+          <MonthlyTrendChart
+            rows={monthlyTable?.loading?.rows}
+            title="Loading"
+          />
+        </ChartCard>
+      </div>
+
       {/* Loading + tableau mensuel (composants existants) */}
       <LoadingSummaryCard data={loadingSummary} onPeriodChange={setLoadingPeriod} />
       
-      {/* Performances par DSM (nouveau composant) */}
+      {/* Performances par DSM (tableau détaillé) */}
       <DSMSummaryCard data={dsmSummary} />
       
       <MonthlyTableCard data={monthlyTable} />
