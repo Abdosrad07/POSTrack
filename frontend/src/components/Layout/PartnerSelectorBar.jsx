@@ -6,9 +6,7 @@ import DemoDataBanner from '../Common/DemoDataBanner/DemoDataBanner';
 import { envFlag } from '../../utils/envFlags';
 
 /**
- * Barre de contexte partenaire actif.
- * Pour le nouveau modèle, le changement de contexte reste géré via
- * la sélection hiérarchique dans la sidebar.
+ * Barre de contexte partenaire actif — design system polish.
  */
 const PartnerSelectorBar = () => {
   const { partner, partnerContextId, hasPartner } = usePartner();
@@ -22,18 +20,18 @@ const PartnerSelectorBar = () => {
     .join(' · ');
 
   return (
-    <div className="border-b border-sky-100 bg-sky-50">
-      <div className="flex flex-col gap-2 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between md:pl-72">
+    <div className="glass-strong border-b border-indigo-100/60">
+      <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:pl-72">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-brand-500">
             Contexte partenaire
           </p>
-          <p className="truncate text-sm font-semibold text-slate-900">{name}</p>
+          <p className="truncate text-sm font-bold text-slate-900">{name}</p>
           {meta ? <p className="truncate text-xs text-slate-500">{meta}</p> : null}
         </div>
         <Button
           type="button"
-          variant="indigo"
+          variant="primary"
           className="shrink-0 text-sm"
           onClick={() => navigate('/select-partner')}
         >

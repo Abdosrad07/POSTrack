@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '../Button/Button';
 
 /**
- * État vide réutilisable (Module A2).
+ * État vide réutilisable — design system polish.
  */
 const EmptyState = ({
   title = 'Aucune donnée',
@@ -15,13 +15,23 @@ const EmptyState = ({
   const body = description || message;
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
-      {icon ? <div className="mb-4 text-4xl text-slate-400">{icon}</div> : null}
-      <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-      {body ? <p className="mt-2 max-w-md text-sm text-slate-500">{body}</p> : null}
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-gradient-to-b from-slate-50/80 to-white px-6 py-14 text-center animate-fade-in">
+      {icon ? (
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl">
+          {icon}
+        </div>
+      ) : (
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-400">
+          📭
+        </div>
+      )}
+      <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+      {body ? (
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-500">{body}</p>
+      ) : null}
       {actionLabel && onAction ? (
         <div className="mt-6">
-          <Button type="button" variant="indigo" onClick={onAction}>
+          <Button type="button" variant="primary" onClick={onAction}>
             {actionLabel}
           </Button>
         </div>

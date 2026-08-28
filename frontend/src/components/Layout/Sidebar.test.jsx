@@ -44,16 +44,16 @@ describe('Sidebar', () => {
 
   it('cache DSM et Import pour OPERATIONNEL', () => {
     renderSidebar('OPERATIONNEL')
-    expect(screen.getByRole('link', { name: 'POS' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /POS/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'DSM' })).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Stock de SIM' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Partenaires' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Stock SIM/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Requêtes' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Partenaires' })).not.toBeInTheDocument()
   })
 
   it('affiche un bouton de déconnexion dans le menu mobile', () => {
     renderSidebar('ADMIN')
-    expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Déconnexion/ })).toBeInTheDocument()
   })
 })

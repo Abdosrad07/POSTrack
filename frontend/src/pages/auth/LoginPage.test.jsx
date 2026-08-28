@@ -79,11 +79,11 @@ describe('LoginPage', () => {
       </AuthContext.Provider>
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Admin' }))
+    fireEvent.click(screen.getByRole('button', { name: /Admin/ }))
     expect(screen.getByDisplayValue('admin')).toBeInTheDocument()
     expect(screen.getByDisplayValue('admin123')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
+    fireEvent.click(screen.getByRole('button', { name: /Se connecter/ }))
 
     await waitFor(() => {
       expect(login).toHaveBeenCalledWith({ username: 'admin', password: 'admin123' })

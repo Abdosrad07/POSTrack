@@ -33,8 +33,6 @@ const SelectPartnerPage = () => {
         if (cancelled) return;
         setPartners(list);
 
-        // Auto-sélection si un seul partenaire est autorisé ou si aucun contexte
-        // n'a encore été stocké et qu'un partenaire valide existe.
         if ((list.length === 1 || (!hasPartner && list.length > 0)) && list[0]) {
           setPartner(list[0]);
           setSelectedId(list[0].id);
@@ -62,14 +60,15 @@ const SelectPartnerPage = () => {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100">
-        <p className="text-slate-600">Chargement...</p>
+      <div className="flex min-h-screen items-center justify-center bg-mesh-pattern">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+          <p className="text-sm font-medium text-slate-500">Chargement…</p>
+        </div>
       </div>
     );
   }
 
-  // Site protégé : sans session valide, ne pas interroger les APIs protégées
-  // (le backend répondrait « Jeton d'authentification manquant. »).
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -92,99 +91,161 @@ const SelectPartnerPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-sky-50 to-slate-200 px-4 py-12">
-      <div className="w-full max-w-2xl space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <img src={Logo} alt="POSTrack logo" className="h-8 w-auto" />
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">Sélection du partenaire</h1>
-            <p className="mt-2 text-sm text-slate-600">
-              Choisissez le contexte partenaire avant d&apos;accéder aux modules métier.
-            </p>
-          </div>
-          <Button type="button" variant="gray" onClick={handleLogout}>
-            Déconnexion
-          </Button>
-        </div>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-mesh-pattern px-4 py-12">
+      {/* Background orbs */}
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-brand-400/10 blur-3xl" />
 
-        {user && (
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            Connecté en tant que{' '}
-            <span className="font-medium">{user.nom_complet || user.full_name || user.email}</span>
-            {user.role && (
-              <>
-                {' '}
-                — <span className="font-medium">{ROLE_LABELS[user.role] || user.role}</span>
-              </>
-            )}
-          </div>
-        )}
-
-        {hasPartner && partner && (
-          <Alert
-            type="info"
-            message={`Contexte actuel : ${partner.nom || partner.code_partenaire || partner.id}. Vous pouvez en choisir un autre.`}
-          />
-        )}
-
-        {error && <Alert type="error" message={error} />}
-
-        {(partners.some((p) => p.__mock) || partner?.__mock) && !envFlag(import.meta.env.VITE_DISABLE_DEMO_BANNER) && (
-          <DemoDataBanner message="Mode de démonstration activé : les partenaires affichés sont des exemples temporaires." />
-        )}
-
-        {loading ? (
-          <div className="py-12 text-center text-slate-500">Chargement des partenaires...</div>
-        ) : partners.filter((item) => item?.id && (item?.nom || item?.name || item?.code_partenaire || item?.code)).length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 py-12 text-center text-slate-500">
-            Aucun partenaire autorisé pour ce compte.
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <ul className="space-y-3">
-              {partners
-                .filter((item) => item?.id && (item?.nom || item?.name || item?.code_partenaire || item?.code))
-                .map((item) => {
-                  const partnerName = item.nom || item.name || item.raison_sociale || `Partenaire #${item.id}`;
-                  const partnerCode = item.code_partenaire || item.code || '';
-
-                  return (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        onClick={() => handleSelect(item)}
-                        disabled={selectingId === item.id}
-                        className={`flex w-full items-center justify-between rounded-xl border px-4 py-4 text-left transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${selectedId === item.id ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white hover:border-sky-400 hover:bg-sky-50'}`}
-                      >
-                        <div>
-                          <p className="font-semibold text-slate-900">{partnerName}</p>
-                          <p className="mt-1 text-sm text-slate-500">
-                            {partnerCode}
-                            {item.ville ? ` · ${item.ville}` : ''}
-                            {item.region ? ` · ${item.region}` : ''}
-                          </p>
-                        </div>
-                        <span className="text-sm font-medium text-sky-700">
-                          {selectedId === item.id ? 'Sélectionné' : 'Sélectionner'}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-            </ul>
-
-            <div className="flex justify-end">
-              <Button
+      <div className="relative z-10 w-full max-w-2xl animate-fade-in-scale">
+        <div className="glass-strong overflow-hidden rounded-3xl border border-white/60 shadow-xl">
+          {/* Header */}
+          <div className="bg-gradient-brand relative overflow-hidden px-8 pb-6 pt-8">
+            <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
+            <div className="relative flex items-start justify-between gap-4">
+              <div>
+                <img src={Logo} alt="POSTrack" className="h-8 w-auto rounded-lg opacity-90" />
+                <h1 className="mt-3 text-2xl font-extrabold text-white">Sélection du partenaire</h1>
+                <p className="mt-1 text-sm font-medium text-indigo-100">
+                  Choisissez le contexte avant d&apos;accéder aux modules métier.
+                </p>
+              </div>
+              <button
                 type="button"
-                variant="green"
-                onClick={handleConfirmSelection}
-                disabled={!selectedId}
+                onClick={handleLogout}
+                className="shrink-0 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
               >
-                Continuer
-              </Button>
+                Déconnexion
+              </button>
             </div>
           </div>
-        )}
+
+          {/* Body */}
+          <div className="px-8 py-6">
+            {user && (
+              <div className="mb-5 flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
+                  {(user.nom_complet || user.full_name || user.email || '?')[0]?.toUpperCase()}
+                </span>
+                <p className="text-slate-700">
+                  Connecté en tant que{' '}
+                  <span className="font-semibold text-slate-900">
+                    {user.nom_complet || user.full_name || user.email}
+                  </span>
+                  {user.role && (
+                    <>
+                      {' '}&mdash;{' '}
+                      <span className="inline-flex rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">
+                        {ROLE_LABELS[user.role] || user.role}
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {hasPartner && partner && (
+              <div className="mb-5">
+                <Alert
+                  type="info"
+                  message={`Contexte actuel : ${partner.nom || partner.code_partenaire || partner.id}. Vous pouvez en choisir un autre.`}
+                />
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-5">
+                <Alert type="error" message={error} />
+              </div>
+            )}
+
+            {(partners.some((p) => p.__mock) || partner?.__mock) && !envFlag(import.meta.env.VITE_DISABLE_DEMO_BANNER) && (
+              <div className="mb-5">
+                <DemoDataBanner message="Mode de démonstration activé : les partenaires affichés sont des exemples temporaires." />
+              </div>
+            )}
+
+            {loading ? (
+              <div className="py-12 text-center">
+                <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+                <p className="mt-3 text-sm text-slate-500">Chargement des partenaires…</p>
+              </div>
+            ) : partners.filter((item) => item?.id && (item?.nom || item?.name || item?.code_partenaire || item?.code)).length === 0 ? (
+              <div className="py-12 text-center text-sm text-slate-400">
+                Aucun partenaire autorisé pour ce compte.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <ul className="space-y-2.5">
+                  {partners
+                    .filter((item) => item?.id && (item?.nom || item?.name || item?.code_partenaire || item?.code))
+                    .map((item) => {
+                      const partnerName = item.nom || item.name || item.raison_sociale || `Partenaire #${item.id}`;
+                      const partnerCode = item.code_partenaire || item.code || '';
+                      const isSelected = selectedId === item.id;
+
+                      return (
+                        <li key={item.id}>
+                          <button
+                            type="button"
+                            onClick={() => handleSelect(item)}
+                            disabled={selectingId === item.id}
+                            className={`group flex w-full items-center gap-4 rounded-xl border px-4 py-4 text-left transition-all duration-200 ${
+                              isSelected
+                                ? 'border-brand-300 bg-brand-50/80 shadow-sm shadow-brand-500/5'
+                                : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/30 hover:shadow-sm'
+                            }`}
+                          >
+                            <div
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base font-bold transition-all duration-200 ${
+                                isSelected
+                                  ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25'
+                                  : 'bg-slate-100 text-slate-500 group-hover:bg-brand-100 group-hover:text-brand-600'
+                              }`}
+                            >
+                              {partnerName[0]?.toUpperCase() || '?'}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className={`font-semibold transition-colors ${isSelected ? 'text-brand-700' : 'text-slate-900'}`}>
+                                {partnerName}
+                              </p>
+                              <p className="mt-0.5 text-xs text-slate-500">
+                                {partnerCode}
+                                {item.ville ? ` · ${item.ville}` : ''}
+                                {item.region ? ` · ${item.region}` : ''}
+                              </p>
+                            </div>
+                            <span
+                              className={`text-xs font-semibold transition-colors ${
+                                isSelected ? 'text-brand-600' : 'text-slate-400 group-hover:text-brand-500'
+                              }`}
+                            >
+                              {isSelected ? '✓ Sélectionné' : 'Sélectionner'}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                </ul>
+
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="success"
+                    onClick={handleConfirmSelection}
+                    disabled={!selectedId}
+                    className="px-6"
+                  >
+                    Continuer
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-slate-400">
+          POSTrack · Gestion de la chaîne Partenaire → DSM → BTS → POS
+        </p>
       </div>
     </div>
   );

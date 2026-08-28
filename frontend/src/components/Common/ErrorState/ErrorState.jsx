@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '../Button/Button';
 
 /**
- * État d'erreur réutilisable (Module A2).
+ * État d'erreur réutilisable — design system polish.
  */
 const ErrorState = ({
   title = 'Une erreur est survenue',
@@ -11,15 +11,15 @@ const ErrorState = ({
   retryLabel = 'Réessayer',
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-xl font-bold text-red-600">
-        !
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200/60 bg-gradient-to-b from-red-50/80 to-white px-6 py-14 text-center animate-fade-in">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-2xl font-bold text-red-500">
+        ⚠️
       </div>
-      <h3 className="text-lg font-semibold text-red-900">{title}</h3>
-      <p className="mt-2 max-w-md text-sm text-red-700">{message}</p>
+      <h3 className="text-lg font-bold text-red-900">{title}</h3>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-red-600">{message}</p>
       {onRetry && (
         <div className="mt-6">
-          <Button type="button" variant="red" onClick={onRetry}>
+          <Button type="button" variant="danger" onClick={onRetry}>
             {retryLabel}
           </Button>
         </div>
